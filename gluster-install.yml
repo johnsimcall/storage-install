@@ -137,7 +137,6 @@
 
   - name: Install Samba
     yum:
-      #name: "@^RH-Gluster-Samba-Server"
       name: "{{ item }}"
       state: latest
     with_items:
@@ -146,7 +145,6 @@
 
   - name: Install AD Integration
     yum:
-      #name: "@^RH-Gluster-AD-Integration"
       name: "{{ item }}"
       state: latest
     with_items:
