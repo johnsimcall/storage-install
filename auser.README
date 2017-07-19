@@ -1,3 +1,0 @@
-auser = AnsibleUSER
-used by ceph-prereqs playbook
--jcall and mflannery created this

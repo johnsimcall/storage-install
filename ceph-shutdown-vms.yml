@@ -1,26 +1,28 @@
 # file: ceph-shutdown-vms.yml
 #
 # prerequisites:
-# $ sudo dnf install python-devel libxml2-devel
-# $ sudo pip install --upgrade ovirt-engine-sdk-python
+# $ sudo yum --enablerepo=rhel-7-server-rhv-4.1-rpms install python-ovirt-engine-sdk4
 #
 # execution:
-# $ ansible-playbook ceph-shutdown-vms.yml --ask-vault-pass -e vmState=running
+# $ ansible-playbook ceph-shutdown-vms.yml --ask-vault-pass -e vmState=absent
 
 ---
 - hosts: localhost
   gather_facts: no
   vars_files:
     - rhvm-vault.yml
-    - ceph-make-vms-vars.yml
+    - ceph-make-vms-vars-mike.yml
 
-  vars:
-    vmState: stopped
+  vars_prompt:
+    - name: "vmState"
+      prompt: "stopped or absent?"
+      default: "stopped"
+      private: no
 
   tasks:
     - name: Login to RHV
       ovirt_auth:
-        url: https://rhvm.home.lab/ovirt-engine/api
+        url: "{{ rhvurl }}"
         insecure: yes
         username: "{{ rhvuser }}"
         password: "{{ rhvpass }}"
