@@ -1,0 +1,13 @@
+# file: roles/add-user/tasks/main.yml
+
+---
+- name: Create users
+  user:
+    name: "{{ item }}"
+  with_items: "{{ users }}"
+
+- name: Install sudoers.d files
+  template:
+    src: sudoers.j2
+    dest: /etc/sudoers.d/{{ item }}
+  with_items: "{{ users }}"

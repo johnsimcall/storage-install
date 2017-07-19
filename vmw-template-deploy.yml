@@ -1,0 +1,7 @@
+---
+- hosts: localhost
+  gather_facts: no
+  vars_files:
+  - vmware-vault.yml
+  roles:
+    - vmw-template-deploy

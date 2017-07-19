@@ -1,0 +1,23 @@
+# file: roles/vmw-template-deploy/tasks/main.yml
+# http://docs.ansible.com/ansible/vsphere_guest_module.html
+
+# Deploy a guest from a template
+---
+- name: Deploy "{{ vmName }}" from "{{ templateName }}"
+
+  vars:
+    vmName: ansible00
+    templateName: rhel7-template
+    vcAddr: vcenter.home.lab
+
+  vsphere_guest:
+    vcenter_hostname: "{{ vcAddr }}"
+    validate_certs: no
+    username: "{{ vmwareUser }}"
+    password: "{{ vmwarePass }}"
+    guest: "{{ vmName }}"
+    from_template: yes
+    template_src: "{{ templateName }}"
+    esxi:
+      datacenter: "Home Lab"
+      hostname: "blade01.home.lab"

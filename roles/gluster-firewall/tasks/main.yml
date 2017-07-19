@@ -1,0 +1,26 @@
+# file: roles/gluster-firewall/tasks/main.yml
+
+---
+- name: Put SELinux in Permissive mode
+  selinux:
+    policy: targeted
+    state: permissive
+
+- name: Firewalld allow gluster and samba services
+  firewalld:
+    zone: public
+    state: enabled
+    service: "{{ item }}"
+    permanent: true
+    immediate: true
+  with_items:
+    - glusterfs
+    - samba
+
+- name: Punch one extra hole in firewalld for ctdb
+  firewalld:
+    zone: public
+    state: enabled
+    port: 4379/tcp
+    permanent: true
+    immediate: true

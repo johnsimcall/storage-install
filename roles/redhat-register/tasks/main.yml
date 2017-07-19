@@ -1,0 +1,44 @@
+# file: roles/redhat-register/tasks/main.yml
+#
+# $ ansible-playbook redhat-register.yml --inventory 192.168.0.99,
+#                                                               ^^^ notice trailing comma
+
+---
+- name: Install SSH public key
+  become: true
+  authorized_key:
+    user: root
+    key: "{{ lookup('file', 'jcall_id_rsa.pub') }}"
+  tags:
+    - ssh_keys
+
+- name: Register with Red Hat
+  redhat_subscription: state=present
+                       username={{ rhsm_user }}
+                       password={{ rhsm_pass }}
+                       autosubscribe=false
+  when: ansible_distribution == "RedHat"
+
+- name: Attach my Employee Subscription (physical)
+  command: subscription-manager attach --pool={{ employee_sku_physical }}
+  when: (ansible_distribution == "RedHat" and ansible_virtualization_role != "guest")
+
+- name: Attach my Employee Subscription (virtual)
+  command: subscription-manager attach --pool={{ employee_sku_virtual }}
+  when: (ansible_distribution == "RedHat" and ansible_virtualization_role == "guest")
+
+- name: Disable all repos
+  command: subscription-manager repos --disable="*"
+  when: ansible_distribution == "RedHat"
+
+- name: Enable repo for RHEL 7
+  command: subscription-manager repos --enable="rhel-7-server-rpms"
+  when: (ansible_distribution == "RedHat" and ansible_distribution_major_version == "7")
+
+- name: Enable repo for RHEL 6
+  command: subscription-manager repos --enable="rhel-6-server-rpms"
+  when: (ansible_distribution == "RedHat" and ansible_distribution_major_version == "6")
+
+- name: Create /var/log/journal directory
+  file: path=/var/log/journal state=directory mode=2755 owner=0 group=190 #root:systemd-journal
+  when: (ansible_distribution == "RedHat" and ansible_distribution_major_version == "7")

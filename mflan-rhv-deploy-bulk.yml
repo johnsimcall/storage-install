@@ -1,0 +1,47 @@
+# file: mflan-rhv-deploy-bulk.yml
+#
+# prerequisites:
+# $ sudo dnf install python-devel libxml2-devel
+# $ sudo pip install --upgrade ovirt-engine-sdk-python
+#
+# extra-vars:
+# $ ansible-playbook mflan-rhv-deploy-bulk.yml --ask-vault-pass -e templateName=rhel7.3 -e vmInstanceType=Medium
+
+---
+- hosts: localhost
+  gather_facts: no
+  vars_files:
+  - mflan-rhv-vault.yml
+
+  vars:
+    rhvCluster: Home-Cluster
+    templateName: rhel7.3
+    vmState: present
+    vmInstanceType: Small
+
+  tasks:
+    - name: Login to RHV
+      ovirt_auth:
+        url: "{{ rhvurl }}"
+        insecure: yes
+        username: "{{ rhvuser }}"
+        password: "{{ rhvpass }}"
+
+    - name: Create new "{{ vmName }}" VM from "{{ templateName }}" template
+      ovirt_vms:
+        auth: "{{ ovirt_auth }}"
+        cluster: "{{ rhvCluster }}"
+        template: "{{ templateName }}"
+        state: "{{ vmState }}"
+        name: "{{ item }}"
+        instance_type: "{{ vmInstanceType }}"
+      with_items:
+        - jcall-01
+        - jcall-02
+        - jcall-03
+        - jcall-04
+        
+    - name: Cleanup RHV auth token
+      ovirt_auth:
+        ovirt_auth: "{{ ovirt_auth }}"
+        state: absent

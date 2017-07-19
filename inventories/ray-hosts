@@ -1,0 +1,7 @@
+[clients]
+192.168.1.233
+192.168.1.234
+
+[servers]
+192.168.1.231 role=master
+192.168.1.232 role=master

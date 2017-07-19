@@ -1,0 +1,19 @@
+[all:vars]
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+ansible_ssh_user=root
+ansible_ssh_password=redhat1
+
+[ceph]
+ceph[1:9].cluster.net
+mds1.cluster.net
+rgw1.cluster.net
+
+[gluster]
+gluster[1:4].cluster.net
+gluster[5:6].cluster.net
+gluster-geo[1:2].cluster.net
+
+[misc]
+client.cluster.net
+db2server.cluster.net
+rhsc2.cluster.net

@@ -1,0 +1,9 @@
+# file: add-user.yml
+
+---
+- hosts: all
+  gather_facts: False
+  tasks:
+  - name: Ping check
+    ping:
+

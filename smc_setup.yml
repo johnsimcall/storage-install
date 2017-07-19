@@ -1,0 +1,6 @@
+# file: smc_setup.yml
+
+---
+- hosts: all
+  roles:
+    - smc-firmware-bmc

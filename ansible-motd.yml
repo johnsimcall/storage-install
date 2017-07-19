@@ -1,0 +1,6 @@
+# file: ansible-motd.yml
+
+---
+- hosts: all
+  roles:
+    - ansible-motd

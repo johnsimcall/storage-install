@@ -1,0 +1,32 @@
+# http://docs.ansible.com/ansible/vsphere_guest_module.html
+#
+# prerequisites:
+# $ sudo pip install --upgrade pysphere
+#
+# execution:
+# $ ansible-playbook vmw-template-deploy-single-file.yml
+
+---
+- hosts: localhost
+  gather_facts: no
+
+  vars:
+    vmwareUser: administrator@vsphere.local
+    vmwarePass: passw0rd
+    vmwareCluster: myClusterName
+    templateName: myGoldenTemplate
+    vmName: myNewVM
+    vcAddr: vcenter.home.lab
+
+  tasks:
+    - name: Make new VM "{{ vmName }}" from template "{{ templateName }}"
+      vsphere_guest:
+      vcenter_hostname: "{{ vcAddr }}"
+      validate_certs: no
+      username: "{{ vmwareUser }}"
+      password: "{{ vmwarePass }}"
+      guest: "{{ vmName }}"
+      from_template: yes
+      template_src: "{{ templateName }}"
+      cluster: "{{ vmwareCluster }}"
+        resource_pool: someName

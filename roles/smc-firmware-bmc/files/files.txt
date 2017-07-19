@@ -1,0 +1,28 @@
+.
+├── bin
+│   ├── AlUpdate -> ../firmware/AlUpdate_2.06
+│   └── IPMICFG -> ../IPMICFG/IPMICFG-Linux.x86_64
+├── files.txt
+├── firmware
+│   ├── AlUpdate_2.06
+│   ├── README.txt
+│   ├── X10DRH-iT_REDFISH_X10_340.bin
+│   └── X10SRD-F_REDFISH_X10_345.bin
+├── IPMICFG
+│   ├── GenEvt.dat
+│   ├── IPMICFG-Linux.x86_64
+│   ├── MBType.dat
+│   ├── Menu.dat
+│   ├── MRCCode2.dat
+│   ├── MRCCode.dat
+│   ├── PMBusStatus.dat
+│   ├── README.txt
+│   ├── SpecEvt1.dat
+│   ├── SpecEvt2.dat
+│   ├── SpecEvt3.dat
+│   ├── SpecEvt4.dat
+│   └── SpecEvt5.dat
+├── README.txt
+└── smc.tgz
+
+3 directories, 22 files

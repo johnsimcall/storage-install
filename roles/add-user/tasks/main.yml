@@ -1,0 +1,17 @@
+# file: roles/add-user/tasks/main.yml
+
+---
+- name: Create users
+  user:
+    name: "{{ item.key }}"
+    comment: "{{ item.value.name }}"
+    password: "{{ item.value.password }}"
+    update_password: on_create
+  with_dict: "{{ users }}"
+
+- name: Install sudoers.d files
+  template:
+    src: sudoers.j2
+    dest: /etc/sudoers.d/{{ item.key }}
+  with_dict: "{{ users }}"
+  when: item.value.sudoers|default(false)|bool == true

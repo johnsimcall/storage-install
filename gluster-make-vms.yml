@@ -1,0 +1,97 @@
+# file: gluster-make-vms.yml
+#
+# prerequisites:
+# $ sudo yum --enablerepo=rhel-7-server-rhv-4.1-rpms install python-ovirt-engine-sdk4
+#
+# vm definitions / assumptions:
+#   see gluster-make-vms-vars.yml
+#   All VMs will have two NICs
+#
+# execution:
+# $ ansible-playbook gluster-make-vms.yml --ask-vault-pass
+
+---
+- hosts: localhost
+  gather_facts: no
+  vars_files:
+  - rhvm-vault.yml
+  - gluster-make-vms-vars.yml
+
+  vars:
+    templateName: rhel7-cloud
+    rhvCluster: Basement
+
+  tasks:
+    - name: Login to RHV
+      ovirt_auth:
+        url: https://rhvm.home.lab/ovirt-engine/api
+        insecure: yes
+        username: "{{ rhvuser }}"
+        password: "{{ rhvpass }}"
+
+    - name: Create VMs
+      ovirt_vms:
+        auth: "{{ ovirt_auth }}"
+        cluster: "{{ rhvCluster }}"
+        template: "{{ templateName }}"
+        name: "{{ item.key }}"
+        state: present
+        instance_type: Medium
+        nics:
+          - name: nic1
+            profile_name: ovirtmgmt
+          - name: nic2
+            profile_name: ovirtmgmt
+        # Note: having cloud_init data below causes VM to start as "Run Once"
+        # This is good because it automatically removes the cloud_init ISO
+        # (with clear text passwords) when the VM restarts
+        cloud_init:
+          host_name: "{{ item.key }}.home.lab"
+          user_name: root
+          root_password: passw0rd
+          authorized_ssh_keys: |
+            - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1vfRWODjNpS45BwAD864B1ezqIOb5fxCjnOwsgx/p8QchwWQhIUeC+PAUBI/QJ/nzX2pUOx0erNu8wuQRobOMxmYmsIyeuIIkBSJxffeFm4Cuy0glgkNR5ry90AHabO7bvXoY1q2QJ6sdkMeh2r1b/tx+2KFBOpe6v2HAcBpS+srl/fpdOV0GK2HNC0DsHz/2/me2hQ9gNIBOrb/Y7TJL5GcmbbHeteW4g648w1771El6r+JugmwlJ7/B/Jw5b4StpJmYQq0s1x9TJnqXO1kZGZ1YDrUEF25ZxkLZxmLxwD8hUDVbaeCAjbNQCe5OXc3wl96VvwXsPE2d838DBUTL jcall@home.lab
+          #TODO:dns stuff below doesn't work, using custom_script and runcmd as workaround
+          dns_servers: 192.168.0.99
+          dns_search: home.lab
+          custom_script: |
+            runcmd:
+              - nmcli con modify "System eth0" connection.id eth0 ipv4.dns 192.168.0.99 ipv4.dns-search home.lab
+              - nmcli con modify "System eth1" connection.id eth1
+              - nmcli net off
+              - nmcli net on
+              - yum -y remove cloud-init
+        cloud_init_nics:   # Requires "nmcli net off/on" to apply
+          - nic_name: eth0
+            nic_on_boot: true
+            nic_boot_protocol: static
+            nic_ip_address: "{{ item.value.nic1.ipaddress }}"
+            nic_netmask:    "{{ item.value.nic1.netmask }}"
+            nic_gateway:    "{{ item.value.nic1.gateway }}"
+          - nic_name: eth1
+            nic_on_boot: true
+            nic_boot_protocol: static
+            nic_ip_address: "{{ item.value.nic2.ipaddress }}"
+            nic_netmask:    "{{ item.value.nic2.netmask }}"
+            nic_gateway:    "{{ item.value.nic2.gateway }}"
+        wait: true
+      with_dict: "{{ vms }}" # See ceph-make-vms-vars.yml
+
+    - name: Create and attach disks
+      ovirt_disks:
+        auth: "{{ ovirt_auth }}"
+        vm_name: "{{ item.0.name }}"
+        storage_domain: rhv02-slow
+        name: "{{ item.0.name }}-disk-{{ item.1 }}"
+        size: "{{ disks_size }}"
+        format: cow
+        interface: virtio_scsi
+        wait: true
+      with_subelements:
+          - "{{ disks }}"
+          - id
+
+    - name: Cleanup RHV auth token
+      ovirt_auth:
+        ovirt_auth: "{{ ovirt_auth }}"
+        state: absent

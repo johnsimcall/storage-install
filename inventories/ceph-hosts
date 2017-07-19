@@ -1,0 +1,15 @@
+[mons]
+ceph-mon-1
+ceph-mon-2
+ceph-mon-3
+
+[osds]
+ceph-osd-1
+ceph-osd-2
+ceph-osd-3
+
+[rgws]
+ceph-rgw-1
+
+[gui]
+ceph-gui

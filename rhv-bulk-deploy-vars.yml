@@ -1,0 +1,32 @@
+# Describe each VM
+# Playbook assumes 2 NIC for each VM
+---
+vms:
+  xyz-1:
+    nic1:
+      ipaddress: 192.168.0.
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+    nic2:
+      ipaddress: 192.168.2.
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
+  xyz-2:
+    nic1:
+      ipaddress: 192.168.0.
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+    nic2:
+      ipaddress: 192.168.2.
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
+
+disks_size: 10GiB
+disks:
+  - name: xyz-1
+    id:
+      - 1
+  - name: xyz-2
+    id:
+      - 1
+      - 2

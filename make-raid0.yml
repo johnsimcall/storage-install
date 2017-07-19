@@ -1,0 +1,38 @@
+# file: make-raid0.yml
+# $ ansible-playbook make-raid0.yml
+#
+# DANGER: THIS WILL EAT ALL YOUR DATA
+#
+# Assumes all drives are UGOOD (Unconfigured Good)
+
+---
+- hosts: osds
+  vars:
+    options: "pdcache=off WB NORA"
+  vars_prompt:
+    - prompt: "What is the Controller ID?"
+      name: "controller"
+      default: 0
+      private: no
+    - prompt: "What is the Enclosure ID?"
+      name: "enclosure"
+      default: 8                 #PenguinComputing-8
+      private: no
+    - prompt: "Range of drives, start?"
+      name: "start"
+      default: 0
+      private: no
+    - prompt: "Range of drives, stop?"
+      name: "stop"
+      default: 11
+      private: no
+  tasks:
+    - pause:
+         prompt: |
+           CAUTION!!!  Please confirm data below
+           Controller: {{ controller }} Enclosure: {{ enclosure }} Range: {{ start }}-{{ stop }} Options: {{ options }}
+
+           Press any key to continue, or "Ctrl-C + A" to abort
+
+    - name: Creating a bunch of RAID 0
+      command: storcli /c{{ controller }} add vd each r0 drives={{ enclosure }}:{{ start }}-{{ stop }} {{ options }}

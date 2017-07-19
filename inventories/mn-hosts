@@ -1,0 +1,13 @@
+jcall-tower
+jcall-test
+
+[blue]
+jcall-01
+jcall-02
+
+[green]
+jcall-03
+jcall-04
+
+[all:vars]
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'

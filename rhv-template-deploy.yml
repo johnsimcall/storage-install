@@ -1,0 +1,40 @@
+# file: rhv-template-deploy-new.yml
+#
+# prerequisites:
+# $ sudo yum --enablerepo=rhel-7-server-rhv-4.1-rpms install python-ovirt-engine-sdk4
+#
+# extra-vars:
+# $ ansible-playbook rhv-template-deploy-new.yml --ask-vault-pass -e vmName=CHANGEME -e templateName=CHANGEME
+
+---
+- hosts: localhost
+  gather_facts: no
+  vars_files:
+  - rhv-vault.yml
+
+  vars:
+    vmState: running
+    vmName: CHANGEME
+    templateName: rhel-7-rhv-tmp2
+    rhvCluster: Basement
+
+  tasks:
+    - name: Login to RHV
+      ovirt_auth:
+        url: https://rhvm.home.lab/ovirt-engine/api
+        insecure: yes
+        username: "{{ rhvuser }}"
+        password: "{{ rhvpass }}"
+
+    - name: Create a new VM "{{ vmName }}" from "{{ templateName }}" template
+      ovirt_vms:
+        auth: "{{ ovirt_auth }}"
+        cluster: "{{ rhvCluster }}"
+        name: "{{ vmName }}"
+        state: "{{ vmState }}"
+        template: "{{ templateName }}"
+
+    - name: Cleanup RHV auth token
+      ovirt_auth:
+        ovirt_auth: "{{ ovirt_auth }}"
+        state: absent

@@ -1,0 +1,190 @@
+# file: ceph-preinstall.yml
+# Author: Mike Flannery - Red Hat
+# invocation: ansible-playbook -i hosts ceph-preinstall.yml
+# edit /etc/ansible/hosts to include all ceph rhscs,mon,osds,rgws 
+
+---
+- hosts: all
+  vars: 
+  vars_prompt:
+    - name: "rhsm_username"
+      prompt: "Enter RHN/RHSM Username"
+      private: no
+
+    - name: "rhsm_password"
+      prompt: "Enter RHN/RHSM Password"
+      private: yes
+
+    - name: "poolid"
+      prompt: "Enter Red Hat Pool ID"
+      private: no
+
+  tasks:
+  - name: Register with Red Hat
+    redhat_subscription: state=present
+                         username="{{ rhsm_username }}"
+                         password="{{ rhsm_password }}"
+                         autosubscribe=false
+                         force_register=true
+    ignore_errors: True
+
+  - name: Attach Pool
+    command: subscription-manager attach --pool="{{ poolid }}"
+    ignore_errors: True
+
+  - name: Disable all repos
+    command: subscription-manager repos --disable="*"
+
+  - name: Enable RHEL 7 base repos
+    command: subscription-manager repos --enable=rhel-7-server-rpms
+
+  - name: Install ssh private key
+    copy:
+      content: "{{ lookup('file', '/root/.ssh/id_rsa') }}"
+      dest: /root/.ssh/id_rsa
+      mode: 0600
+      owner: root
+
+  - name: Install ssh public key
+    copy:
+      content: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+      dest: /root/.ssh/id_rsa.pub
+      mode: 0644
+      owner: root
+
+  - name: Set authorized key
+    authorized_key:
+      user: root
+      state: present
+      key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+
+  - name: Install firewalld
+    yum: 
+      name: firewalld
+      state: latest
+
+  - name: Start firewalld
+    systemd:
+      name: firewalld
+      enabled: yes
+      state: started
+
+# Removed because of chrony
+#  - name: Install ntp
+#    yum:
+#      name: ntp
+#      state: present
+#
+#  - name: Start ntpd
+#    systemd:
+#      name: ntpd
+#      enabled: yes
+#      state: started
+
+
+- hosts: mons
+  vars: 
+    ceph_mon_repos:
+      - rhel-7-server-rhceph-2-mon-rpms
+      - rhel-7-server-rhscon-2-agent-rpms
+    firewall_mon_ports:
+      - 6789/tcp
+      - 8002/tcp
+  tasks:
+  - name: Enable repo for Ceph Mons
+    command: subscription-manager repos --enable={{ item }}
+    with_items: "{{ ceph_mon_repos }}"
+
+  - name: Configure MON Firewall
+    firewalld:
+      port: "{{ item }}"
+      permanent: true
+      state: enabled
+    with_items: "{{ firewall_mon_ports }}"
+
+
+- hosts: osds
+  vars:
+    ceph_osd_repos:
+      - rhel-7-server-rhceph-2-osd-rpms
+      - rhel-7-server-rhscon-2-agent-rpms
+
+    firewall_osd_ports:
+      - 6800-7300/tcp
+
+  tasks:
+  - name: Enable repo for Ceph OSDs
+    command: subscription-manager repos --enable={{ item }}
+    with_items: "{{ ceph_osd_repos }}"
+
+  - name: Configure OSD Firewall
+    firewalld:
+      port: "{{ item }}"
+      permanent: true
+      state: enabled
+    with_items: "{{ firewall_osd_ports }}"
+
+
+- hosts: rgws
+  vars:
+    ceph_rgw_repos:
+      - rhel-7-server-rhceph-2-tools-rpms
+    firewall_rgw_ports:
+      - 7480/tcp
+      - 80/tcp
+      - 443/tcp
+
+  tasks:
+  - name: Enable repo for Ceph RGWs
+    command: subscription-manager repos --enable={{ item }}
+    with_items: "{{ ceph_rgw_repos }}"
+
+  - name: Configure RGW Firewall
+    firewalld:
+      port: "{{ item }}"
+      permanent: true
+      state: enabled
+    with_items: "{{ firewall_rgw_ports }}"
+
+  - name: Install RGW
+    yum: 
+      name: ceph-radosgw
+      state: latest
+
+
+- hosts: rhsc2
+  tasks:
+  - name: Enable repo for Ceph RHSC2
+    command: subscription-manager repos --enable={{ item }}
+    with_items:
+      - rhel-7-server-rhscon-2-installer-rpms
+      - rhel-7-server-rhscon-2-main-rpms
+
+  - name: Install RHSC2
+    yum: 
+      name: rhscon-core rhscon-ceph rhscon-ui
+      state: latest
+
+  - name: Configure RHSC2 Firewall (services)
+    firewalld:
+      service: ceph-installer
+      permanent: true
+      immediate: yes
+      state: enabled
+    with_items:
+      - http
+      - https
+      - ceph-installer
+
+  - name: Configure RHSC2 Firewall (ports)
+    firewalld:
+      port: "{{ item }}"
+      permanent: true
+      immediate: yes
+      state: enabled
+    with_items:
+      - 10443/tcp
+      - 8080/tcp
+      - 4505-4506/tcp
+      - 10080/tcp
+      - 2003/tcp

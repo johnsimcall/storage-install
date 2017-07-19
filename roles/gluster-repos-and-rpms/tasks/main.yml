@@ -1,0 +1,39 @@
+# file: roles/gluster-repos-and-rpms/tasks/main.yml
+
+---
+- name: Enable Gluster repos for RHEL 7
+  command: subscription-manager repos --enable={{ item }}
+  with_items: "{{ gluster_repos }}"
+  when: (ansible_distribution == "RedHat" and ansible_distribution_major_version == "7")
+  tags:
+    - repos
+
+- name: Install individual Gluster RPMs
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items: "{{ gluster_rpms }}"
+  when: ansible_distribution == "RedHat"
+  tags:
+    - install
+
+- name: Install Ansible for gdeploy
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - ansible
+    - gdeploy
+  when: role == 'master'
+  tags:
+    - install
+
+# See gluster-repos-and-rpms/vars/main.yml
+# Essentially, I didn't like state: present and would have prefered state: latest
+#
+#- name: Install Gluster RPMs Groups
+#  yum:
+#    name: "{{ item }}"
+#    state: present
+#  with_items: "{{ gluster_rpm_groups }}"
+#  when: ansible_distribution == "RedHat"

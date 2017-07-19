@@ -1,0 +1,48 @@
+# file: storcli-installation.yml
+#
+# execution:
+# $ ansible-playbook storcli-installation.yml --limit osds
+
+---
+- hosts: osds
+  tasks:
+  - name: Create install directory
+    file:
+      path: /root/LSI_storcli
+      state: directory
+
+#  - name: Download storcli
+#    environment:
+#      http_proxy: http://rhclient1:3128 #PenguinComputing
+#      https_proxy: http://rhclient1:3128 #PenguinComputing
+#    get_url:
+#      url: https://docs.broadcom.com/docs-and-downloads/raid-controllers/raid-controllers-common-files/1.21.16_StorCLI.zip
+#      dest: /root/LSI_storcli/1.21.16_StorCLI.zip
+#
+#  - name: Unzip storcli (level 1)
+#    unarchive:
+#      src: /root/LSI_storcli/1.21.16_StorCLI.zip
+#      dest: /root/LSI_storcli/
+
+  - name: Download and unzip storcli (level 1)
+    unarchive:
+      remote_src: true
+      src: https://docs.broadcom.com/docs-and-downloads/raid-controllers/raid-controllers-common-files/1.21.16_StorCLI.zip
+      dest: /root/LSI_storcli/
+
+  - name: Unzip storcli (level 2)
+    unarchive:
+      src: /root/LSI_storcli/versionChangeSet/univ_viva_cli_rel/storcli_All_OS.zip
+      dest: /root/LSI_storcli/
+
+  - name: Install RPM
+    yum:
+      state: present
+      name: /root/LSI_storcli/storcli_All_OS/Linux/storcli-1.21.06-1.noarch.rpm
+
+  - name: Create symlink to /usr/sbin
+    file:
+      state: link
+      src: /opt/MegaRAID/storcli/storcli64
+      dest: /usr/sbin/storcli
+...

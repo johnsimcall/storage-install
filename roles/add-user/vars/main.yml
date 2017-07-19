@@ -1,0 +1,13 @@
+---
+# $ sudo pip install passlib
+# $ python -c "from passlib.hash import sha512_crypt; import getpass; print sha512_crypt.encrypt(getpass.getpass())"
+
+users:
+  jcall:
+    name: John Call
+    password: $6$rounds=656000$NOl9cSlPcwVMs6yb$rFHYi77uEEvxlIwcHnKWTbDlIi02VS5h51PsoSfZppdhadlZBvHojbd.olskbb8SAHKRMIli.SQ20oqKIi0Gc1
+    sudoers: yes
+#  mflanner:
+#    name: Mike Flannery
+#    sudoers: no
+#    password: "!!"

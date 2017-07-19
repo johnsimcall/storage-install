@@ -1,0 +1,41 @@
+# IPMICFG-Linux.x86_64 -fru list | grep "Board Part" | awk -F= '{print $2}' | tr -d [[:space:]]
+# (before awk & tr) | Board Part number (BP)          = X10SRD-F
+# (after  awk & tr) | X10SRD-F
+
+---
+#- name: Upload files to /opt/SMC/...
+#  archive:
+##Consider using archive module to create smc.tgz (used below)
+
+- name: Create /opt/SMC directory
+  file:
+    path: /opt/SMC
+    state: directory
+
+- name: Upload tools/fw archive to /opt/SMC/...
+  unarchive:
+    src: smc.tgz
+    dest: /opt/SMC/
+  tags:
+    upload
+
+- name: Get motherboard part number
+  shell: /opt/SMC/bin/IPMICFG -fru list | grep "Board Part" | awk -F= '{print $2}' | tr -d [[:space:]]
+  register: board_part
+
+- debug:
+    var: board_part.stdout
+
+- name: Find appropriate firmware
+  find:
+    path: /opt/SMC/firmware
+    pattern: "{{ board_part.stdout }}*"
+  register: firmware
+
+- debug:
+    var: firmware.files.0.path
+
+- name: Flash new firmware over KCS interface
+  shell: /opt/SMC/bin/AlUpdate -f "{{ firmware.files.0.path }}" -i kcs -r n
+  tags:
+    flash

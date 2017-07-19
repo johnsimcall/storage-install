@@ -1,0 +1,93 @@
+#In order to populate the "devices" portion of /etc/ansible/hosts for OSD nodes
+#http://stackoverflow.com/questions/10234327/convert-bash-ls-output-to-json-array
+#
+#yum -y install perl-JSON
+#find /dev -name 'sd?' | perl -e 'use JSON; @in=grep(s/\n$//, <>); print encode_json(\@in)."\n";'
+#
+#1 - Install ceph-ansible
+#2 - Setup ansible inventory/hosts file
+#3 - site.yml, group_vars/all.yml, group_vars/osds.yml, group_vars/rgws.yml
+
+---
+- hosts: all
+  gather_facts: False
+  tasks:
+  - name: Create /var/log/journal directory
+    file: path=/var/log/journal state=directory mode=0755
+  - name: Disable all repos
+    command: subscription-manager repos --disable="*"
+    tags:
+      repos
+
+
+- hosts: mons
+  gather_facts: False
+  tasks:
+  - name: Enable MON repos...
+    command: subscription-manager repos --enable rhel-7-server-rpms --enable rhel-7-server-rhceph-2-mon-rpms
+    tags:
+      repos
+
+
+- hosts: osds
+  gather_facts: False
+  tasks:
+  - name: Enable OSD repos...
+    command: subscription-manager repos --enable rhel-7-server-rpms --enable rhel-7-server-rhceph-2-osd-rpms
+    tags:
+      repos
+
+
+- hosts: all
+  gather_facts: no
+  tasks:
+  - name: Configure firewalld
+    firewalld:
+      zone: public
+      state: enabled
+      port: "{{ item }}"
+      permanent: yes
+      immediate: yes
+    with_items:
+      - 6789/tcp      # MON
+      - 6800-7300/tcp # OSD daemon range
+      - 7480/tcp      # RGW default port (usually changed to 80/443)
+      - 8002/tcp      # MON/calamari-lite
+
+  - name: Install Chrony/NTP
+    yum:
+      name: chrony
+      state: latest
+  - name: Enable and start Chrony/NTP
+    systemd:
+      unit: chronyd.service
+      enabled: yes
+      state: started
+
+  - name: Create ansible user
+    user:
+      name: auser
+      comment: "Ansible User"
+      update_password: on_create
+  - name: Install SSH public key (auser.pub) into authorized_keys file
+    authorized_key:
+      user: auser
+      key: "{{ lookup('file', 'auser.pub') }}"
+  - name: Install SSH private key (auser)
+    copy:
+      src: auser
+      dest: /home/auser/.ssh/id_rsa
+      mode: 0600
+      owner: auser
+      group: auser
+  - name: Install SSH public key (auser.pub)
+    copy:
+      src: auser.pub
+      dest: /home/auser/.ssh/id_rsa.pub
+      mode: 0644
+      owner: auser
+      group: auser
+  - name: Create sudoers.d file for ansible user
+    copy:
+      src: auser.sudo
+      dest: /etc/sudoers.d/auser

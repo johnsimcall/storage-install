@@ -1,0 +1,16 @@
+# MASTER PLAYBOOK
+# http://docs.ansible.com/ansible/playbooks_best_practices.html
+#
+# file: redhat-register.yml
+#
+# $ ansible-playbook redhat-register.yml --limit nas
+# $ ansible-playbook redhat-register.yml --inventory 192.168.0.99,
+#                                                    ^^^ notice trailing comma
+# $ ansible-playbook redhat-register.yml --ask-vault-pass -u root -k -i 192.168.0.54, --list-tasks
+
+---
+- hosts: all
+  vars_files:
+  - rhsm-vault.yml
+  roles:
+    - redhat-register

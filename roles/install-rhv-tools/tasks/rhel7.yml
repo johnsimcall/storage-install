@@ -1,0 +1,18 @@
+# file: roles/install-rhv-tools/tasks/rhel7.yml
+
+---
+- name: RHEL7 - Create /var/log/journal directory
+  file: path=/var/log/journal state=directory mode=0755
+
+- name: RHEL7 - Install RHV Guest Agent
+  yum:
+    name: rhevm-guest-agent-common
+    state: latest
+    disablerepo: '*'
+    enablerepo: rhel-7-server-rpms,rhel-7-server-rh-common-rpms
+
+- name: RHEL7 - Enable and start RHV Guest Agent
+  systemd:
+    unit: ovirt-guest-agent.service
+    enabled: yes
+    state: started

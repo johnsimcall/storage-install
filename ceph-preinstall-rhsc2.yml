@@ -1,0 +1,40 @@
+# file: ceph-preinstall-rhcs2.yml
+# Author: Mike Flannery - Red Hat
+# invocation: ansible-playbook -i hosts ceph-preinstall-rhcs2.yml
+# edit /etc/ansible/hosts to include all ceph rhscs,mon,osds,rgws 
+
+---
+#- hosts: rhsc2
+- hosts: ceph-gui
+  tasks:
+#  - name: Enable repo for Ceph RHSC2
+#    command: subscription-manager repos --enable={{ item }}
+#    with_items:
+#      - rhel-7-server-rhscon-2-installer-rpms
+#      - rhel-7-server-rhscon-2-main-rpms
+#  - name: Install RHSC2
+#    yum: 
+#      name: rhscon-core rhscon-ceph rhscon-ui
+#      state: latest
+  - name: Configure RHSC2 Firewall (services)
+    firewalld:
+      service: ceph-installer
+      permanent: true
+      immediate: yes
+      state: enabled
+    with_items:
+      - http
+      - https
+      - ceph-installer
+  - name: Configure RHSC2 Firewall (ports)
+    firewalld:
+      port: "{{ item }}"
+      permanent: true
+      immediate: yes
+      state: enabled
+    with_items:
+      - 10443/tcp
+      - 8080/tcp
+      - 4505-4506/tcp
+      - 10080/tcp
+      - 2003/tcp

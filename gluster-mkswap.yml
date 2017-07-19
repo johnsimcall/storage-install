@@ -1,0 +1,6 @@
+# file: gluster-mkswap.yml
+
+---
+- hosts: all
+  roles:
+    - gluster-mkswap

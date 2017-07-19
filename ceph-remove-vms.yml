@@ -1,0 +1,36 @@
+# file: ceph-remove-vms.yml
+#
+# prerequisites:
+# $ sudo dnf install python-devel libxml2-devel
+# $ sudo pip install --upgrade ovirt-engine-sdk-python
+#
+# execution:
+# $ ansible-playbook ceph-remove-vms.yml --ask-vault-pass
+
+---
+- hosts: localhost
+  gather_facts: no
+  vars_files:
+  - rhvm-vault.yml
+  - ceph-make-vms-vars.yml
+
+  tasks:
+    - name: Login to RHV
+      ovirt_auth:
+        url: https://rhvm.home.lab/ovirt-engine/api
+        insecure: yes
+        username: "{{ rhvuser }}"
+        password: "{{ rhvpass }}"
+
+    - name: Remove VMs
+      ovirt_vms:
+        auth: "{{ ovirt_auth }}"
+        name: "{{ item.key }}"
+        state: absent
+        wait: true
+      with_dict: "{{ vms }}" # See ceph-make-vms-vars.yml
+
+    - name: Cleanup RHV auth token
+      ovirt_auth:
+        ovirt_auth: "{{ ovirt_auth }}"
+        state: absent

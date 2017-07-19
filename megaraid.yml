@@ -1,0 +1,15 @@
+---
+- hosts: all
+  tasks:
+  - name: Create /tmp/SMC directory
+    file:
+      path: /tmp/MSM
+      state: directory
+
+  - name: Download MSM from the internet
+    unarchive:
+      remote_src: yes
+      src: https://docs.broadcom.com/docs-and-downloads/raid-controllers/raid-controllers-common-files/MSM_linux_x64_installer-16.11.00-03.tar.gz
+      dest: /tmp/MSM
+    tags:
+      download

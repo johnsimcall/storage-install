@@ -1,0 +1,193 @@
+# file: gluster-install.yml
+# Author: Mike Flannery - Red Hat
+# invocation: ansible-playbook -i hosts gluster-install.yml
+# edit ansible-gluster/hosts file to include all gluster hosts 
+# in the [gluster] section
+#
+# example: ansible-playbook gluster-install.yml --skip-tags "rhsm"
+---
+- hosts: all
+  vars: 
+    gluster_repos:
+      - rhel-7-server-rpms
+      - rh-gluster-3-for-rhel-7-server-rpms
+      - rh-gluster-3-samba-for-rhel-7-server-rpms
+      - rh-gluster-3-nfs-for-rhel-7-server-rpms
+
+    firewall_services:
+      - glusterfs
+      - nlm
+      - nfs
+      - rpc-bind
+      - high-availability
+      - mountd
+      - rquota
+      - ssh
+      - samba
+      - https
+      - vdsm
+
+    firewall_ports:
+      - 662/tcp
+      - 662/udp
+      - 963/udp
+      - 965/tcp
+      - 5666-5667/tcp
+      - 6010-6012/tcp
+      - 8080/tcp
+      - 24009-24108/tcp
+      - 32803/udp
+      - 32769/udp
+      - 39543/tcp
+      - 55863/tcp
+
+  vars_prompt:
+    - name: "rhsm_username"
+      prompt: "Enter Username"
+      private: no
+
+    - name: "rhsm_password"
+      prompt: "Enter Password"
+      private: yes
+
+    - name: "poolid"
+      prompt: "Enter Red Hat Pool ID"
+      private: no
+
+  tasks:
+  - name: Register with Red Hat
+    redhat_subscription:
+      state: present
+      username: "{{ rhsm_username }}"
+      password: "{{ rhsm_password }}"
+      autosubscribe: false
+      force_register: true
+    ignore_errors: True
+    async: 60
+    poll: 10
+    tags:
+      - rhsm
+
+  - name: Attach Pool
+    command: subscription-manager attach --pool "{{ poolid }}"
+    ignore_errors: True
+    async: 60
+    poll: 10
+    tags:
+      - rhsm
+
+  - name: Disable all repos
+    command: subscription-manager repos --disable "*"
+
+  - name: Enable repo for RHEL 7
+    command: subscription-manager repos --enable {{ item }}
+    with_items: "{{ gluster_repos }}"
+
+  - name: Install ssh private key
+    copy:
+      content: "{{ lookup('file', '/root/.ssh/id_rsa') }}"
+      dest: /root/.ssh/id_rsa
+      mode: 0600
+      owner: root
+    tags:
+      - ssh
+
+  - name: Install ssh public key
+    copy:
+      content: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+      dest: /root/.ssh/id_rsa.pub
+      mode: 0644
+      owner: root
+    tags:
+      - ssh
+
+  - name: Set authorized key
+    authorized_key:
+      user: root
+      state: present
+      key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+    tags:
+      - ssh
+
+  - name: Install firewalld
+    yum: 
+      name: firewalld
+      state: latest
+
+  - name: Start firewalld
+    systemd:
+      name: firewalld
+      enabled: yes
+      state: started
+
+  - name: Install gluster
+    yum:
+      name: redhat-storage-server
+      state: latest
+
+  - name: Install NFS-Ganesha
+    yum:
+      name: glusterfs-ganesha
+      state: latest
+
+  - name: Install gstatus
+    yum:
+      name: gstatus
+      state: latest
+
+  - name: Install Samba
+    yum:
+      #name: "@^RH-Gluster-Samba-Server"
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - samba
+      - samba-client
+
+  - name: Install AD Integration
+    yum:
+      #name: "@^RH-Gluster-AD-Integration"
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - samba-winbind
+      - samba-winbind-clients
+      - samba-winbind-krb5-locator
+      - samba-winbind-modules
+
+  - name: Configure Firewall (services)
+    firewalld:
+      service: "{{ item }}"
+      permanent: true
+      immediate: true
+      state: enabled
+    with_items: "{{ firewall_services }}"
+
+  - name: Configure Firewall (ports)
+    firewalld:
+      port: "{{ item }}"
+      permanent: true
+      immediate: true
+      state: enabled
+    with_items: "{{ firewall_ports }}"
+
+  - name: Start glusterd
+    systemd:
+      name: glusterd
+      enabled: yes
+      state: started
+
+  - name: Install misc packages
+    yum:
+      name: "{{ item }}"
+      state: latest
+      enablerepo: rhel-7-server-extras-rpms
+    with_items:
+      - cockpit
+      - tree
+      - screen
+      - sg3_utils
+      - nfs-utils
+      - ipmitools
+    tags:
+      - misc

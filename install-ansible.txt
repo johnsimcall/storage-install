@@ -1,0 +1,12 @@
+$ sudo yum --enablerepo=rhel-7-server-extras-beta-rpms install ansible
+$ sudo yum --enablerepo=rhel-7-server-openstack-10-rpms install ansible
+$ sudo yum --enablerepo=rh-gluster-3-for-rhel-7-server-rpms install ansible
+$ sudo yum --enablerepo=rhel-7-server-rhscon-2-installer-rpms install ansible
+
+# Try to find the smallest RHSM repo for sourcing ansible
+repo id                                                  repo name                                                                          status
+rhel-7-server-extras-beta-rpms/x86_64                    Red Hat Enterprise Linux 7 Server - Extras Beta (RPMs)                                  9
+rhel-7-server-openstack-10-rpms/7Server/x86_64           Red Hat OpenStack Platform 10 for RHEL 7 (RPMs)                                       988
+rh-gluster-3-for-rhel-7-server-rpms/7Server/x86_64       Red Hat Gluster Storage 3 Server (RPMs)                                               476
+rhel-7-server-rhscon-2-installer-rpms/7Server/x86_64     Red Hat Storage Console Installer for Red Hat Enterprise Linux 7 Server (RPMs)         58
+

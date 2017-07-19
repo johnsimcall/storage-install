@@ -1,0 +1,25 @@
+[gluster]
+psosd1
+psosd2
+#psosd3
+
+[mons]
+ps1
+ps2
+ps3
+
+[osds]
+psosd1
+psosd2
+psosd3
+
+[clients]
+ps6
+ps7
+#ps8 #GUI-jc
+
+[rgws]
+ps4
+
+[mdss]
+ps5

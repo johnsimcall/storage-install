@@ -1,0 +1,50 @@
+# file: install-rhv-tools-onefile.yml
+#
+# $ ansible-playbook install-rhv-tools-onefile.yml --inventory inventories/mflannery-hosts -u root -k
+# $ ansible-playbook install-rhv-tools-onefile.yml -i inventories/mflannery-hosts --limit ceph1.cluster.net -u root -k --check --diff
+
+---
+- hosts: all
+  tasks:
+  - name: Create a group of all hosts by operating system
+    group_by: key={{ansible_distribution}}-{{ansible_distribution_major_version}}
+    # The group_by module above will create groups with names like "RedHat-6" & "RedHat-7"
+
+# the following host groups don't exist in inventory
+# they were created by the group_by module above
+- hosts: RedHat-6
+  gather_facts: False
+  tasks:
+  - name: RHEL6 - Install RHV Guest Agent
+    yum:
+      name: rhevm-guest-agent-common
+      state: latest
+      disablerepo: '*'
+      enablerepo: rhel-6-server-rpms,rhel-6-server-rhev-agent-rpms
+
+  - name: RHEL6 - Enable and start RHV Guest Agent
+    service:
+      name: ovirt-guest-agent
+      enabled: yes
+      state: started
+
+
+
+- hosts: RedHat-7
+  gather_facts: False
+  tasks:
+  - name: RHEL7 - Create /var/log/journal directory
+    file: path=/var/log/journal state=directory mode=0755
+
+  - name: RHEL7 - Install RHV Guest Agent
+    yum:
+      name: rhevm-guest-agent-common
+      state: latest
+      disablerepo: '*'
+      enablerepo: rhel-7-server-rpms,rhel-7-server-rh-common-rpms
+
+  - name: RHEL7 - Enable and start RHV Guest Agent
+    systemd:
+      unit: ovirt-guest-agent.service
+      enabled: yes
+      state: started

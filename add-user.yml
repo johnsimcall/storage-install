@@ -1,0 +1,6 @@
+# file: add-user.yml
+
+---
+- hosts: all
+  roles:
+    - add-user
