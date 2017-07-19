@@ -1,2 +1,12 @@
-# storage-install
-Ansible playbooks to prep Ceph and Gluster environments
+# Simple notes
+
+```
+git add .
+git add filename
+```
+```
+git commit -m "message"
+```
+```
+git commit
+```
