@@ -1,0 +1,8 @@
+rhsm-vault.yml
+rhvm-vault.yml
+vmware-vault.yml
+*.retry
+roles/smc-firmware-bmc/files/smc.tgz
+roles/smc-firmware-bmc/files/bin/*
+roles/smc-firmware-bmc/files/firmware/*
+roles/smc-firmware-bmc/files/IPMICFG/*
