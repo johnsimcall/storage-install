@@ -1,6 +1,0 @@
-# file: gluster-repos-and-rpms.yml
-
----
-- hosts: all
-  roles:
-    - gluster-repos-and-rpms

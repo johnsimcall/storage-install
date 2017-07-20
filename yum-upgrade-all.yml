@@ -1,6 +1,0 @@
-# file: yum-upgrade-all.yml
-
----
-- hosts: all
-  roles:
-    - yum-upgrade-all
