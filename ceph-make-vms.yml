@@ -4,18 +4,18 @@
 # $ sudo yum --enablerepo=rhel-7-server-rhv-4.1-rpms install python-ovirt-engine-sdk4
 #
 # vm definitions / assumptions:
-#   see ceph-make-vms-vars.yml
 #   All VMs will have two NICs
+#   see ceph-{{ ansible_domain }}-vars.yml
 #
 # execution:
 # $ ansible-playbook ceph-make-vms.yml --ask-vault-pass
 
 ---
 - hosts: localhost
-  gather_facts: no
+  gather_facts: yes
   vars_files:
   - rhvm-vault.yml
-  - ceph-make-vms-vars.yml
+  - "ceph-{{ ansible_domain }}-vars.yml"
 
   vars:
     templateName: rhel7-cloud
