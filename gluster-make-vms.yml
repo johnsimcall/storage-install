@@ -12,10 +12,10 @@
 
 ---
 - hosts: localhost
-  gather_facts: no
+  gather_facts: yes
   vars_files:
   - rhvm-vault.yml
-  - gluster-make-vms-vars.yml
+  - "gluster-{{ ansible_domain }}-vars.yml
 
   vars:
     templateName: rhel7-cloud
