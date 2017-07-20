@@ -1,0 +1,112 @@
+# Describe each VM
+# Playbook assumes 2 NIC for each VM
+---
+vms:
+  ceph1:
+    nic1:
+      ipaddress: 192.168.0.101
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+    nic2:
+      ipaddress: 192.168.2.101
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
+  ceph2:
+    nic1:
+      ipaddress: 192.168.0.102
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+    nic2:
+      ipaddress: 192.168.2.102
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
+  ceph3:
+    nic1:
+      ipaddress: 192.168.0.103
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+    nic2:
+      ipaddress: 192.168.2.103
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
+  ceph4:
+    nic1:
+      ipaddress: 192.168.0.104
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+    nic2:
+      ipaddress: 192.168.2.104
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
+  ceph5:
+    nic1:
+      ipaddress: 192.168.0.105
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+    nic2:
+      ipaddress: 192.168.2.105
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
+  ceph6:
+    nic1:
+      ipaddress: 192.168.0.106
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+    nic2:
+      ipaddress: 192.168.2.106
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
+  ceph7:
+    nic1:
+      ipaddress: 192.168.0.108
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+    nic2:
+      ipaddress: 192.168.2.108
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
+  ceph8:
+    nic1:
+      ipaddress: 192.168.0.107
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+    nic2:
+      ipaddress: 192.168.2.107
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
+  ceph9:
+    nic1:
+      ipaddress: 192.168.0.107
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+    nic2:
+      ipaddress: 192.168.2.107
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
+
+disks_size: 10GiB
+disks:
+  - name: ceph-osd-1
+    id:
+      - 1
+      - 2
+      - 3
+  - name: ceph-osd-2
+    id:
+      - 1
+      - 2
+      - 3
+  - name: ceph-osd-3
+    id:
+      - 1
+      - 2
+      - 3
+  - name: ceph-mon-1
+    id:
+      - 1
+  - name: ceph-mon-2
+    id:
+      - 1
+  - name: ceph-mon-3
+    id:
+      - 1

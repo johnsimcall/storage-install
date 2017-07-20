@@ -7,16 +7,11 @@
 # $ ansible-playbook ceph-shutdown-vms.yml --ask-vault-pass -e vmState=absent
 
 ---
-- include: ceph-make-vms-vars-john.yml
-  when: ansible_hostname == "jcall-laptop"
-- include: ceph-make-vms-vars-mike.yml
-  when: (ansible_hostname == "rhvm" or ansible_hostname == "mike-laptop")
-
 - hosts: localhost
-  gather_facts: no
+  gather_facts: yes
   vars_files:
     - rhvm-vault.yml
-#    - ceph-make-vms-vars-mike.yml
+    - "ceph-{{ ansible_domain }}-vars.yml"
 
   vars_prompt:
     - name: "vmState"
