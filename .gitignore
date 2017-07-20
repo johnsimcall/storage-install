@@ -1,6 +1,4 @@
-rhsm-vault.yml
-rhvm-vault.yml
-vmware-vault.yml
+*-vault.yml
 *.retry
 roles/smc-firmware-bmc/files/smc.tgz
 roles/smc-firmware-bmc/files/bin/*
