@@ -78,10 +78,14 @@
 
   - name: Disable all repos
     command: subscription-manager repos --disable "*"
+    tags:
+      - repos
 
   - name: Enable repo for RHEL 7
     command: subscription-manager repos --enable {{ item }}
     with_items: "{{ gluster_repos }}"
+    tags:
+      - repos
 
   - name: Install ssh private key
     copy:
