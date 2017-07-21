@@ -186,6 +186,6 @@
       - screen
       - sg3_utils
       - nfs-utils
-      - ipmitools
+      - ipmitool
     tags:
       - misc
