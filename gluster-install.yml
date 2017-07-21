@@ -43,11 +43,11 @@
 
   vars_prompt:
     - name: "rhsm_username"
-      prompt: "Enter Username"
+      prompt: "Enter RHN/RHSM Username"
       private: no
 
     - name: "rhsm_password"
-      prompt: "Enter Password"
+      prompt: "Enter RHN/RHSM Password"
       private: yes
 
     - name: "poolid"
