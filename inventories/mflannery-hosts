@@ -1,6 +1,10 @@
-[ceph]
-ceph[1:9].cluster.net
-mds1.cluster.net
+[osds]
+ceph[4:9].cluster.net
+
+[mons]
+ceph[1:3].cluster.net
+
+[rgws]
 rgw1.cluster.net
 
 [gluster]

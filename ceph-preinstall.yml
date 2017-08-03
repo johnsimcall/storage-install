@@ -27,10 +27,18 @@
                          autosubscribe=false
                          force_register=true
     ignore_errors: True
+    async: 300
+    poll: 10
+    tags:
+      - rhsm
 
   - name: Attach Pool
     command: subscription-manager attach --pool="{{ poolid }}"
     ignore_errors: True
+    async: 300
+    poll: 10
+    tags:
+      - rhsm
 
   - name: Disable all repos
     command: subscription-manager repos --disable="*"
@@ -38,25 +46,25 @@
   - name: Enable RHEL 7 base repos
     command: subscription-manager repos --enable=rhel-7-server-rpms
 
-  - name: Install ssh private key
-    copy:
-      content: "{{ lookup('file', '/root/.ssh/id_rsa') }}"
-      dest: /root/.ssh/id_rsa
-      mode: 0600
-      owner: root
-
-  - name: Install ssh public key
-    copy:
-      content: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
-      dest: /root/.ssh/id_rsa.pub
-      mode: 0644
-      owner: root
-
-  - name: Set authorized key
-    authorized_key:
-      user: root
-      state: present
-      key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+#  - name: Install ssh private key
+#    copy:
+#      content: "{{ lookup('file', '/root/.ssh/id_rsa') }}"
+#      dest: /root/.ssh/id_rsa
+#      mode: 0600
+#      owner: root
+#
+#  - name: Install ssh public key
+#    copy:
+#      content: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+#      dest: /root/.ssh/id_rsa.pub
+#      mode: 0644
+#      owner: root
+#
+#  - name: Set authorized key
+#    authorized_key:
+#      user: root
+#      state: present
+#      key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
 
   - name: Install firewalld
     yum: 

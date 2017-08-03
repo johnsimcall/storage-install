@@ -2,98 +2,98 @@
 # Playbook assumes 2 NIC for each VM
 ---
 vms:
-  gluster-1:
+  gluster1:
     nic1:
-      ipaddress: 192.168.0.111
+      ipaddress: 192.168.1.241
       netmask:   255.255.255.0
-      gateway:   192.168.0.1
-    nic2:
-      ipaddress: 192.168.2.111
-      netmask:   255.255.255.0
-      gateway:   0.0.0.0
-  gluster-2:
+      gateway:   192.168.1.1
+#    nic2:
+#      ipaddress: 192.168.2.111
+#      netmask:   255.255.255.0
+#      gateway:   0.0.0.0
+  gluster2:
     nic1:
-      ipaddress: 192.168.0.112
+      ipaddress: 192.168.1.242
       netmask:   255.255.255.0
-      gateway:   192.168.0.1
-    nic2:
-      ipaddress: 192.168.2.112
-      netmask:   255.255.255.0
-      gateway:   0.0.0.0
-  gluster-3:
+      gateway:   192.168.1.1
+#    nic2:
+#      ipaddress: 192.168.2.112
+#      netmask:   255.255.255.0
+#      gateway:   0.0.0.0
+  gluster3:
     nic1:
-      ipaddress: 192.168.0.113
+      ipaddress: 192.168.1.243
       netmask:   255.255.255.0
-      gateway:   192.168.0.1
-    nic2:
-      ipaddress: 192.168.2.113
-      netmask:   255.255.255.0
-      gateway:   0.0.0.0
-  gluster-4:
+      gateway:   192.168.1.1
+#    nic2:
+#      ipaddress: 192.168.2.113
+#      netmask:   255.255.255.0
+#      gateway:   0.0.0.0
+  gluster4:
     nic1:
-      ipaddress: 192.168.0.114
+      ipaddress: 192.168.1.244
       netmask:   255.255.255.0
-      gateway:   192.168.0.1
-    nic2:
-      ipaddress: 192.168.2.114
-      netmask:   255.255.255.0
-      gateway:   0.0.0.0
-  gluster-5:
+      gateway:   192.168.1.1
+#    nic2:
+#      ipaddress: 192.168.2.114
+#      netmask:   255.255.255.0
+#      gateway:   0.0.0.0
+  gluster5:
     nic1:
-      ipaddress: 192.168.0.115
+      ipaddress: 192.168.1.245
       netmask:   255.255.255.0
-      gateway:   192.168.0.1
-    nic2:
-      ipaddress: 192.168.2.115
-      netmask:   255.255.255.0
-      gateway:   0.0.0.0
-  gluster-6:
+      gateway:   192.168.1.1
+#    nic2:
+#      ipaddress: 192.168.2.115
+#      netmask:   255.255.255.0
+#      gateway:   0.0.0.0
+  gluster6:
     nic1:
-      ipaddress: 192.168.0.116
+      ipaddress: 192.168.1.246
       netmask:   255.255.255.0
-      gateway:   192.168.0.1
-    nic2:
-      ipaddress: 192.168.2.116
-      netmask:   255.255.255.0
-      gateway:   0.0.0.0
-  gluster-gui:
-    nic1:
-      ipaddress: 192.168.0.117
-      netmask:   255.255.255.0
-      gateway:   192.168.0.1
-    nic2:
-      ipaddress: 192.168.2.117
-      netmask:   255.255.255.0
-      gateway:   0.0.0.0
+      gateway:   192.168.1.1
+#    nic2:
+#      ipaddress: 192.168.2.116
+#      netmask:   255.255.255.0
+#      gateway:   0.0.0.0
+#  gluster-gui:
+#    nic1:
+#      ipaddress: 192.168.0.117
+#      netmask:   255.255.255.0
+#      gateway:   192.168.0.1
+#    nic2:
+#      ipaddress: 192.168.2.117
+#      netmask:   255.255.255.0
+#      gateway:   0.0.0.0
 
 disks_size: 10GiB
 disks:
-  - name: gluster-1
+  - name: gluster1
     id:
       - 1
       - 2
       - 3
-  - name: gluster-2
+  - name: gluster2
     id:
       - 1
       - 2
       - 3
-  - name: gluster-3
+  - name: gluster3
     id:
       - 1
       - 2
       - 3
-  - name: gluster-4
+  - name: gluster4
     id:
       - 1
       - 2
       - 3
-  - name: gluster-5
+  - name: gluster5
     id:
       - 1
       - 2
       - 3
-  - name: gluster-6
+  - name: gluster6
     id:
       - 1
       - 2

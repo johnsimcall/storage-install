@@ -10,6 +10,9 @@
   vars: 
     gluster_repos:
       - rhel-7-server-rpms
+      - rhel-ha-for-rhel-7-server-rpms
+      - rhel-7-server-extras-rpms
+      - rhel-7-server-optional-rpms
       - rh-gluster-3-for-rhel-7-server-rpms
       - rh-gluster-3-samba-for-rhel-7-server-rpms
       - rh-gluster-3-nfs-for-rhel-7-server-rpms
@@ -30,8 +33,11 @@
     firewall_ports:
       - 662/tcp
       - 662/udp
+      - 875/tcp
+      - 875/udp
       - 963/udp
       - 965/tcp
+      - 4379/tcp
       - 5666-5667/tcp
       - 6010-6012/tcp
       - 8080/tcp
@@ -45,6 +51,7 @@
     - name: "rhsm_username"
       prompt: "Enter Username"
       private: no
+      default: "mflanner@redhat.com"
 
     - name: "rhsm_password"
       prompt: "Enter Password"
@@ -53,35 +60,33 @@
     - name: "poolid"
       prompt: "Enter Red Hat Pool ID"
       private: no
+      default: "8a85f9874011071c01407da00b997cb2"
 
   tasks:
   - name: Register with Red Hat
-    redhat_subscription:
-      state: present
-      username: "{{ rhsm_username }}"
-      password: "{{ rhsm_password }}"
-      autosubscribe: false
-      force_register: true
+    command: subscription-manager register --username "{{ rhsm_username }}" --password "{{ rhsm_password }}"
     ignore_errors: True
-    async: 60
-    poll: 10
+    async: 300
     tags:
       - rhsm
 
   - name: Attach Pool
     command: subscription-manager attach --pool "{{ poolid }}"
     ignore_errors: True
-    async: 60
-    poll: 10
+    async: 300
     tags:
       - rhsm
 
   - name: Disable all repos
     command: subscription-manager repos --disable "*"
+    tags:
+      - repos
 
   - name: Enable repo for RHEL 7
     command: subscription-manager repos --enable {{ item }}
     with_items: "{{ gluster_repos }}"
+    tags:
+      - repos
 
   - name: Install ssh private key
     copy:
@@ -113,12 +118,16 @@
     yum: 
       name: firewalld
       state: latest
+    tags:
+      - firewall
 
   - name: Start firewalld
     systemd:
       name: firewalld
       enabled: yes
       state: started
+    tags:
+      - firewall
 
   - name: Install gluster
     yum:
@@ -186,6 +195,6 @@
       - screen
       - sg3_utils
       - nfs-utils
-      - ipmitools
+      - ipmitool
     tags:
       - misc

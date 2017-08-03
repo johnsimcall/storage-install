@@ -51,6 +51,8 @@
           root_password: redhat1
           authorized_ssh_keys: |
             - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1vfRWODjNpS45BwAD864B1ezqIOb5fxCjnOwsgx/p8QchwWQhIUeC+PAUBI/QJ/nzX2pUOx0erNu8wuQRobOMxmYmsIyeuIIkBSJxffeFm4Cuy0glgkNR5ry90AHabO7bvXoY1q2QJ6sdkMeh2r1b/tx+2KFBOpe6v2HAcBpS+srl/fpdOV0GK2HNC0DsHz/2/me2hQ9gNIBOrb/Y7TJL5GcmbbHeteW4g648w1771El6r+JugmwlJ7/B/Jw5b4StpJmYQq0s1x9TJnqXO1kZGZ1YDrUEF25ZxkLZxmLxwD8hUDVbaeCAjbNQCe5OXc3wl96VvwXsPE2d838DBUTL jcall@home.lab
+            - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC47Ph1jxl8GtvUuQRigjgOoVFOkWUQCKtC4486KpEGJurAzyoMNJ0x9KvvMHOOkd+fli1tyk60DQUtBiBCrXv+fz7Q9myEeI1sEkZ7iMOkwEQqFj7eSmlPwnm07+lHlBs8OnUBd1Tw9KHzux2KnzRNRmq1z9vLUJshe0jbsHoUn+X8CyBurS0J1SwL4hopyDTjMvYhoWc9sT9MyEw1IZ962xCeZ/ey3/0uWIeCgKZA9lQWSGh62ZTux9Oc/8Sa0KO1Faog0Qko+4VamjkOr6AghmJJXfJlF4HAZCmwhrkSWLuBl7pcP2Lc6B5wNh2XVZdLngaQNCeasdPXqCXxkAhX root@rhvm.cluster.net
+            - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDP1SXmgAxJDfsZ15OfjiE1nzZa2Nh/B5J67KqXoJRlWUVLxaUw52tlbISSYdmpXmVb84huiIz+W5XcOrtK8lFB8O2seW50nevBRFuMnwQ8kgsHnvQ9TJjzCCngLlQjFrxH3g4oNUvSvv5hgd0j8dGA3NSJN7O0VMMQgWQK+Bt1YYxkwxsQ8NPnSixNevLj/bQvv3WRoekfu1c0LvL5IdY3yhpQ1no84jCXR4CD2ZA7msxzvfxgJ1/IFD0m8EDKRKmbg4RtgfTYB+fwvrTw1l/DoSlUtEdvrBx8T+1s0FCz6qjNfpvCmubAUR/2gWIu49s7q8sOmjRGBw9DL1hVdHUN mflanner@t460s
           #TODO:dns stuff below doesn't work, using custom_script and runcmd as workaround
           dns_servers: 192.168.1.200
           dns_search: cluster.net

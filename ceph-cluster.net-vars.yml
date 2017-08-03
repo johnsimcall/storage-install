@@ -4,109 +4,148 @@
 vms:
   ceph1:
     nic1:
-      ipaddress: 192.168.0.101
+      ipaddress: 192.168.1.211
       netmask:   255.255.255.0
-      gateway:   192.168.0.1
+      gateway:   192.168.1.1
     nic2:
-      ipaddress: 192.168.2.101
+      ipaddress: 192.168.2.211
       netmask:   255.255.255.0
       gateway:   0.0.0.0
   ceph2:
     nic1:
-      ipaddress: 192.168.0.102
+      ipaddress: 192.168.1.212
       netmask:   255.255.255.0
-      gateway:   192.168.0.1
+      gateway:   192.168.1.1
     nic2:
-      ipaddress: 192.168.2.102
+      ipaddress: 192.168.2.212
       netmask:   255.255.255.0
       gateway:   0.0.0.0
   ceph3:
     nic1:
-      ipaddress: 192.168.0.103
+      ipaddress: 192.168.1.213
       netmask:   255.255.255.0
-      gateway:   192.168.0.1
+      gateway:   192.168.1.1
     nic2:
-      ipaddress: 192.168.2.103
+      ipaddress: 192.168.2.213
       netmask:   255.255.255.0
       gateway:   0.0.0.0
   ceph4:
     nic1:
-      ipaddress: 192.168.0.104
+      ipaddress: 192.168.1.214
       netmask:   255.255.255.0
-      gateway:   192.168.0.1
+      gateway:   192.168.1.1
     nic2:
-      ipaddress: 192.168.2.104
+      ipaddress: 192.168.2.214
       netmask:   255.255.255.0
       gateway:   0.0.0.0
   ceph5:
     nic1:
-      ipaddress: 192.168.0.105
+      ipaddress: 192.168.1.215
       netmask:   255.255.255.0
-      gateway:   192.168.0.1
+      gateway:   192.168.1.1
     nic2:
-      ipaddress: 192.168.2.105
+      ipaddress: 192.168.2.215
       netmask:   255.255.255.0
       gateway:   0.0.0.0
   ceph6:
     nic1:
-      ipaddress: 192.168.0.106
+      ipaddress: 192.168.1.216
       netmask:   255.255.255.0
-      gateway:   192.168.0.1
+      gateway:   192.168.1.1
     nic2:
-      ipaddress: 192.168.2.106
+      ipaddress: 192.168.2.216
       netmask:   255.255.255.0
       gateway:   0.0.0.0
   ceph7:
     nic1:
-      ipaddress: 192.168.0.108
+      ipaddress: 192.168.1.217
       netmask:   255.255.255.0
-      gateway:   192.168.0.1
+      gateway:   192.168.1.1
     nic2:
-      ipaddress: 192.168.2.108
+      ipaddress: 192.168.2.217
       netmask:   255.255.255.0
       gateway:   0.0.0.0
   ceph8:
     nic1:
-      ipaddress: 192.168.0.107
+      ipaddress: 192.168.1.218
       netmask:   255.255.255.0
-      gateway:   192.168.0.1
+      gateway:   192.168.1.1
     nic2:
-      ipaddress: 192.168.2.107
+      ipaddress: 192.168.2.218
       netmask:   255.255.255.0
       gateway:   0.0.0.0
   ceph9:
     nic1:
-      ipaddress: 192.168.0.107
+      ipaddress: 192.168.1.219
       netmask:   255.255.255.0
-      gateway:   192.168.0.1
+      gateway:   192.168.1.1
     nic2:
-      ipaddress: 192.168.2.107
+      ipaddress: 192.168.2.219
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
+  rgw1:
+    nic1:
+      ipaddress: 192.168.1.221
+      netmask:   255.255.255.0
+      gateway:   192.168.1.1
+    nic2:
+      ipaddress: 192.168.2.221
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
+  rhsc2:
+    nic1:
+      ipaddress: 192.168.1.210
+      netmask:   255.255.255.0
+      gateway:   192.168.1.1
+    nic2:
+      ipaddress: 192.168.2.210
       netmask:   255.255.255.0
       gateway:   0.0.0.0
 
 disks_size: 10GiB
 disks:
-  - name: ceph-osd-1
+  - name: ceph1
+    id:
+      - 1
+  - name: ceph2
+    id:
+      - 1
+  - name: ceph3
+    id:
+      - 1
+  - name: ceph4
     id:
       - 1
       - 2
       - 3
-  - name: ceph-osd-2
+  - name: ceph5
     id:
       - 1
       - 2
       - 3
-  - name: ceph-osd-3
+  - name: ceph6
     id:
       - 1
       - 2
       - 3
-  - name: ceph-mon-1
+  - name: ceph7
     id:
       - 1
-  - name: ceph-mon-2
+      - 2
+      - 3
+  - name: ceph8
     id:
       - 1
-  - name: ceph-mon-3
+      - 2
+      - 3
+  - name: ceph9
+    id:
+      - 1
+      - 2
+      - 3
+  - name: rgw1
+    id:
+      - 1
+  - name: rhsc2
     id:
       - 1
