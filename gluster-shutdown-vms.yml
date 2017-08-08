@@ -1,0 +1,41 @@
+# file: gluster-shutdown-vms.yml
+#
+# prerequisites:
+# $ sudo yum --enablerepo=rhel-7-server-rhv-4.1-rpms install python-ovirt-engine-sdk4
+#
+# execution:
+# $ ansible-playbook gluster-shutdown-vms.yml --ask-vault-pass -e vmState=absent
+
+---
+- hosts: localhost
+  gather_facts: yes
+  vars_files:
+    - rhvm-vault.yml
+    - "gluster-{{ ansible_domain }}-vars.yml"
+
+  vars_prompt:
+    - name: "vmState"
+      prompt: "stopped or absent?"
+      default: "stopped"
+      private: no
+
+  tasks:
+    - name: Login to RHV
+      ovirt_auth:
+        url: "{{ rhvurl }}"
+        insecure: yes
+        username: "{{ rhvuser }}"
+        password: "{{ rhvpass }}"
+
+    - name: Set VMs to state "{{ vmState }}"
+      ovirt_vms:
+        auth: "{{ ovirt_auth }}"
+        name: "{{ item.key }}"
+        state: "{{ vmState }}"
+        wait: false
+      with_dict: "{{ vms }}" # See gluster-home.lab-vars.yml
+
+    - name: Cleanup RHV auth token
+      ovirt_auth:
+        ovirt_auth: "{{ ovirt_auth }}"
+        state: absent
