@@ -10,9 +10,13 @@
   vars: 
     gluster_repos:
       - rhel-7-server-rpms
+      - rhel-7-server-extras-rpms
+      - rhel-7-server-optional-rpms
+      - rhel-ha-for-rhel-7-server-rpms
       - rh-gluster-3-for-rhel-7-server-rpms
-      - rh-gluster-3-samba-for-rhel-7-server-rpms
       - rh-gluster-3-nfs-for-rhel-7-server-rpms
+      - rh-gluster-3-samba-for-rhel-7-server-rpms
+      - rh-gluster-3-nagios-for-rhel-7-server-rpms
 
     firewall_services:
       - glusterfs
@@ -172,6 +176,14 @@
       immediate: true
       state: enabled
     with_items: "{{ firewall_ports }}"
+
+  - name: Set new SELinux booleans ganesha_use_fusefs and gluster_use_execmem
+    command: "setsebool -P {{ item }} on"
+    with_items:
+      - ganesha_use_fusefs
+      - gluster_use_execmem
+    tags:
+      - selinux
 
   - name: Start glusterd
     systemd:

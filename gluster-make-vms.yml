@@ -15,7 +15,7 @@
   gather_facts: yes
   vars_files:
   - rhvm-vault.yml
-  - "gluster-{{ ansible_domain }}-vars.yml"
+  - "{{ ansible_domain }}/gluster-vars.yml"
 
   vars:
     templateName: rhel7-cloud
