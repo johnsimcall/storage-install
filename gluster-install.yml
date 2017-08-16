@@ -203,5 +203,6 @@
       - sg3_utils
       - nfs-utils
       - ipmitool
+      - iperf3
     tags:
       - misc

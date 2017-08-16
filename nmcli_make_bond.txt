@@ -1,0 +1,79 @@
+######### psosd1 ######### 
+nmcli con add type bond ifname bond0 mode 802.3ad \
+  connection.id lacp-bond \
+  connection.autoconnect no \
+  connection.autoconnect-slaves 1 \
+  +bond.options "xmit_hash_policy=layer3+4" \
+  ipv4.method static \
+  ipv4.addresses 10.10.10.10/24 \
+  ipv6.method ignore
+
+nmcli con add type ethernet ifname enp2s0f0 master bond0 \
+  connection.id lacp-enp2s0f0 \
+  connection.autoconnect no \
+  802-3-ethernet.mtu 9000
+
+nmcli con add type ethernet ifname enp2s0f1 master bond0 \
+  connection.id lacp-enp2s0f1 \
+  connection.autoconnect no \
+  802-3-ethernet.mtu 9000
+
+######### psosd2 ######### 
+nmcli con add type bond ifname bond0 mode 802.3ad \
+  connection.id lacp-bond \
+  connection.autoconnect no \
+  connection.autoconnect-slaves 1 \
+  +bond.options "xmit_hash_policy=layer3+4" \
+  ipv4.method static \
+  ipv4.addresses 10.10.10.11/24 \
+  ipv6.method ignore
+
+nmcli con add type ethernet ifname ens2f0 master bond0 \
+  connection.id lacp-ens2f0 \
+  connection.autoconnect no \
+  802-3-ethernet.mtu 9000
+
+nmcli con add type ethernet ifname enp2s0f1 master bond0 \
+  connection.id lacp-enp2s0f1 \
+  connection.autoconnect no \
+  802-3-ethernet.mtu 9000
+
+######### psosd3 ######### 
+nmcli con add type bond ifname bond0 mode 802.3ad \
+  connection.id lacp-bond \
+  connection.autoconnect no \
+  connection.autoconnect-slaves 1 \
+  +bond.options "xmit_hash_policy=layer3+4" \
+  ipv4.method static \
+  ipv4.addresses 10.10.10.12/24 \
+  ipv6.method ignore
+
+nmcli con add type ethernet ifname enp2s0f0 master bond0 \
+  connection.id lacp-enp2s0f0 \
+  connection.autoconnect no \
+  802-3-ethernet.mtu 9000
+
+nmcli con add type ethernet ifname enp2s0f1 master bond0 \
+  connection.id lacp-enp2s0f1 \
+  connection.autoconnect no \
+  802-3-ethernet.mtu 9000
+
+########## ps6 ######### 
+nmcli con add type bond ifname bond0 mode 802.3ad \
+  connection.id lacp-bond \
+  connection.autoconnect no \
+  connection.autoconnect-slaves 1 \
+  +bond.options "xmit_hash_policy=layer3+4" \
+  ipv4.method static \
+  ipv4.addresses 10.10.10.51/24 \
+  ipv6.method ignore
+
+nmcli con add type ethernet ifname enp2s0f0 master bond0 \
+  connection.id lacp-enp2s0f0 \
+  connection.autoconnect no \
+  802-3-ethernet.mtu 9000
+
+nmcli con add type ethernet ifname enp2s0f1 master bond0 \
+  connection.id lacp-enp2s0f1 \
+  connection.autoconnect no \
+  802-3-ethernet.mtu 9000
