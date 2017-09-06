@@ -1,0 +1,4 @@
+
+# Check power status (on, off, cycle, soft, status)
+ipmitool -I lanplus -H $IPMI_ADDR -U $IPMI_USER -P $IPMI_PASS chassis power status
+
