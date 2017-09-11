@@ -1,0 +1,181 @@
+# file: gluster-install.yml
+# Author: Mike Flannery - Red Hat
+# invocation: ansible-playbook -i hosts gluster-install.yml
+# edit ansible-gluster/hosts file to include all gluster hosts 
+# in the [gluster] section
+#
+# example: ansible-playbook gluster-install.yml --skip-tags "rhsm"
+---
+- hosts: all
+  vars: 
+
+    firewall_services:
+      - glusterfs
+#      - nlm
+      - nfs
+      - rpc-bind
+      - high-availability
+      - mountd
+#      - rquota
+      - ssh
+      - samba
+      - https
+      - vdsm
+
+    firewall_ports:
+      - 662/tcp
+      - 662/udp
+      - 875/tcp
+      - 875/udp
+      - 963/udp
+      - 965/tcp
+      - 4379/tcp
+      - 5666-5667/tcp
+      - 6010-6012/tcp
+      - 8080/tcp
+      - 24009-24108/tcp
+      - 32803/udp
+      - 32769/udp
+      - 39543/tcp
+      - 55863/tcp
+
+  tasks:
+  - name: Install libselinux-python
+    dnf: 
+      name: "libselinux-python"
+      state: latest
+    tags:
+      - libselinux-python
+
+  - name: Install ssh private key
+    copy:
+      content: "{{ lookup('file', '/root/.ssh/id_rsa') }}"
+      dest: /root/.ssh/id_rsa
+      mode: 0600
+      owner: root
+    tags:
+      - ssh
+
+  - name: Install ssh public key
+    copy:
+      content: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+      dest: /root/.ssh/id_rsa.pub
+      mode: 0644
+      owner: root
+    tags:
+      - ssh
+
+  - name: Set authorized key
+    authorized_key:
+      user: root
+      state: present
+      key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+    tags:
+      - ssh
+
+  - name: Install firewalld
+    dnf: 
+      name: "firewalld,python-firewall"
+      state: latest
+    tags:
+      - firewall
+
+  - name: Start firewalld
+    systemd:
+      name: firewalld
+      enabled: yes
+      state: started
+    tags:
+      - firewall
+
+  - name: Install gluster
+    dnf:
+      name: glusterfs-server
+      state: latest
+    tags:
+      - gluster
+
+#  - name: Install NFS-Ganesha
+#    dnf:
+#      name: glusterfs-ganesha
+#      state: latest
+#    tags:
+#      - ganesha
+
+#  - name: Install gstatus
+#    dnf:
+#      name: gstatus
+#      state: latest
+#    tags:
+#      - gstatus
+
+#  - name: Install nagios
+#    dnf:
+#      name: nagios-server-addons
+#      state: latest
+#    tags:
+#      - nagios
+
+  - name: Install Samba
+    dnf:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - samba
+      - samba-client
+    tags:
+      - samba
+
+  - name: Install AD Integration
+    dnf:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - samba-winbind
+      - samba-winbind-clients
+      - samba-winbind-krb5-locator
+      - samba-winbind-modules
+    tags:
+      - ad
+
+  - name: Configure Firewall (services)
+    firewalld:
+      service: "{{ item }}"
+      permanent: true
+      immediate: true
+      state: enabled
+    with_items: "{{ firewall_services }}"
+    tags:
+      - firewall
+
+  - name: Configure Firewall (ports)
+    firewalld:
+      port: "{{ item }}"
+      permanent: true
+      immediate: true
+      state: enabled
+    with_items: "{{ firewall_ports }}"
+    tags:
+      - firewall
+
+  - name: Start glusterd
+    systemd:
+      name: glusterd
+      enabled: yes
+      state: started
+    tags:
+      - start-glusterd
+
+  - name: Install misc packages
+    dnf:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - cockpit
+      - tree
+      - screen
+      - sg3_utils
+      - nfs-utils
+      - ipmitool
+    tags:
+      - misc

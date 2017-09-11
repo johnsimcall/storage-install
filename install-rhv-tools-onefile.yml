@@ -1,0 +1,19 @@
+# file: install-rhv-tools-onefile.yml
+#
+# $ ansible-playbook install-rhv-tools-onefile.yml --inventory inventories/mflannery-hosts -u root -k
+# $ ansible-playbook install-rhv-tools-onefile.yml -i inventories/mflannery-hosts --limit ceph1.cluster.net -u root -k --check --diff
+
+---
+- hosts: fedora
+  gather_facts: False
+  tasks:
+  - name: Fedora - Install RHV Guest Agent
+    dnf:
+      name: ovirt-guest-agent-common
+      state: latest
+
+  - name: Fedora - Enable and start RHV Guest Agent
+    systemd:
+      unit: ovirt-guest-agent.service
+      enabled: yes
+      state: started
