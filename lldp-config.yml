@@ -10,6 +10,12 @@
       name: "lldpad"
       state: present
 
+  - name: Start lldpad
+    systemd:
+      name: lldpad
+      enabled: yes
+      state: started
+
   - name: Configure LLDP to send hostname
     command: lldptool set-tlv -i {{ item }} -V sysName enableTx=yes
     when: "'en' in item"
@@ -23,9 +29,3 @@
     with_items: "{{ ansible_interfaces }}"
     tags:
       configure
-
-  - name: Start lldpad
-    systemd:
-      name: lldpad
-      enabled: yes
-      state: started
