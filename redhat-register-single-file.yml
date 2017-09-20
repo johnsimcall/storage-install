@@ -13,20 +13,28 @@
     - prompt: "Enter RHN/RHSM Password"
       name: "rhsm_pass"
       private: yes
+
   tasks:
     - name: Register with Red Hat
-      redhat_subscription: state=present
-                           username={{ rhsm_user }}
-                           password={{ rhsm_pass }}
-                           autosubscribe=false
+      redhat_subscription:
+         state: present
+         username: "{{ rhsm_user }}"
+         password: "{{ rhsm_pass }}"
+         autosubscribe: false
+      async: 300
+      poll: 10
     
     - name: Attach my Employee Subscription (physical)
       command: subscription-manager attach --pool={{ employee_sku_physical }}
       when: ansible_virtualization_role != "guest"
+      async: 300
+      poll: 10
     
     - name: Attach my Employee Subscription (virtual)
       command: subscription-manager attach --pool={{ employee_sku_virtual }}
       when: ansible_virtualization_role == "guest"
+      async: 300
+      poll: 10
     
     - name: Disable all repos
       command: subscription-manager repos --disable="*"
