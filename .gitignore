@@ -1,5 +1,6 @@
-*-vault.yml
+#*-vault.yml
 *.retry
+tmp*
 #home.lab/*
 cluster.net/*
 roles/smc-firmware-bmc/files/smc.tgz
