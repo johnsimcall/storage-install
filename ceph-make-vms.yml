@@ -50,6 +50,7 @@
           dns_search: "{{ ansible_domain }}"
           custom_script: |
             runcmd:
+              - hostnamectl set-hostname {{ item.key }}.{{ ansible_domain }}
               - nmcli con modify "System eth0" connection.id eth0 ipv4.dns {{ dnsServer }} ipv4.dns-search {{ ansible_domain }}
               - nmcli con modify "System eth1" connection.id eth1
               - nmcli net off
