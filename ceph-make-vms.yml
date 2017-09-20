@@ -5,7 +5,6 @@
 #
 # vm definitions / assumptions:
 #   All VMs will have two NICs
-#   see ceph-{{ ansible_domain }}-vars.yml
 #
 # execution:
 # $ ansible-playbook ceph-make-vms.yml --ask-vault-pass
@@ -14,17 +13,13 @@
 - hosts: localhost
   gather_facts: yes
   vars_files:
-  - rhvm-vault.yml
-  - "ceph-{{ ansible_domain }}-vars.yml"
-
-  vars:
-    templateName: RHEL7.3-Base
-    rhvCluster: Home-Cluster
+  - "{{ ansible_domain }}/rhvm-vault.yml"
+  - "{{ ansible_domain }}/ceph-vars.yml"
 
   tasks:
     - name: Login to RHV
       ovirt_auth:
-        url: https://rhvm.cluster.net/ovirt-engine/api
+        url: "{{ rhvurl }}"
         insecure: yes
         username: "{{ rhvuser }}"
         password: "{{ rhvpass }}"
@@ -42,23 +37,20 @@
             profile_name: ovirtmgmt
           - name: nic2
             profile_name: ovirtmgmt
-        # Note: having cloud_init data below causes VM to start as "Run Once"
-        # This is good because it automatically removes the cloud_init ISO
-        # (with clear text passwords) when the VM restarts
         cloud_init:
-          host_name: "{{ item.key }}.cluster.net"
+          host_name: "{{ item.key }}.{{ ansible_domain }}"
           user_name: root
-          root_password: redhat1
+          root_password: "{{ vm_root_password }}"
           authorized_ssh_keys: |
             - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1vfRWODjNpS45BwAD864B1ezqIOb5fxCjnOwsgx/p8QchwWQhIUeC+PAUBI/QJ/nzX2pUOx0erNu8wuQRobOMxmYmsIyeuIIkBSJxffeFm4Cuy0glgkNR5ry90AHabO7bvXoY1q2QJ6sdkMeh2r1b/tx+2KFBOpe6v2HAcBpS+srl/fpdOV0GK2HNC0DsHz/2/me2hQ9gNIBOrb/Y7TJL5GcmbbHeteW4g648w1771El6r+JugmwlJ7/B/Jw5b4StpJmYQq0s1x9TJnqXO1kZGZ1YDrUEF25ZxkLZxmLxwD8hUDVbaeCAjbNQCe5OXc3wl96VvwXsPE2d838DBUTL jcall@home.lab
             - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDP1SXmgAxJDfsZ15OfjiE1nzZa2Nh/B5J67KqXoJRlWUVLxaUw52tlbISSYdmpXmVb84huiIz+W5XcOrtK8lFB8O2seW50nevBRFuMnwQ8kgsHnvQ9TJjzCCngLlQjFrxH3g4oNUvSvv5hgd0j8dGA3NSJN7O0VMMQgWQK+Bt1YYxkwxsQ8NPnSixNevLj/bQvv3WRoekfu1c0LvL5IdY3yhpQ1no84jCXR4CD2ZA7msxzvfxgJ1/IFD0m8EDKRKmbg4RtgfTYB+fwvrTw1l/DoSlUtEdvrBx8T+1s0FCz6qjNfpvCmubAUR/2gWIu49s7q8sOmjRGBw9DL1hVdHUN mflanner@t460s
             - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC47Ph1jxl8GtvUuQRigjgOoVFOkWUQCKtC4486KpEGJurAzyoMNJ0x9KvvMHOOkd+fli1tyk60DQUtBiBCrXv+fz7Q9myEeI1sEkZ7iMOkwEQqFj7eSmlPwnm07+lHlBs8OnUBd1Tw9KHzux2KnzRNRmq1z9vLUJshe0jbsHoUn+X8CyBurS0J1SwL4hopyDTjMvYhoWc9sT9MyEw1IZ962xCeZ/ey3/0uWIeCgKZA9lQWSGh62ZTux9Oc/8Sa0KO1Faog0Qko+4VamjkOr6AghmJJXfJlF4HAZCmwhrkSWLuBl7pcP2Lc6B5wNh2XVZdLngaQNCeasdPXqCXxkAhX root@rhvm.cluster.net
           #TODO:dns stuff below doesn't work, using custom_script and runcmd as workaround
-          dns_servers: 192.168.1.200
-          dns_search: cluster.net
+          dns_servers: "{{ dnsServer }}"
+          dns_search: "{{ ansible_domain }}"
           custom_script: |
             runcmd:
-              - nmcli con modify "System eth0" connection.id eth0 ipv4.dns 192.168.1.200 ipv4.dns-search cluster.net
+              - nmcli con modify "System eth0" connection.id eth0 ipv4.dns {{ dnsServer }} ipv4.dns-search {{ ansible_domain }}
               - nmcli con modify "System eth1" connection.id eth1
               - nmcli net off
               - nmcli net on
@@ -83,7 +75,7 @@
       ovirt_disks:
         auth: "{{ ovirt_auth }}"
         vm_name: "{{ item.0.name }}"
-        storage_domain: ssd-vmstore
+        storage_domain: "{{ storageDomain }}"
         name: "{{ item.0.name }}-disk-{{ item.1 }}"
         size: "{{ disks_size }}"
         format: cow
