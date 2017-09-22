@@ -60,6 +60,15 @@ vms:
       ipaddress: 192.168.2.108
       netmask:   255.255.255.0
       gateway:   0.0.0.0
+  ceph-gui:
+    nic1:
+      ipaddress: 192.168.0.109
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+    nic2:
+      ipaddress: 192.168.2.109
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
 
 disks_size: 10GiB
 disks:
