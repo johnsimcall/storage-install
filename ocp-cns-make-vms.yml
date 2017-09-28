@@ -45,8 +45,8 @@
           user_name: cloud-user
           root_password: "{{ vm_root_password }}"
           authorized_ssh_keys: |
-            - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1vfRWODjNpS45BwAD864B1ezqIOb5fxCjnOwsgx/p8QchwWQhIUeC+PAUBI/QJ/nzX2pUOx0erNu8wuQRobOMxmYmsIyeuIIkBSJxffeFm4Cuy0glgkNR5ry90AHabO7bvXoY1q2QJ6sdkMeh2r1b/tx+2KFBOpe6v2HAcBpS+srl/fpdOV0GK2HNC0DsHz/2/me2hQ9gNIBOrb/Y7TJL5GcmbbHeteW4g648w1771El6r+JugmwlJ7/B/Jw5b4StpJmYQq0s1x9TJnqXO1kZGZ1YDrUEF25ZxkLZxmLxwD8hUDVbaeCAjbNQCe5OXc3wl96VvwXsPE2d838DBUTL jcall@home.lab
-            - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDP1SXmgAxJDfsZ15OfjiE1nzZa2Nh/B5J67KqXoJRlWUVLxaUw52tlbISSYdmpXmVb84huiIz+W5XcOrtK8lFB8O2seW50nevBRFuMnwQ8kgsHnvQ9TJjzCCngLlQjFrxH3g4oNUvSvv5hgd0j8dGA3NSJN7O0VMMQgWQK+Bt1YYxkwxsQ8NPnSixNevLj/bQvv3WRoekfu1c0LvL5IdY3yhpQ1no84jCXR4CD2ZA7msxzvfxgJ1/IFD0m8EDKRKmbg4RtgfTYB+fwvrTw1l/DoSlUtEdvrBx8T+1s0FCz6qjNfpvCmubAUR/2gWIu49s7q8sOmjRGBw9DL1hVdHUN mflanner@t460s
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1vfRWODjNpS45BwAD864B1ezqIOb5fxCjnOwsgx/p8QchwWQhIUeC+PAUBI/QJ/nzX2pUOx0erNu8wuQRobOMxmYmsIyeuIIkBSJxffeFm4Cuy0glgkNR5ry90AHabO7bvXoY1q2QJ6sdkMeh2r1b/tx+2KFBOpe6v2HAcBpS+srl/fpdOV0GK2HNC0DsHz/2/me2hQ9gNIBOrb/Y7TJL5GcmbbHeteW4g648w1771El6r+JugmwlJ7/B/Jw5b4StpJmYQq0s1x9TJnqXO1kZGZ1YDrUEF25ZxkLZxmLxwD8hUDVbaeCAjbNQCe5OXc3wl96VvwXsPE2d838DBUTL jcall@home.lab
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDP1SXmgAxJDfsZ15OfjiE1nzZa2Nh/B5J67KqXoJRlWUVLxaUw52tlbISSYdmpXmVb84huiIz+W5XcOrtK8lFB8O2seW50nevBRFuMnwQ8kgsHnvQ9TJjzCCngLlQjFrxH3g4oNUvSvv5hgd0j8dGA3NSJN7O0VMMQgWQK+Bt1YYxkwxsQ8NPnSixNevLj/bQvv3WRoekfu1c0LvL5IdY3yhpQ1no84jCXR4CD2ZA7msxzvfxgJ1/IFD0m8EDKRKmbg4RtgfTYB+fwvrTw1l/DoSlUtEdvrBx8T+1s0FCz6qjNfpvCmubAUR/2gWIu49s7q8sOmjRGBw9DL1hVdHUN mflanner@t460s
           dns_servers: "{{ dnsServer }}"
           dns_search: "{{ ansible_domain }}"
           custom_script: |
