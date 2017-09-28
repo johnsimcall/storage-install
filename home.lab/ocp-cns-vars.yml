@@ -4,7 +4,7 @@
 rhvCluster: Basement
 templateName: rhel-atomic-7.4.1-5
 storageDomain: rhv01-fast
-instanceType: Medium
+instanceType: Large
 dnsServer: 192.168.0.99
 vms:
   ocp-cns1:
