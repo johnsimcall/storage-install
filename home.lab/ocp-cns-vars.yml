@@ -1,0 +1,49 @@
+# Describe each VM
+# Playbook assumes 2 NIC for each VM
+---
+rhvCluster: Basement
+templateName: rhel-atomic-7.4.1-5
+storageDomain: rhv01-fast
+instanceType: Medium
+dnsServer: 192.168.0.99
+vms:
+  ocp-cns1:
+    nic1:
+      ipaddress: 192.168.0.121
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+#    nic2:
+#      ipaddress: 192.168.2.111
+#      netmask:   255.255.255.0
+#      gateway:   0.0.0.0
+  ocp-cns2:
+    nic1:
+      ipaddress: 192.168.0.122
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+  ocp-cns3:
+    nic1:
+      ipaddress: 192.168.0.123
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+
+disks_size: 10GiB
+disks:
+  - name: ocp-cns1
+    id:
+      - 1
+      - 2
+      - 3
+      - 4
+  - name: ocp-cns2
+    id:
+      - 1
+      - 2
+      - 3
+      - 4
+  - name: ocp-cns3
+    id:
+      - 1
+      - 2
+      - 3
+      - 4

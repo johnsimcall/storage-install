@@ -31,7 +31,7 @@
         template: "{{ templateName }}"
         name: "{{ item.key }}"
         state: present
-        instance_type: Medium
+        instance_type: "{{ instanceType }}"
         nics:
           - name: nic1
             profile_name: ovirtmgmt

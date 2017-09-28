@@ -1,6 +1,11 @@
 # Describe each VM
 # Playbook assumes 2 NIC for each VM
 ---
+rhvCluster: Basement
+templateName: rhel-7.4-cloud
+storageDomain: rhv01-fast
+instanceType: Medium
+dnsServer: 192.168.0.99
 vms:
   gluster-1:
     nic1:

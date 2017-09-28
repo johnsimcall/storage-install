@@ -4,6 +4,7 @@
 rhvCluster: Basement
 templateName: rhel-7.4-cloud
 storageDomain: rhv01-fast
+instanceType: Medium
 dnsServer: 192.168.0.99
 vms:
   ceph-mon1:
