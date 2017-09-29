@@ -6,6 +6,7 @@
 
 ---
 - hosts: all
+  become: true
   vars: 
   vars_prompt:
     - name: "rhsm_username"
