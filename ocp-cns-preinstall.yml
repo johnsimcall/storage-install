@@ -46,4 +46,9 @@
   - name: Enable RHEL 7 base repos
     command: subscription-manager repos --enable="rhel-atomic-host-rpms"
 
-# ansible ocp-cns -b -a "atomic host upgrade"
+  - name: Upgrade atomic host version
+    command: atomic host upgrade
+
+  - name: Reboot to apply any updates, and clear cloud-init state
+    command: systemctl reboot
+    tags: reboot
