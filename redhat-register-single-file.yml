@@ -4,8 +4,8 @@
 ---
 - hosts: all
   vars:
-    employee_sku_physical: 8a85f981571fb49101571fc414470a43
-    employee_sku_virtual: 8a85f981571fb49101571fc415340afb
+    employee_sku_physical: 8a85f9815e5d24cf015e5d5e86cd49e2
+    employee_sku_virtual: 8a85f9815e5d24cf015e5d5e87cc4af8
   vars_prompt:
     - prompt: "Enter RHN/RHSM Username"
       name: "rhsm_user"
@@ -13,20 +13,28 @@
     - prompt: "Enter RHN/RHSM Password"
       name: "rhsm_pass"
       private: yes
+
   tasks:
     - name: Register with Red Hat
-      redhat_subscription: state=present
-                           username={{ rhsm_user }}
-                           password={{ rhsm_pass }}
-                           autosubscribe=false
+      redhat_subscription:
+         state: present
+         username: "{{ rhsm_user }}"
+         password: "{{ rhsm_pass }}"
+         autosubscribe: false
+      async: 300
+      poll: 10
     
     - name: Attach my Employee Subscription (physical)
       command: subscription-manager attach --pool={{ employee_sku_physical }}
       when: ansible_virtualization_role != "guest"
+      async: 300
+      poll: 10
     
     - name: Attach my Employee Subscription (virtual)
       command: subscription-manager attach --pool={{ employee_sku_virtual }}
       when: ansible_virtualization_role == "guest"
+      async: 300
+      poll: 10
     
     - name: Disable all repos
       command: subscription-manager repos --disable="*"

@@ -1,0 +1,14 @@
+[mons]
+ceph-mon1
+
+#[rgws]
+#ceph-rgw1
+
+#[mdss]
+#ceph-mds1
+
+[osds]
+#ceph-osd[1:3] devices="[ '/dev/sdb', '/dev/sdc', '/dev/sdd' ]"
+ceph-osd1
+ceph-osd2
+ceph-osd3

@@ -1,0 +1,49 @@
+# file: ocp-cns-preinstall.yml
+# Author: Mike Flannery (mflanner@redhat.com) & John Call (jcall@redhat.com)
+# invocation: ansible-playbook ocp-cns-preinstall.yml --limit atomic_hosts_group
+#
+# assumes the use of "RHEL Atomic Hosts"
+
+---
+- hosts: all
+  become: true
+  vars: 
+  vars_prompt:
+    - name: "rhsm_username"
+      prompt: "Enter RHN/RHSM Username"
+      private: no
+
+    - name: "rhsm_password"
+      prompt: "Enter RHN/RHSM Password"
+      private: yes
+
+    - name: "poolid"
+      prompt: "Enter Red Hat Pool ID"
+      private: no
+
+  tasks:
+  - name: Register with Red Hat
+    redhat_subscription:
+      state: present
+      username: "{{ rhsm_username }}"
+      password: "{{ rhsm_password }}"
+      autosubscribe: false
+    async: 300
+    poll: 10
+    tags:
+      - rhsm
+
+  - name: Attach Pool
+    command: subscription-manager attach --pool={{ poolid }}
+    async: 300
+    poll: 10
+    tags:
+      - rhsm
+
+  - name: Disable all repos
+    command: subscription-manager repos --disable="*"
+
+  - name: Enable RHEL 7 base repos
+    command: subscription-manager repos --enable="rhel-atomic-host-rpms"
+
+# ansible ocp-cns -b -a "atomic host upgrade"

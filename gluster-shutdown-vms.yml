@@ -10,7 +10,7 @@
 - hosts: localhost
   gather_facts: yes
   vars_files:
-    - rhvm-vault.yml
+    - "{{ ansible_domain }}/rhvm-vault.yml"
     - "{{ ansible_domain }}/gluster-vars.yml"
 
   vars_prompt:

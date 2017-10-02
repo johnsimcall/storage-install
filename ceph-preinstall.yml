@@ -21,11 +21,12 @@
 
   tasks:
   - name: Register with Red Hat
-    redhat_subscription: state=present
-                         username="{{ rhsm_username }}"
-                         password="{{ rhsm_password }}"
-                         autosubscribe=false
-                         force_register=true
+    redhat_subscription:
+      state: present
+      username: "{{ rhsm_username }}"
+      password: "{{ rhsm_password }}"
+      autosubscribe: false
+      force_register: true
     ignore_errors: True
     async: 300
     poll: 10

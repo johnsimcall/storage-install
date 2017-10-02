@@ -1,0 +1,105 @@
+# Describe each VM
+# Playbook assumes 2 NIC for each VM
+---
+rhvCluster: Basement
+templateName: rhel-7.4-cloud
+storageDomain: rhv01-fast
+instanceType: Medium
+dnsServer: 192.168.0.99
+vms:
+  gluster-1:
+    nic1:
+      ipaddress: 192.168.0.111
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+    nic2:
+      ipaddress: 192.168.2.111
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
+  gluster-2:
+    nic1:
+      ipaddress: 192.168.0.112
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+    nic2:
+      ipaddress: 192.168.2.112
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
+  gluster-3:
+    nic1:
+      ipaddress: 192.168.0.113
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+    nic2:
+      ipaddress: 192.168.2.113
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
+  gluster-4:
+    nic1:
+      ipaddress: 192.168.0.114
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+    nic2:
+      ipaddress: 192.168.2.114
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
+  gluster-5:
+    nic1:
+      ipaddress: 192.168.0.115
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+    nic2:
+      ipaddress: 192.168.2.115
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
+  gluster-6:
+    nic1:
+      ipaddress: 192.168.0.116
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+    nic2:
+      ipaddress: 192.168.2.116
+      netmask:   255.255.255.0
+      gateway:   0.0.0.0
+#  gluster-gui:
+#    nic1:
+#      ipaddress: 192.168.0.117
+#      netmask:   255.255.255.0
+#      gateway:   192.168.0.1
+#    nic2:
+#      ipaddress: 192.168.2.117
+#      netmask:   255.255.255.0
+#      gateway:   0.0.0.0
+
+disks_size: 10GiB
+disks:
+  - name: gluster-1
+    id:
+      - 1
+      - 2
+      - 3
+  - name: gluster-2
+    id:
+      - 1
+      - 2
+      - 3
+  - name: gluster-3
+    id:
+      - 1
+      - 2
+      - 3
+  - name: gluster-4
+    id:
+      - 1
+      - 2
+      - 3
+  - name: gluster-5
+    id:
+      - 1
+      - 2
+      - 3
+  - name: gluster-6
+    id:
+      - 1
+      - 2
+      - 3
