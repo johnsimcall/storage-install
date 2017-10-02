@@ -6,7 +6,7 @@
 #
 # example: ansible-playbook gluster-install.yml --skip-tags "rhsm"
 ---
-- hosts: all
+- hosts: rpis
   vars: 
     firewall_services:
       - glusterfs
