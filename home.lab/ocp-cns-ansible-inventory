@@ -1,4 +1,5 @@
 #http://redhatstorage.redhat.com/2017/08/09/ocp3-6/
+#oc patch storageclass glusterfs-storage -p '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "true"}}}'
 
 [OSEv3:children]
  masters
@@ -7,30 +8,33 @@
  glusterfs
 
 [OSEv3:vars]
- ansible_ssh_user=root
+ ansible_ssh_user=cloud-user
  openshift_master_default_subdomain=cloudapps.home.lab
  openshift_deployment_type=openshift-enterprise
  openshift_hosted_registry_storage_kind=glusterfs
  openshift_disable_check=disk_availability,memory_availability
+ openshift_hosted_metrics_deploy=true
+ openshift_enable_service_catalog=true
+ openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
 
 [masters]
- master1 node=True storage=True master=True openshift_schedulable=False
+ ocp-cns1 node=True storage=True master=True openshift_schedulable=False
 
 [nodes]
- master1 node=True storage=True master=True openshift_schedulable=False
- node1 node=True storage=True openshift_node_labels="{'region': 'infra'}" openshift_schedulable=True
- node2 node=True storage=True openshift_node_labels="{'region': 'infra'}" openshift_schedulable=True
- node3 node=True storage=True openshift_node_labels="{'region': 'infra'}" openshift_schedulable=True
- node4 node=True storage=True openshift_schedulable=True
- node5 node=True storage=True openshift_schedulable=True
- node6 node=True storage=True openshift_schedulable=True
+ ocp-cns1 node=True storage=True master=True openshift_schedulable=False
+ ocp-cns2 node=True storage=True openshift_node_labels="{'region': 'infra'}" openshift_schedulable=True
+ ocp-cns3 node=True storage=True openshift_node_labels="{'region': 'infra'}" openshift_schedulable=True
+ ocp-cns4 node=True storage=True openshift_node_labels="{'region': 'infra'}" openshift_schedulable=True
+ ocp-cns5 node=True storage=True openshift_schedulable=True
+ ocp-cns6 node=True storage=True openshift_schedulable=True
+ ocp-cns7 node=True storage=True openshift_schedulable=True
 
 [glusterfs_registry]
- node1 glusterfs_devices="[ '/dev/xvdc' ]"
- node2 glusterfs_devices="[ '/dev/xvdc' ]"
- node3 glusterfs_devices="[ '/dev/xvdc' ]"
+ ocp-cns2 glusterfs_devices="[ '/dev/sdb' ]"
+ ocp-cns3 glusterfs_devices="[ '/dev/sdb' ]"
+ ocp-cns4 glusterfs_devices="[ '/dev/sdb' ]"
 
 [glusterfs]
- node4 glusterfs_devices="[ '/dev/xvdc' ]"
- node5 glusterfs_devices="[ '/dev/xvdc' ]"
- node6 glusterfs_devices="[ '/dev/xvdc' ]"
+ ocp-cns5 glusterfs_devices="[ '/dev/sdb' ]"
+ ocp-cns6 glusterfs_devices="[ '/dev/sdb' ]"
+ ocp-cns7 glusterfs_devices="[ '/dev/sdb' ]"
