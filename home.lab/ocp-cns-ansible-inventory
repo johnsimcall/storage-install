@@ -1,0 +1,36 @@
+#http://redhatstorage.redhat.com/2017/08/09/ocp3-6/
+
+[OSEv3:children]
+ masters
+ nodes
+ glusterfs_registry
+ glusterfs
+
+[OSEv3:vars]
+ ansible_ssh_user=root
+ openshift_master_default_subdomain=cloudapps.home.lab
+ openshift_deployment_type=openshift-enterprise
+ openshift_hosted_registry_storage_kind=glusterfs
+ openshift_disable_check=disk_availability,memory_availability
+
+[masters]
+ master1 node=True storage=True master=True openshift_schedulable=False
+
+[nodes]
+ master1 node=True storage=True master=True openshift_schedulable=False
+ node1 node=True storage=True openshift_node_labels="{'region': 'infra'}" openshift_schedulable=True
+ node2 node=True storage=True openshift_node_labels="{'region': 'infra'}" openshift_schedulable=True
+ node3 node=True storage=True openshift_node_labels="{'region': 'infra'}" openshift_schedulable=True
+ node4 node=True storage=True openshift_schedulable=True
+ node5 node=True storage=True openshift_schedulable=True
+ node6 node=True storage=True openshift_schedulable=True
+
+[glusterfs_registry]
+ node1 glusterfs_devices="[ '/dev/xvdc' ]"
+ node2 glusterfs_devices="[ '/dev/xvdc' ]"
+ node3 glusterfs_devices="[ '/dev/xvdc' ]"
+
+[glusterfs]
+ node4 glusterfs_devices="[ '/dev/xvdc' ]"
+ node5 glusterfs_devices="[ '/dev/xvdc' ]"
+ node6 glusterfs_devices="[ '/dev/xvdc' ]"
