@@ -6,6 +6,7 @@ templateName: rhel-atomic-7.4.1-5
 storageDomain: rhv01-fast
 instanceType: Large
 dnsServer: 192.168.0.99
+vm_root_password: passw0rd
 vms:
   ocp-cns1:
     nic1:
