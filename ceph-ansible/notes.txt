@@ -1,0 +1,35 @@
+Do this as “root” on installation host / mon1
+mkdir ~/ceph-ansible-keys
+
+cd /usr/share/ceph-ansible/
+  cp site.yml.sample site.yml
+  vi ansible.cfg
+    deprecation_warnings=False
+    retry_files_save_path = ~/
+
+cd /usr/share/ceph-ansible/group_vars/
+  cp all.yml.sample all.yml
+    fetch_directory: ~/ceph-ansible-keys
+    ceph_rhcs: true
+    ceph_rhcs_cdn_install: true
+    generate_fsid: true
+    cephx: true
+    monitor_interface: eth0
+    journal_size: 512 #MB
+    public_network: 192.168.0.0/24
+    cluster_network: 192.168.2.0/24 #"{{ public_network }}"
+    radosgw_dns_name: s3.home.lab
+
+  cp mons.yml.sample mons.yml
+    calamari: true
+
+  cp osds.yml.sample osds.yml
+    osd_auto_discovery: true
+    journal_collocation: true
+
+  cp rgws.yml.sample rgws.yml
+    copy_admin_key: true
+
+cd /usr/share/ceph-ansible/
+time ansible-playbook site.yml -v 2>&1 | tee ~/ceph-ansible-install.log
+

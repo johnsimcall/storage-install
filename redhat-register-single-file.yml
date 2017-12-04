@@ -21,12 +21,14 @@
          username: "{{ rhsm_user }}"
          password: "{{ rhsm_pass }}"
          autosubscribe: false
+      serial: 2
       async: 300
       poll: 10
     
     - name: Attach my Employee Subscription (physical)
       command: subscription-manager attach --pool={{ employee_sku_physical }}
       when: ansible_virtualization_role != "guest"
+      serial: 2
       async: 300
       poll: 10
     

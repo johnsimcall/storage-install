@@ -1,0 +1,16 @@
+#Configure LLDP parameters
+systemctl enable lldpad.service --now
+lldptool set-tlv -i enp2s0f0 -V sysName enableTx=yes
+lldptool set-tlv -i enp2s0f1 -V sysName enableTx=yes
+lldptool set-tlv -i enp2s0f1 -V portDesc enableTx=yes
+lldptool set-tlv -i enp2s0f0 -V portDesc enableTx=yes
+
+#Query LLDP statistics
+lldptool -S -i ens4f0
+
+#Query all LLDP TLV from neighbor
+lldptool -t -n -i ens4f0
+
+#Query specific LLDP TLV from neighbor
+lldptool -t -n -V sysCap -i ens4f0
+lldptool --help #dumps all TLV
