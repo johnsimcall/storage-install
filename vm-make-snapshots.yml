@@ -1,0 +1,41 @@
+# file: vm-make-snapshots.yml
+#
+# prerequisites:
+# $ sudo yum --enablerepo=rhel-7-server-rhv-4.1-rpms install python-ovirt-engine-sdk4
+#
+# vm definitions / assumptions:
+#   see home.lab/ocp-cns-vars.yml
+#
+# execution:
+# $ ansible-playbook vm-make-snapshots.yml --ask-vault-pass -e 'vmVars=home.lab/ocp-cns-vars.yml' -e 'snapDescription="Before a big change"'
+
+---
+- hosts: localhost
+  gather_facts: yes
+#  vars_files:
+#  - "{{ ansible_domain }}/rhvm-vault.yml"
+
+  tasks:
+    - name: Load VM vars
+      include_vars: "{{ vmVars }}"
+
+    - name: Login to RHV
+      ovirt_auth:
+        url: "{{ rhvurl }}"
+        insecure: yes
+        username: "{{ rhvuser }}"
+        password: "{{ rhvpass }}"
+
+    - name: Create snapshots
+      ovirt_snapshots:
+        auth: "{{ ovirt_auth }}"
+        vm_name: "{{ item.key }}"
+        state: present
+        description: "{{ snapDescription }}"
+        wait: false
+      with_dict: "{{ vms }}" # See home.lab/ocp-cns-vars.yml
+
+    - name: Cleanup RHV auth token
+      ovirt_auth:
+        ovirt_auth: "{{ ovirt_auth }}"
+        state: absent
