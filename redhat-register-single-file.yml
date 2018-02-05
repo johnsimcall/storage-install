@@ -4,8 +4,9 @@
 ---
 - hosts: all
   vars:
-    employee_sku_physical: 8a85f9815e5d24cf015e5d5e86cd49e2
-    employee_sku_virtual: 8a85f9815e5d24cf015e5d5e87cc4af8
+    employee_sku_physical: 8a85f98a60c09b100160c40fd5ff63dc
+    employee_sku_virtual: 8a85f98a60c09b100160c40fd82d63fb
+    repos:
   vars_prompt:
     - prompt: "Enter RHN/RHSM Username"
       name: "rhsm_user"
@@ -40,10 +41,25 @@
     
     - name: Disable all repos
       command: subscription-manager repos --disable="*"
-    
-    - name: Enable repo for RHEL 7
-      command: subscription-manager repos --enable="rhel-7-server-rpms"
+
+    - name: Enable repos for RHEL7
+      block:
+      - set_fact:
+          repos: "{{ repos }} --enable={{ item }}"
+        with_items:
+          - rhel-7-server-rpms
+          - rhel-7-server-extras-rpms
+#          - rhel-7-server-optional-rpms
+#          - rhel-7-server-supplementary-rpms
+          - rhel-7-server-ose-3.7-rpms
+          - rhel-7-fast-datapath-rpms
+          - rh-gluster-3-client-for-rhel-7-server-rpms
+      - debug:
+          var: repos
+      - command: subscription-manager repos {{ repos }} 
       when: ansible_distribution_major_version == "7"
+      tags:
+        - repos
     
     - name: Enable repo for RHEL 6
       command: subscription-manager repos --enable="rhel-6-server-rpms"
