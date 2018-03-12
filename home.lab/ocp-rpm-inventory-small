@@ -1,0 +1,42 @@
+#http://redhatstorage.redhat.com/2017/08/09/ocp3-6/
+# oc annotate storageclass glusterfs-storage storageclass.kubernetes.io/is-default-class="true"
+
+[OSEv3:children]
+ etcd
+ nodes
+ masters
+ glusterfs
+
+[OSEv3:vars]
+ ansible_ssh_user=root
+ openshift_master_default_subdomain=cloudapps-rpm.home.lab
+ openshift_deployment_type=openshift-enterprise
+ openshift_disable_check=disk_availability,memory_availability
+# openshift_hosted_metrics_deploy=false
+ openshift_metrics_install_metrics=true
+ openshift_logging_install_logging=true
+# openshift_enable_service_catalog=false
+# ansible_service_broker_install=false
+# template_service_broker_install=false
+ openshift_hosted_registry_storage_kind=glusterfs
+ openshift_storage_glusterfs_heketi_user_key=redhat1
+ openshift_storage_glusterfs_heketi_admin_key=redhat1
+ openshift_master_htpasswd_users={'admin': '$apr1$pZ6/aC.o$ZAK3XSQH2v40QFqk95ucd0'} #redhat1
+ openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
+
+[etcd]
+ ocp-rpm1
+
+[masters]
+ ocp-rpm1
+
+[nodes]
+ ocp-rpm1 openshift_node_labels="{'region': 'infra'}" openshift_schedulable=True
+ ocp-rpm2 openshift_node_labels="{'region': 'primary'}" 
+ ocp-rpm3 openshift_node_labels="{'region': 'primary'}" 
+ ocp-rpm4 openshift_node_labels="{'region': 'primary'}" 
+
+[glusterfs]
+ ocp-rpm2 glusterfs_devices="[ '/dev/sdc' ]"
+ ocp-rpm3 glusterfs_devices="[ '/dev/sdc' ]"
+ ocp-rpm4 glusterfs_devices="[ '/dev/sdc' ]"

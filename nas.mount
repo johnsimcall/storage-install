@@ -1,0 +1,11 @@
+# /etc/systemd/system/nas.mount
+[Unit]
+Description=Home NAS
+
+[Mount]
+What=nas.home.lab:/nas
+Where=/nas
+Type=nfs
+
+[Install]
+WantedBy=multi-user.target

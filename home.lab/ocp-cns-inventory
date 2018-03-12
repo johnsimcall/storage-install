@@ -1,5 +1,5 @@
 #http://redhatstorage.redhat.com/2017/08/09/ocp3-6/
-#oc patch storageclass glusterfs-storage -p '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "true"}}}'
+# oc annotate storageclass glusterfs-storage storageclass.kubernetes.io/is-default-class="true"
 
 [OSEv3:children]
  masters

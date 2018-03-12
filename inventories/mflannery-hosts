@@ -16,3 +16,13 @@ gluster-geo[1:2].cluster.net
 client.cluster.net
 db2server.cluster.net
 rhsc2.cluster.net
+
+[ocp:children]
+ocp-masters
+ocp-nodes
+
+[ocp-masters]
+ocp-master1.cluster.net
+
+[ocp-nodes]
+ocp-infra[1:3].cluster.net

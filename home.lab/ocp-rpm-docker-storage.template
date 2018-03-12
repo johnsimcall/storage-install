@@ -1,0 +1,8 @@
+# Edit this file to override any configuration options specified in
+# /usr/share/container-storage-setup/container-storage-setup.
+#
+# For more details refer to "man container-storage-setup"
+STORAGE_DRIVER=devicemapper
+DEVS=/dev/sdb
+VG=docker_vg
+CONTAINER_THINPOOL=docker_pool

@@ -1,7 +1,10 @@
 # file: storcli-installation.yml
-#
+
 # execution:
 # $ ansible-playbook storcli-installation.yml --limit osds
+ 
+# Updated URL March 6th, 2018
+# https://docs.broadcom.com/docs-and-downloads/raid-controllers/raid-controllers-common-files/1.21.16_StorCLI.zip
 
 ---
 - hosts: osds

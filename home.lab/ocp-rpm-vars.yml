@@ -2,69 +2,78 @@
 # Playbook assumes 2 NIC for each VM
 ---
 rhvCluster: Default
-templateName: rhel-atomic-rhevm-7.4.4-2
+templateName: rhel-7.4u4-cloud
 instanceType: Large
 storageDomain: sanstore
 dnsServer: 192.168.0.99
 vm_root_password: passw0rd
 vms:
-  ocp-cns1:
+  ocp-rpm1:
     nic1:
-      ipaddress: 192.168.0.121
+      ipaddress: 192.168.0.131
       netmask:   255.255.255.0
       gateway:   192.168.0.1
 #    nic2:
 #      ipaddress: 192.168.2.111
 #      netmask:   255.255.255.0
 #      gateway:   0.0.0.0
-  ocp-cns2:
+  ocp-rpm2:
     nic1:
-      ipaddress: 192.168.0.122
+      ipaddress: 192.168.0.132
       netmask:   255.255.255.0
       gateway:   192.168.0.1
-  ocp-cns3:
+  ocp-rpm3:
     nic1:
-      ipaddress: 192.168.0.123
+      ipaddress: 192.168.0.133
       netmask:   255.255.255.0
       gateway:   192.168.0.1
-  ocp-cns4:
+  ocp-rpm4:
     nic1:
-      ipaddress: 192.168.0.124
+      ipaddress: 192.168.0.134
       netmask:   255.255.255.0
       gateway:   192.168.0.1
-#  ocp-cns5:
+#  ocp-rpm5:
 #    nic1:
-#      ipaddress: 192.168.0.125
+#      ipaddress: 192.168.0.135
 #      netmask:   255.255.255.0
 #      gateway:   192.168.0.1
-#  ocp-cns6:
+#  ocp-rpm6:
 #    nic1:
-#      ipaddress: 192.168.0.126
+#      ipaddress: 192.168.0.136
 #      netmask:   255.255.255.0
 #      gateway:   192.168.0.1
-#  ocp-cns7:
+#  ocp-rpm7:
 #    nic1:
-#      ipaddress: 192.168.0.127
+#      ipaddress: 192.168.0.137
 #      netmask:   255.255.255.0
 #      gateway:   192.168.0.1
 
 disks_size: 50GiB
 disks:
-  - name: ocp-cns2
+  - name: ocp-rpm1
     id:
       - 1
-  - name: ocp-cns3
+  - name: ocp-rpm2
+    id:
+      - 1 # docker-storage-setup
+      - 2 # cns
+  - name: ocp-rpm3
     id:
       - 1
-  - name: ocp-cns4
+      - 2
+  - name: ocp-rpm4
     id:
       - 1
-#  - name: ocp-cns5
+      - 2
+#  - name: ocp-rpm5
 #    id:
 #      - 1
-#  - name: ocp-cns6
+#      - 2
+#  - name: ocp-rpm6
 #    id:
 #      - 1
-#  - name: ocp-cns7
+#      - 2
+#  - name: ocp-rpm7
 #    id:
 #      - 1
+#      - 2

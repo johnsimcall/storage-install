@@ -2,9 +2,9 @@
 # Playbook assumes 2 NIC for each VM
 ---
 rhvCluster: Basement
-templateName: rhel-7.4-cloud
-storageDomain: rhv01-fast
-instanceType: Medium
+templateName: rhel-atomic-rhevm-7.4.4-2
+storageDomain: vmstore
+instanceType: Large
 dnsServer: 192.168.0.99
 vms:
   ceph-mon1:

@@ -8,17 +8,14 @@
 #   All VMs will have two NICs
 #
 # execution:
-# $ ansible-playbook gluster-make-vms.yml --ask-vault-pass
+# $ ansible-playbook -i home.lab/inventory gluster-make-vms.yml --ask-vault-pass
 
 ---
-- hosts: localhost
+- hosts: rhvm
   gather_facts: yes
   vars_files:
   - "{{ ansible_domain }}/rhvm-vault.yml"
   - "{{ ansible_domain }}/gluster-vars.yml"
-
-  vars:
-    templateName: "{{ templateName }}"
 
   tasks:
     - name: Login to RHV
@@ -39,33 +36,33 @@
         nics:
           - name: nic1
             profile_name: ovirtmgmt
-#          - name: nic2
-#            profile_name: ovirtmgmt
+          - name: nic2
+            profile_name: ovirtmgmt
         cloud_init:
-          host_name: "{{ item.key }}.cluster.net"
-          user_name: root
+          host_name: "{{ item.key }}.{{ ansible_domain }}"
+          user_name: cloud-user
           root_password: "{{ vm_root_password }}"
           authorized_ssh_keys: |
             - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1vfRWODjNpS45BwAD864B1ezqIOb5fxCjnOwsgx/p8QchwWQhIUeC+PAUBI/QJ/nzX2pUOx0erNu8wuQRobOMxmYmsIyeuIIkBSJxffeFm4Cuy0glgkNR5ry90AHabO7bvXoY1q2QJ6sdkMeh2r1b/tx+2KFBOpe6v2HAcBpS+srl/fpdOV0GK2HNC0DsHz/2/me2hQ9gNIBOrb/Y7TJL5GcmbbHeteW4g648w1771El6r+JugmwlJ7/B/Jw5b4StpJmYQq0s1x9TJnqXO1kZGZ1YDrUEF25ZxkLZxmLxwD8hUDVbaeCAjbNQCe5OXc3wl96VvwXsPE2d838DBUTL jcall@home.lab
             - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDP1SXmgAxJDfsZ15OfjiE1nzZa2Nh/B5J67KqXoJRlWUVLxaUw52tlbISSYdmpXmVb84huiIz+W5XcOrtK8lFB8O2seW50nevBRFuMnwQ8kgsHnvQ9TJjzCCngLlQjFrxH3g4oNUvSvv5hgd0j8dGA3NSJN7O0VMMQgWQK+Bt1YYxkwxsQ8NPnSixNevLj/bQvv3WRoekfu1c0LvL5IdY3yhpQ1no84jCXR4CD2ZA7msxzvfxgJ1/IFD0m8EDKRKmbg4RtgfTYB+fwvrTw1l/DoSlUtEdvrBx8T+1s0FCz6qjNfpvCmubAUR/2gWIu49s7q8sOmjRGBw9DL1hVdHUN mflanner@t460s
-          #TODO:dns stuff below doesn't work, using custom_script and runcmd as workaround
+          #TODO:cloud-init seems to hate NetworkManager... using runcmd as workaround
           dns_servers: "{{ dnsServer }}"
           dns_search: "{{ ansible_domain }}"
           custom_script: |
             runcmd:
-              - hostnamectl set-hostname {{ item.key }}.{{ ansible_domain }}
-              - nmcli con modify "System eth0" connection.id eth0 ipv4.dns {{ dnsServer }} ipv4.dns-search {{ ansible_domain }}
-              #- nmcli con modify "System eth1" connection.id eth1
-              - nmcli net off
-              - nmcli net on
-              - yum -y remove cloud-init
-        cloud_init_nics:   # Requires "nmcli net off/on" to apply
-          - nic_name: eth0
-            nic_on_boot: true
-            nic_boot_protocol: static
-            nic_ip_address: "{{ item.value.nic1.ipaddress }}"
-            nic_netmask:    "{{ item.value.nic1.netmask }}"
-            nic_gateway:    "{{ item.value.nic1.gateway }}"
+              - hostnamectl set-hostname "{{ item.key }}.{{ ansible_domain }}"
+              - nmcli con add type ethernet connection.id eth0 connection.interface-name eth0 ipv4.method static ipv4.addresses {{ item.value.nic1.ipaddress }}/24 ipv4.gateway {{ item.value.nic1.gateway }} ipv4.dns {{ dnsServer }} ipv4.dns-search {{ ansible_domain }}
+              - nmcli con del "System eth0"
+              - nmcli con add type ethernet connection.id eth1 connection.interface-name eth1 ipv4.method static ipv4.addresses {{ item.value.nic2.ipaddress }}/24
+              - nmcli con del "System eth1"
+              - systemctl mask cloud-init
+#        cloud_init_nics:   # Requires "nmcli net off/on" to apply
+#          - nic_name: eth0
+#            nic_on_boot: true
+#            nic_boot_protocol: static
+#            nic_ip_address: "{{ item.value.nic1.ipaddress }}"
+#            nic_netmask:    "{{ item.value.nic1.netmask }}"
+#            nic_gateway:    "{{ item.value.nic1.gateway }}"
 #          - nic_name: eth1
 #            nic_on_boot: true
 #           nic_boot_protocol: static
@@ -76,7 +73,7 @@
       with_dict: "{{ vms }}" # See ceph-make-vms-vars.yml
 
     - name: Create and attach disks
-      ovirt_disks:
+      ovirt_disk:
         auth: "{{ ovirt_auth }}"
         vm_name: "{{ item.0.name }}"
         storage_domain: "{{ storageDomain }}"

@@ -1,0 +1,9 @@
+# /etc/systemd/system/nas.automount
+[Unit]
+Description=Home NAS
+
+[Automount]
+Where=/nas
+
+[Install]
+WantedBy=multi-user.target
