@@ -1,2 +1,5 @@
 [rhvm]
 rhvm.home.lab
+
+[gluster]
+gluster-[1:6]

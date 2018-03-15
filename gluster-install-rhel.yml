@@ -8,15 +8,7 @@
 ---
 - hosts: all
   vars: 
-    gluster_repos:
-      - rhel-7-server-rpms
-      - rhel-7-server-extras-rpms
-      - rhel-7-server-optional-rpms
-      - rhel-ha-for-rhel-7-server-rpms
-      - rh-gluster-3-for-rhel-7-server-rpms
-      - rh-gluster-3-nfs-for-rhel-7-server-rpms
-      - rh-gluster-3-samba-for-rhel-7-server-rpms
-      - rh-gluster-3-nagios-for-rhel-7-server-rpms
+    repos: #dynamically populated below
 
     firewall_services:
       - glusterfs
@@ -28,6 +20,7 @@
       - rquota
       - ssh
       - samba
+      - ctdb
       - https
       - vdsm
 
@@ -80,42 +73,54 @@
     tags:
       - rhsm
 
-  - name: Disable all repos
-    command: subscription-manager repos --disable "*"
+  - name: Enable repos
+    block:
+    - set_fact:
+        repos: "{{ repos }} --enable={{ item }}"
+      no_log: true
+      with_items:
+        - rhel-7-server-rpms
+        - rhel-7-server-extras-rpms
+        - rhel-7-server-optional-rpms
+        - rhel-ha-for-rhel-7-server-rpms
+        - rh-gluster-3-for-rhel-7-server-rpms
+        - rh-gluster-3-nfs-for-rhel-7-server-rpms
+        - rh-gluster-3-samba-for-rhel-7-server-rpms
+        - rh-gluster-3-nagios-for-rhel-7-server-rpms
+    - debug:
+        var: repos
+    - command: subscription-manager repos --disable="*"
+    - command: subscription-manager repos {{ repos }}
+    when: ansible_distribution_major_version == "7"
     tags:
       - repos
+    #end block
 
-  - name: Enable repo for RHEL 7
-    command: subscription-manager repos --enable {{ item }}
-    with_items: "{{ gluster_repos }}"
-    tags:
-      - repos
-
-  - name: Install ssh private key
-    copy:
-      content: "{{ lookup('file', '/root/.ssh/id_rsa') }}"
-      dest: /root/.ssh/id_rsa
-      mode: 0600
-      owner: root
-    tags:
-      - ssh
-
-  - name: Install ssh public key
-    copy:
-      content: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
-      dest: /root/.ssh/id_rsa.pub
-      mode: 0644
-      owner: root
-    tags:
-      - ssh
-
-  - name: Set authorized key
-    authorized_key:
-      user: root
-      state: present
-      key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
-    tags:
-      - ssh
+#  - name: Install ssh private key
+#    copy:
+#      content: "{{ lookup('file', '/root/.ssh/id_rsa') }}"
+#      dest: /root/.ssh/id_rsa
+#      mode: 0600
+#      owner: root
+#    tags:
+#      - ssh
+#
+#  - name: Install ssh public key
+#    copy:
+#      content: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+#      dest: /root/.ssh/id_rsa.pub
+#      mode: 0644
+#      owner: root
+#    tags:
+#      - ssh
+#
+#  - name: Set authorized key
+#    authorized_key:
+#      user: root
+#      state: present
+#      key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
+#    tags:
+#      - ssh
 
   - name: Install firewalld
     yum: 
@@ -150,6 +155,7 @@
     with_items:
       - samba
       - samba-client
+      - ctdb
 
   - name: Install AD Integration
     yum:
