@@ -1,0 +1,154 @@
+#### DEMO ####
+# Assumptions:
+# a couple of servers, with a couple of available hard drives
+---
+- hosts: all
+  tasks:
+  - name: "Install Gluster and required dependencies"
+    pause:
+    tags: [pause]
+  - name: "Install Gluster, and required dependencies"
+    yum: 
+      name: redhat-storage-server,firewalld,gstatus,tree
+      state: present
+
+  - name: "Configure Firewall (services and ports)"
+    pause:
+    tags: [pause]
+  - name: "Configure Firewall (services)"
+    firewalld:
+      service: "{{ item }}"
+      permanent: true
+      immediate: true
+      state: enabled
+    with_items:
+      - ssh
+      - glusterfs
+      - high-availability
+      - nfs
+      - rpc-bind
+      - mountd
+      - rquota
+      - nlm
+      - samba
+      - ctdb
+  - name: "Configure Firewall (ports)"
+    firewalld:
+      port: "{{ item }}"
+      permanent: true
+      immediate: true
+      state: enabled
+    with_items:
+      - 662/tcp
+      - 662/udp
+      - 963/udp
+      - 965/tcp
+      - 5666-5667/tcp
+      - 6010-6012/tcp
+      - 8080/tcp
+      - 9090/tcp
+      - 24009-24108/tcp
+      - 32803/udp
+      - 32769/udp
+      - 39543/tcp
+      - 55863/tcp
+
+  - name: "Starup Gluster services"
+    pause:
+    tags: [pause]
+  - name: "Starup Gluster services"
+    systemd:
+      name: glusterd
+      enabled: yes
+      state: started
+
+  - name: "Create the Gluster Cluster --aka Trusted Storage Pool--"
+    pause:
+    tags: [pause]
+  - name: "Create the Gluster Cluster --aka Trusted Storage Pool--"
+    command: gluster peer probe {{ item }}
+    run_once: yes
+    with_items:
+      - "{{ play_hosts }}"
+
+  - name: "Format and mount our 'bricks' with XFS"
+    pause:
+    tags: [pause]
+  - name: "Format our 'bricks' with XFS"
+    filesystem:
+      fstype: xfs
+      dev: /dev/sda
+      opts: -i size=512
+  - name: "Mount our 'bricks'"
+    mount:
+      src: /dev/sda
+      path: /bricks/sda
+      fstype: xfs
+      state: mounted
+  - file:
+      path: /bricks/sda/vol1
+      state: directory
+
+  - name: "Create a 3x replicated volume"
+    pause:
+    tags: [pause]
+  - name: "Create a 3x replicated volume"
+    gluster_volume:
+      state: present
+      name: vol1
+      replicas: 3
+      bricks: /bricks/sda/vol1
+      cluster: [ gluster1, gluster2, gluster3, gluster4, gluster5, gluster6 ]
+    run_once: true 
+
+  - name: "Mount our volume on a client"
+    pause:
+    tags: [pause]
+  - name: "Mount our volume on a client"
+    mount:
+      src: gluster1:vol1
+      path: /gluster/vol1
+      fstype: glusterfs
+      state: mounted
+    run_once: true 
+
+  - name: "Copy our pictures into the volume"
+    pause:
+    tags: [pause]
+  - name: "Copy our pictures into the volume"
+    copy:
+      src: /root/pictures
+      dest: /gluster/vol1
+    run_once: true 
+
+  - name: "Make our volume bigger"
+    pause:
+    tags: [pause]
+  - name: "Format more 'bricks' with XFS"
+    filesystem:
+      fstype: xfs
+      dev: /dev/sdb
+      opts: -i size=512
+  - name: "Mount more 'bricks'"
+    mount:
+      src: /dev/sdb
+      path: /bricks/sdb
+      fstype: xfs
+      state: mounted
+  - file:
+      path: /bricks/sdb/vol1
+      state: directory
+  - name: "Make our volume bigger"
+    command: |
+      gluster vol add-brick vol1 \
+        gluster1:/bricks/sdb/vol1 \
+        gluster2:/bricks/sdb/vol1 \
+        gluster3:/bricks/sdb/vol1 \
+        gluster4:/bricks/sdb/vol1 \
+        gluster5:/bricks/sdb/vol1 \
+        gluster6:/bricks/sdb/vol1 
+    run_once: yes
+
+#TODO
+# *snapshots
+# *geo-replication

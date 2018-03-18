@@ -1,0 +1,33 @@
+#IN CASE OF EMERGENCY:
+# ansible gluster1 -m mount -a 'path=/gluster/vol1 state=absent'
+# gluster vol stop vol1 --mode=script ; gluster vol delete vol1 --mode=script
+# for i in {1..6}; do ssh gluster$i "rm -rf /bricks/sda/vol1"; ssh gluster$i "mkdir /bricks/sda/vol1"; done
+# for i in {1..6}; do ssh gluster$i "rm -rf /bricks/sdb/vol1"; ssh gluster$i "mkdir /bricks/sdb/vol1"; done
+# ansible all -m mount -a 'path=/bricks/sda state=absent'
+# ansible all -m mount -a 'path=/bricks/sdb state=absent'
+# for i in {2..6}; do gluster peer detach gluster$i; done
+# ansible all -a "wipefs -af /dev/sda"
+# ansible all -a "wipefs -af /dev/sdb"
+---
+- hosts: all
+  ignore_errors: yes
+  tasks:
+  - name: "Unmount the client's volume"
+    mount: path=/gluster/vol1 state=absent
+
+  - name: "Delete the Gluster volume"
+    gluster_volume: name=vol1 state=absent
+    run_once: yes
+
+  - name: "Dissolve the Trusted Storage Pool"
+    command: gluster peer detach {{ item }}
+    with_items: [ gluster1, gluster2, gluster3, gluster4, gluster5, gluster6 ]
+    run_once: yes
+
+  - name: "Cleanup the nodes' fstab"
+    mount: path=/bricks/{{ item }} state=absent
+    with_items: [ sda, sdb ]
+
+  - name: "Wipe the drives"
+    command: wipefs -af /dev/{{ item }}
+    with_items: [ sda, sdb ]
