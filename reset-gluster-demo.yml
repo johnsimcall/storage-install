@@ -10,14 +10,43 @@
 # ansible all -a "wipefs -af /dev/sdb"
 ---
 - hosts: all
+  gather_facts: no
   ignore_errors: yes
   tasks:
   - name: "Unmount the client's volume"
-    mount: path=/gluster/vol1 state=absent
+    mount: path=/gluster/{{ item }} state=absent
+    with_items: [ vol1, vol1-snaps, vol1-clone ]
+
+  - name: "Stop the Gluster volume"
+    gluster_volume: name=vol1-clone state=stopped
+    run_once: yes
+
+  - name: "Deactivate the Gluster volume's snapshots"
+    command: gluster snapshot deactivate snap1 --mode=script
+    run_once: yes
+
+  - name: "Delete the Gluster volume's snapshots"
+    command: gluster snapshot delete all --mode=script
+    run_once: yes
+
+  - name: "Delete the Gluster volume clone"
+    gluster_volume: name=vol1-clone state=absent
+    run_once: yes
 
   - name: "Delete the Gluster volume"
     gluster_volume: name=vol1 state=absent
     run_once: yes
+
+  - copy:
+      content: |
+        #!/bin/bash
+        
+        for i in $(lvs --no-heading -o vg_name,lv_name | awk '{print "/dev/" $1 "/" $2}'); do umount -v $i; done
+      dest: /tmp/umount_all.sh
+      mode: 0755
+
+  - name: "Force unmount /run/gluster/snaps/* dirs"
+    script: /tmp/umount_all.sh
 
   - name: "Dissolve the Trusted Storage Pool"
     command: gluster peer detach {{ item }}
@@ -25,9 +54,23 @@
     run_once: yes
 
   - name: "Cleanup the nodes' fstab"
-    mount: path=/bricks/{{ item }} state=absent
-    with_items: [ sda, sdb ]
+    mount: 
+      path: /bricks/{{ item }} 
+      state: absent
+    with_items: [ sda, sdb, sdc ]
 
-  - name: "Wipe the drives"
-    command: wipefs -af /dev/{{ item }}
-    with_items: [ sda, sdb ]
+  - name: "Remove the LVs"
+    command: lvremove vg_{{ item }} --force
+    with_items: [ sda, sdb, sdc ]
+
+  - name: "Remove the VGs"
+    command: vgremove vg_{{ item }} --force
+    with_items: [ sda, sdb, sdc ]
+
+  - name: "Remove the PVs"
+    command: pvremove /dev/{{ item }} --force
+    with_items: [ sda, sdb, sdc ]
+
+#  - name: "Wipe the drives"
+#    command: wipefs -af /dev/{{ item }}
+#    with_items: [ sda, sdb, sdc ]

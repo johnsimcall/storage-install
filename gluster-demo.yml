@@ -1,22 +1,21 @@
-#### DEMO ####
-# Assumptions:
-# a couple of servers, with a couple of available hard drives
 ---
 - hosts: all
+  gather_facts: no
   tasks:
-  - name: "Install Gluster and required dependencies"
-    pause:
+  - pause:
+      prompt: "NEXT STEP - Install Gluster RPMs"
     tags: [pause]
-  - name: "Install Gluster, and required dependencies"
-    yum: 
+  - yum: 
       name: redhat-storage-server,firewalld,gstatus,tree
       state: present
-
-  - name: "Configure Firewall (services and ports)"
-    pause:
+  - pause:
+      prompt: |
+        Verify with: rpm -q redhat-storage-server
+        
+        NEXT STEP - Configure firewall
     tags: [pause]
-  - name: "Configure Firewall (services)"
-    firewalld:
+
+  - firewalld:
       service: "{{ item }}"
       permanent: true
       immediate: true
@@ -24,74 +23,82 @@
     with_items:
       - ssh
       - glusterfs
-      - high-availability
       - nfs
-      - rpc-bind
-      - mountd
-      - rquota
-      - nlm
       - samba
-      - ctdb
-  - name: "Configure Firewall (ports)"
-    firewalld:
-      port: "{{ item }}"
-      permanent: true
-      immediate: true
-      state: enabled
-    with_items:
-      - 662/tcp
-      - 662/udp
-      - 963/udp
-      - 965/tcp
-      - 5666-5667/tcp
-      - 6010-6012/tcp
-      - 8080/tcp
-      - 9090/tcp
-      - 24009-24108/tcp
-      - 32803/udp
-      - 32769/udp
-      - 39543/tcp
-      - 55863/tcp
-
-  - name: "Starup Gluster services"
-    pause:
+  - pause:
+      prompt: |
+        Verify with: firewall-cmd --list-all
+        
+        NEXT STEP - Start Gluster daemon
     tags: [pause]
-  - name: "Starup Gluster services"
-    systemd:
+
+  - systemd:
       name: glusterd
       enabled: yes
       state: started
-
-  - name: "Create the Gluster Cluster --aka Trusted Storage Pool--"
-    pause:
+  - pause:
+      prompt: |
+        Verify with: systemctl status glusterd
+        
+        NEXT STEP - Create the Gluster Cluster (Trusted Storage Pool)
     tags: [pause]
-  - name: "Create the Gluster Cluster --aka Trusted Storage Pool--"
+
+  - name: "Create the Gluster Cluster (Trusted Storage Pool)"
     command: gluster peer probe {{ item }}
     run_once: yes
     with_items:
       - "{{ play_hosts }}"
-
-  - name: "Format and mount our 'bricks' with XFS"
-    pause:
+  - pause:
+      prompt: |
+        Verify with: gluster pool list
+        
+        NEXT STEP - Create our PVs, VGs, and LVs
     tags: [pause]
-  - name: "Format our 'bricks' with XFS"
-    filesystem:
+
+  - lvg:
+      vg: vg_{{ item }}
+      pvs: /dev/{{ item }}
+    with_items: [sda,sdb,sdc]
+  - lvol:
+      vg: vg_{{ item }}
+      lv: tp_{{ item }}
+      size: 100%FREE
+      opts: --thin
+    with_items: [sda,sdb,sdc]
+  - command:  lvcreate --virtualsize 20GB -T vg_{{ item }}/tp_{{ item }} -n lv_{{ item }}
+    with_items: [sda,sdb,sdc]
+  - pause:
+      prompt: |
+        Verify with: pvs && vgs && lvs
+        
+        NEXT STEP - Format and mount the bricks
+    tags: [pause]
+
+  - filesystem:
       fstype: xfs
-      dev: /dev/sda
+      dev: /dev/vg_{{ item }}/lv_{{ item }}
       opts: -i size=512
-  - name: "Mount our 'bricks'"
-    mount:
-      src: /dev/sda
-      path: /bricks/sda
+    with_items: [sda,sdb,sdc]
+  - mount:
+      src: /dev/vg_{{ item }}/lv_{{ item }}
+      path: /bricks/{{ item }}
       fstype: xfs
       state: mounted
+    with_items: [sda,sdb,sdc]
   - file:
-      path: /bricks/sda/vol1
+      path: /bricks/{{ item }}/vol1
       state: directory
-
-  - name: "Create a 3x replicated volume"
-    pause:
+    with_items: [sda,sdb,sdc]
+  - pause:
+      prompt: |
+        Verify with: mount | grep bricks && tree /bricks
+        
+        NEXT STEP - Create a 3x replicated volume
     tags: [pause]
+
+- hosts: gluster1
+  gather_facts: no
+  tasks:
   - name: "Create a 3x replicated volume"
     gluster_volume:
       state: present
@@ -99,45 +106,35 @@
       replicas: 3
       bricks: /bricks/sda/vol1
       cluster: [ gluster1, gluster2, gluster3, gluster4, gluster5, gluster6 ]
-    run_once: true 
-
-  - name: "Mount our volume on a client"
-    pause:
+  - pause:
+      prompt: |
+        Verify with: gluster vol list
+        
+        NEXT STEP - Mount our volume
     tags: [pause]
-  - name: "Mount our volume on a client"
-    mount:
+
+  - mount:
       src: gluster1:vol1
       path: /gluster/vol1
       fstype: glusterfs
       state: mounted
-    run_once: true 
-
-  - name: "Copy our pictures into the volume"
-    pause:
+  - pause:
+      prompt: |
+        Verify with: mount | grep gluster && df -h /gluster/vol1
+        
+        NEXT STEP - Copy our pictures into the volume
     tags: [pause]
-  - name: "Copy our pictures into the volume"
-    copy:
+
+  - copy:
       src: /root/pictures
       dest: /gluster/vol1
-    run_once: true 
-
-  - name: "Make our volume bigger"
-    pause:
+  - pause:
+      prompt: |
+        Verify with: ls -al /gluster/vol1/pictures/
+        
+        NEXT STEP - Make our volume bigger
     tags: [pause]
-  - name: "Format more 'bricks' with XFS"
-    filesystem:
-      fstype: xfs
-      dev: /dev/sdb
-      opts: -i size=512
-  - name: "Mount more 'bricks'"
-    mount:
-      src: /dev/sdb
-      path: /bricks/sdb
-      fstype: xfs
-      state: mounted
-  - file:
-      path: /bricks/sdb/vol1
-      state: directory
+
   - name: "Make our volume bigger"
     command: |
       gluster vol add-brick vol1 \
@@ -147,8 +144,70 @@
         gluster4:/bricks/sdb/vol1 \
         gluster5:/bricks/sdb/vol1 \
         gluster6:/bricks/sdb/vol1 
-    run_once: yes
+  - pause:
+      prompt: |
+        Verify with: df -h /gluster/vol1
+        
+        NEXT STEP - Create a snapshot
+    tags: [pause]
+
+  - name: "Create a snapshot"
+    command: gluster snapshot create snap1 vol1 no-timestamp
+  - name: "Activate the snapshot"
+    command: gluster snapshot activate snap1
+  - name: "Mount the snapshot"
+    mount:
+      src: gluster1:/snaps/snap1/vol1
+      path: /gluster/vol1-snaps
+      fstype: glusterfs
+      state: mounted
+  - pause:
+      prompt: |
+        Verify with: gluster snapshot list vol1 && tree /gluster/vol1*
+        
+        NEXT STEP - Enable self-service snapshots
+    tags: [pause]
+
+  - name: "Enable self-service snapshots"
+    command: gluster vol set vol1 features.uss enable
+  - name: "Re-mount the volume"
+    mount: src=gluster1:vol1 path=/gluster/vol1 fstype=glusterfs state=unmounted
+  - name: "Re-mount the volume"
+    mount: src=gluster1:vol1 path=/gluster/vol1 fstype=glusterfs state=mounted
+  - pause:
+      prompt: |
+        Verify with: tree /gluster/vol1/.snaps/snap1
+        
+        NEXT STEP - Convert the snapshot to a writeable clone
+    tags: [pause]
+
+  - name: "Convert the snapshot to a writeable clone"
+    command: gluster snapshot clone vol1-clone snap1
+  - name: "Start the clone"
+    command: gluster vol start vol1-clone
+  - name: "Mount the clone"
+    mount:
+      src: gluster1:vol1-clone
+      path: /gluster/vol1-clone
+      fstype: glusterfs
+      state: mounted
+  - pause:
+      prompt: |
+        Verify with: tree /gluster/vol1-clone
+        
+        ALL DONE! 
+    tags: [pause]
+
+
+
+
+
 
 #TODO
-# *snapshots
 # *geo-replication
+#
+# backup:
+# gluster volume set vol1 server.allow-insecure on
+# edit /etc/glusterfs/glusterd.vol
+#   add "option rpc-auth-allow-insecure on" before "end-volume"
+# systemctl restart glusterd on all nodes
