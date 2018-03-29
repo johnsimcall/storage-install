@@ -11,7 +11,10 @@
  ansible_ssh_user=root
  openshift_master_default_subdomain=cloudapps-rpm.home.lab
  openshift_deployment_type=openshift-enterprise
- openshift_disable_check=disk_availability,memory_availability
+# openshift_disable_check=disk_availability,memory_availability
+ # OCP3.7 needs this because of https://bugzilla.redhat.com/show_bug.cgi?id=1551872 bug introduced on 03/05/2018
+ openshift_disable_check=disk_availability,memory_availability,package_version
+
 # openshift_hosted_metrics_deploy=false
  openshift_metrics_install_metrics=true
  openshift_logging_install_logging=true

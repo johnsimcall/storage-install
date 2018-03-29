@@ -1,0 +1,31 @@
+---
+- hosts: masters
+  gather_facts: no
+  ignore_errors: yes
+  tasks:
+  - name: "Delete the OpenShift project"
+    command: oc delete project {{ item }}
+    run_once: yes
+    with_items:
+      - glusterfs
+      - glusterfs_registry
+
+- hosts: glusterfs,glusterfs_registry
+  gather_facts: no
+  ignore_errors: yes
+  tasks:
+
+  - name: "Remove abandoned files/directories"
+    file:
+      state: absent
+      path: "{{ item }}"
+    with_items:
+      - /etc/glusterfs
+      - /var/lib/heketi
+      - /var/lib/glusterd
+      - /var/log/glusterfs
+
+  - name: "Wipe the drives"
+    command: wipefs -af /dev/{{ item }}
+    with_items: [ sdb ]
+    #with_items: [ sda, sdb, sdc ]

@@ -24,7 +24,7 @@
 #      private: no
 
   tasks:
-  - block
+  - block:
     - name: Register with Red Hat
       redhat_subscription:
         state: present
@@ -65,7 +65,8 @@
     - name: Enable repos
       command: subscription-manager repos {{ repos }} 
     tags: [repos]
-    when: ansible_distribution_major_version == "7" #end block
+    when: ansible_distribution_major_version == "7"
+    #end block
 
   - name: Install required RPMs
     yum:
@@ -84,6 +85,38 @@
       - psacct
       - atomic-openshift-utils
     tags: [rpms]
+
+  - block:
+#    - name: "Extend /dev/sda1"
+#      command: growpart /dev/sda 1
+  
+    - name: "Grow /dev/sda1"
+      command: xfs_growfs /
+  
+    - name: "Install docker"
+      yum:
+        name: docker
+        state: present
+  
+    - name: "Setup docker-storage-setup"
+      copy:
+        content: |
+          STORAGE_DRIVER=devicemapper
+          DEVS=/dev/sdb
+          VG=docker_vg
+          CONTAINER_THINPOOL=docker_pool
+        dest: /etc/sysconfig/docker-storage-setup
+  
+    - name: "Run docker-storage-setup"
+      command: docker-storage-setup
+  
+    - name: "Start and enable docker"
+      systemd:
+        unit: docker.service
+        state: restarted
+        enabled: yes
+    tags: [ test ]
+    # end block
 
 #  - name: Reboot to apply any updates, and clear cloud-init state
 #    command: systemctl reboot
