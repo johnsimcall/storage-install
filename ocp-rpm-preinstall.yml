@@ -24,23 +24,22 @@
 #      private: no
 
   tasks:
-  - name: Register with Red Hat
-    redhat_subscription:
-      state: present
-      username: "{{ rhsm_username }}"
-      password: "{{ rhsm_password }}"
-      autosubscribe: false
-    async: 300
-    poll: 10
-    tags:
-      - rhsm
-
-  - name: Attach Pool
-    command: subscription-manager attach --pool={{ poolid }}
-    async: 300
-    poll: 10
-    tags:
-      - rhsm
+  - block
+    - name: Register with Red Hat
+      redhat_subscription:
+        state: present
+        username: "{{ rhsm_username }}"
+        password: "{{ rhsm_password }}"
+        autosubscribe: false
+      async: 300
+      poll: 10
+  
+    - name: Attach Pool
+      command: subscription-manager attach --pool={{ poolid }}
+      async: 300
+      poll: 10
+    tags: [rhsm]
+    # end block
 
   - block:
     - set_fact:
@@ -49,6 +48,7 @@
       with_items:
         - rhel-7-server-rpms
         - rhel-7-server-extras-rpms
+        - rhel-7-server-ansible-2.4-rpms
         #- rhel-7-server-optional-rpms
         #- rhel-7-server-supplementary-rpms
         - rhel-7-server-ose-3.7-rpms
@@ -64,9 +64,7 @@
 
     - name: Enable repos
       command: subscription-manager repos {{ repos }} 
-
-    tags:
-      - repos
+    tags: [repos]
     when: ansible_distribution_major_version == "7" #end block
 
   - name: Install required RPMs
@@ -85,8 +83,7 @@
       - sos
       - psacct
       - atomic-openshift-utils
-    tags:
-      - rpms
+    tags: [rpms]
 
 #  - name: Reboot to apply any updates, and clear cloud-init state
 #    command: systemctl reboot
