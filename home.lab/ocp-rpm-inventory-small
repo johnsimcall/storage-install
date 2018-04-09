@@ -1,4 +1,7 @@
 #http://redhatstorage.redhat.com/2017/08/09/ocp3-6/
+# ansible-playbook -i home.lab/ocp-rpm-inventory-small /usr/share/ansible/openshift-ansible/playbooks/prerequisites.yml
+# ansible-playbook -i home.lab/ocp-rpm-inventory-small /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml
+
 # oc annotate storageclass glusterfs-storage storageclass.kubernetes.io/is-default-class="true"
 
 [OSEv3:children]

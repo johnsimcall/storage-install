@@ -1,7 +1,8 @@
 # file: ocp-rpm-make-vms.yml
 #
 # prerequisites:
-# $ sudo yum --enablerepo=rhel-7-server-rhv-4.1-rpms install python-ovirt-engine-sdk4
+# $ NEW: sudo dnf install redhat-rpm-config python2-devel ; sudo easy_install ovirt-engine-sdk-python
+# $ OLD: sudo yum --enablerepo=rhel-7-server-rhv-4.1-rpms install python-ovirt-engine-sdk4
 #
 # vm definitions / assumptions:
 #   see home.lab/ocp-rpm-vars.yml
@@ -10,7 +11,7 @@
 # $ ansible-playbook -i home.lab/inventory ocp-rpm-make-vms.yml --ask-vault-pass
 
 ---
-- hosts: rhvm
+- hosts: localhost
   gather_facts: yes
   vars_files:
   - "{{ ansible_domain }}/rhvm-vault.yml"
@@ -33,7 +34,7 @@
         cluster: "{{ rhvCluster }}"
         template: "{{ templateName }}"
         name: "{{ item.key }}"
-        state: present
+        state: running
 #       clone: true
         instance_type: "{{ instanceType }}"
         nics:

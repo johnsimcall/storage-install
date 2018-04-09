@@ -1,5 +1,4 @@
-# Describe each VM
-# Playbook assumes 2 NIC for each VM
+# Consider changing dict so it looks like this https://everythingshouldbevirtual.com/creating-vsphere-vms-using-ansible/
 ---
 rhvCluster: Default
 templateName: rhel-7.4u4-cloud
@@ -13,10 +12,6 @@ vms:
       ipaddress: 192.168.0.131
       netmask:   255.255.255.0
       gateway:   192.168.0.1
-#    nic2:
-#      ipaddress: 192.168.2.111
-#      netmask:   255.255.255.0
-#      gateway:   0.0.0.0
   ocp-rpm2:
     nic1:
       ipaddress: 192.168.0.132
@@ -47,6 +42,10 @@ vms:
 #      ipaddress: 192.168.0.137
 #      netmask:   255.255.255.0
 #      gateway:   192.168.0.1
+#    nic2:
+#      ipaddress: 192.168.2.137
+#      netmask:   255.255.255.0
+#      gateway:   0.0.0.0
 
 disks_size: 50GiB
 disks:

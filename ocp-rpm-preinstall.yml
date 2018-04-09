@@ -1,8 +1,10 @@
 # file: ocp-rpm-preinstall.yml
-# Author: Mike Flannery (mflanner@redhat.com) & John Call (jcall@redhat.com)
-# invocation: ansible-playbook ocp-rpm-preinstall.yml
+# Authors: Mike Flannery (mflanner@redhat.com) & John Call (jcall@redhat.com)
+# Invocation: ansible-playbook ocp-rpm-preinstall.yml
+#
+# Updated: April 5th, 2018 for OCP/CNS 3.9
 
-# https://access.redhat.com/documentation/en-us/openshift_container_platform/3.7/html-single/installation_and_configuration/#install-config-install-advanced-install
+# https://access.redhat.com/documentation/en-us/openshift_container_platform/3.9/html-single/installation_and_configuration/#install-config-install-advanced-install
 
 ---
 - hosts: all
@@ -49,15 +51,9 @@
         - rhel-7-server-rpms
         - rhel-7-server-extras-rpms
         - rhel-7-server-ansible-2.4-rpms
-        #- rhel-7-server-optional-rpms
-        #- rhel-7-server-supplementary-rpms
-        - rhel-7-server-ose-3.7-rpms
+        - rhel-7-server-ose-3.9-rpms
         - rhel-7-fast-datapath-rpms
-        #- rh-gluster-3-for-rhel-7-server-rpms # disabled because it provides a shit version of python-requests, and we don't need it anyway because RHGS is installed via containers
         - rh-gluster-3-client-for-rhel-7-server-rpms
-
-    - debug:
-        var: repos
 
     - name: Disable all repos
       command: subscription-manager repos --disable="*"
@@ -84,19 +80,15 @@
       - sos
       - psacct
       - atomic-openshift-utils
+      - docker-1.13.1
     tags: [rpms]
 
   - block:
 #    - name: "Extend /dev/sda1"
 #      command: growpart /dev/sda 1
   
-    - name: "Grow /dev/sda1"
-      command: xfs_growfs /
-  
-    - name: "Install docker"
-      yum:
-        name: docker
-        state: present
+#    - name: "Grow /dev/sda1"
+#      command: xfs_growfs /
   
     - name: "Setup docker-storage-setup"
       copy:
