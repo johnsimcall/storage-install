@@ -20,9 +20,9 @@
     template_name: rhel75
     template_memory: 2GiB
     template_cpu: 2
+    template_disk_interface: virtio-scsi
     template_disk_size: 10GiB
-    #template_disk_storage: ssd-vmstore
-    template_disk_storage: sanstore
+    template_disk_storage: ssd-vmstore
 
   roles:
     - ovirt-ansible-image-template
