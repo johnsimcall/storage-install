@@ -1,0 +1,27 @@
+# https://github.com/oVirt/ovirt-ansible-image-template.git
+# Requires: libselinux-python
+---
+- name: Make oVirt template
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - "{{ ansible_domain }}/rhvm-vault.yml"
+
+  vars:
+    engine_url: "{{ rhvurl }}"
+    engine_user: "{{ rhvuser }}"
+    engine_password: "{{ rhvpass }}"
+    engine_cafile: /etc/pki/ovirt-engine/ca.pem
+
+    qcow_url: file:///root/jcall/rhel-server-7.5-x86_64-kvm.qcow2
+    template_cluster: Default
+    template_name: rhel75
+    template_memory: 2GiB
+    template_cpu: 2
+    template_disk_size: 10GiB
+    #template_disk_storage: ssd-vmstore
+    template_disk_storage: sanstore
+
+  roles:
+    - oVirt.image-template

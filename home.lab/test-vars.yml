@@ -1,0 +1,29 @@
+# Consider changing dict so it looks like this https://everythingshouldbevirtual.com/creating-vsphere-vms-using-ansible/
+---
+rhvCluster: Default
+templateName: rhel-7.4u4-cloud
+instanceType: Small
+storageDomain: sanstore
+dnsServer: 192.168.0.99
+vm_root_password: passw0rd
+vms:
+  test1:
+    nic1:
+      ipaddress: 192.168.0.131
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+  test2:
+    nic1:
+      ipaddress: 192.168.0.137
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+
+disks_size: 10GiB
+disks:
+  - name: test1
+    id:
+      - 1
+  - name: test2
+    id:
+      - 1 # docker-storage-setup
+      - 2 # cns

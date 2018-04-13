@@ -1,0 +1,259 @@
+---
+- hosts: all
+  gather_facts: no
+  tasks:
+  - pause:
+      prompt: "NEXT STEP - Install Gluster RPMs"
+    tags: [pause]
+  - yum: 
+      name: redhat-storage-server,firewalld,gstatus,tree
+      state: present
+  - pause:
+      prompt: |
+        Verify with: rpm -q redhat-storage-server
+        
+        NEXT STEP - Configure firewall
+    tags: [pause]
+
+  - firewalld:
+      service: "{{ item }}"
+      permanent: true
+      immediate: true
+      state: enabled
+    with_items:
+      - ssh
+      - glusterfs
+      - nfs
+      - samba
+  - pause:
+      prompt: |
+        Verify with: firewall-cmd --list-all
+        
+        NEXT STEP - Start Gluster daemon
+    tags: [pause]
+
+  - systemd:
+      name: glusterd
+      enabled: yes
+      state: started
+  - pause:
+      prompt: |
+        Verify with: systemctl status glusterd
+        
+        NEXT STEP - Create the Gluster Cluster (Trusted Storage Pool)
+    tags: [pause]
+
+  - name: "Create the Gluster Cluster (Trusted Storage Pool)"
+    command: gluster peer probe {{ item }}
+    run_once: yes
+    with_items:
+      - "{{ play_hosts }}"
+  - pause:
+      prompt: |
+        Verify with: gluster pool list
+        
+        NEXT STEP - Create our PVs, VGs, and LVs
+    tags: [pause]
+
+  - lvg:
+      vg: vg_{{ item }}
+      pvs: /dev/{{ item }}
+    with_items: [sdb,sdc,sdd]
+  - lvol:
+      vg: vg_{{ item }}
+      lv: tp_{{ item }}
+      size: 100%FREE
+      opts: --thin
+    with_items: [sdb,sdc,sdd]
+  - command:  lvcreate --virtualsize 10GB -T vg_{{ item }}/tp_{{ item }} -n lv_{{ item }}
+    with_items: [sdb,sdc,sdd]
+  - pause:
+      prompt: |
+        Verify with: pvs && vgs && lvs
+        
+        NEXT STEP - Format and mount the bricks
+    tags: [pause]
+
+  - filesystem:
+      fstype: xfs
+      dev: /dev/vg_{{ item }}/lv_{{ item }}
+      opts: -i size=512
+    with_items: [sdb,sdc,sdd]
+  - mount:
+      src: /dev/vg_{{ item }}/lv_{{ item }}
+      path: /bricks/{{ item }}
+      fstype: xfs
+      state: mounted
+    with_items: [sdb,sdc,sdd]
+  - file:
+      path: /bricks/{{ item }}/vol1
+      state: directory
+    with_items: [sdb,sdc,sdd]
+  - pause:
+      prompt: |
+        Verify with: mount | grep bricks && tree /bricks
+        
+        NEXT STEP - Create a 3x replicated volume
+    tags: [pause]
+
+- hosts: gluster1
+  gather_facts: no
+  tasks:
+  - name: "Create a 3x replicated volume"
+    gluster_volume:
+      state: present
+      name: vol1
+      # jcall - Disable auto-sharing for vol1, set 3x variables per Admin Guide
+      options:
+        features.uss: enable
+        server.allow-insecure: "on"
+        performance.cache-samba-metadata: "on"
+        storage.batch-fsync-delay-usec: "0"
+      replicas: 3
+      bricks: /bricks/sdb/vol1
+      cluster: [ gluster1, gluster2, gluster3 ]
+  - name: "Set global snapshot variables"
+    command: gluster snapshot config snap-max-hard-limit 4 --mode=script
+  - command: gluster snapshot config auto-delete enable --mode=script
+  - command: gluster snapshot config activate-on-create enable --mode=script
+  - name: "Update /etc/samba/smb.conf with 'vol1' details"
+    blockinfile:
+      path: /etc/samba/smb.conf
+      insertafter: EOF
+      block: |
+        [gluster-vol1]
+        	comment = Created by John Call
+        	guest ok = Yes
+        	path = /
+        	read only = No
+        	vfs objects = shadow_copy2 glusterfs
+        	shadow:basedir = /
+        	shadow:snapdir = /.snaps
+        	shadow:snapprefix = ^.*$
+        	shadow:format = _GMT-%Y.%m.%d-%H.%M.%S
+        	glusterfs:loglevel = 7
+        	glusterfs:logfile = /var/log/samba/glusterfs-vol1.%M.log
+        	glusterfs:volume = vol1
+      backup: yes
+  - systemd: unit=smb.service state=restarted
+  - pause:
+      prompt: |
+        Verify with: gluster vol list
+        
+        NEXT STEP - Mount our volume
+    tags: [pause]
+
+  - mount:
+      src: gluster1:vol1
+      path: /gluster/vol1
+      fstype: glusterfs
+      opts: acl
+      state: mounted
+  - acl:
+      path: /gluster/vol1
+      entry: "user:flannery:rwX"
+      state: present
+  - acl:
+      path: /gluster/vol1
+      entry: "default:user:flannery:rwX"
+      state: present
+  - file: 
+      owner: flannery
+      group: flannery
+      path: /gluster/vol1
+  - pause:
+      prompt: |
+        Verify with: mount | grep gluster && df -h /gluster/vol1 
+                     goto windows and map the network drive \\gluster1\gluster-vol1
+        
+        NEXT STEP - Copy our pictures into the volume
+    tags: [pause]
+
+  - copy:
+      src: /root/pictures
+      dest: /gluster/vol1
+      owner: flannery
+      group: flannery
+  - pause:
+      prompt: |
+        Verify with: ls -al /gluster/vol1/pictures/
+
+        NEXT STEP - Create a snapshot
+    tags: [pause]
+
+#  put this before tag above      NEXT STEP - Make our volume bigger
+#  - name: "Make our volume bigger"
+#    command: |
+#      gluster vol add-brick vol1 \
+#        gluster1:/bricks/sdc/vol1 \
+#        gluster2:/bricks/sdc/vol1 \
+#        gluster3:/bricks/sdc/vol1 \
+#  - systemd: unit=smb.service state=restarted
+#    delegate_to: gluster1
+#  - pause:
+#      prompt: |
+#        Verify with: df -h /gluster/vol1
+#                     NOTE --  Maybe restart smb here systemctl restart smb       
+#        NEXT STEP - Create a snapshot
+#    tags: [pause]
+
+  - name: "Create a snapshot"
+    command: gluster snapshot create demo vol1
+    register: result
+  - set_fact:
+      snapName: "{{ result.stdout | regex_search('(demo.*[0-9])') }}"
+# not needed since we auto-activate snapshots above...
+#  - name: "Activate the snapshot"
+#    command: gluster snapshot activate snap1
+  - name: "Mount the snapshot"
+    mount:
+      src: gluster1:/snaps/{{ snapName }}/vol1
+      path: /gluster/vol1-snaps
+      fstype: glusterfs
+      opts: acl
+      state: mounted
+  - pause:
+      prompt: |
+        Verify with: gluster snapshot list vol1 && tree /gluster/vol1*
+                     rm -f /gluster/vol1/pictures/N* && tree /gluster/vol1*
+        
+        NEXT STEP - Enable self-service snapshots
+    tags: [pause]
+
+  - name: "Enable self-service snapshots"
+    command: gluster vol set vol1 features.uss enable
+  - name: "Re-mount the volume"
+    mount: src=gluster1:vol1 path=/gluster/vol1 fstype=glusterfs state=unmounted
+  - name: "Re-mount the volume"
+    mount: src=gluster1:vol1 path=/gluster/vol1 fstype=glusterfs state=mounted
+  - systemd: unit=smb.service state=restarted
+    delegate_to: gluster1
+  - pause:
+      prompt: |
+        Verify with: tree /gluster/vol1/.snaps/{{ snapName }}
+                     windows explorer \\gluster1\gluster-vol1\.snaps\{{ snapName }}
+                     windows explorer right click on pictures/restore previous versions
+        
+        NEXT STEP - Convert the snapshot to a writeable clone
+    tags: [pause]
+
+  - name: "Convert the snapshot to a writeable clone"
+    command: gluster snapshot clone vol1-clone {{ snapName }}
+  - name: "Enable SMB/CIFS auto-share on clone"
+    command: gluster vol set vol1-clone user.cifs enable
+  - name: "Start the clone"
+    command: gluster vol start vol1-clone
+  - name: "Mount the clone"
+    mount:
+      src: gluster1:vol1-clone
+      path: /gluster/vol1-clone
+      fstype: glusterfs
+      state: mounted
+  - systemd: unit=smb.service state=restarted
+  - pause:
+      prompt: |
+        Verify with: tree /gluster/vol1-clone
+                     windows add network location \\gluster1\gluster-vol1-clone
+
+        ALL DONE! 
+    tags: [pause]

@@ -1,0 +1,80 @@
+#IN CASE OF EMERGENCY:
+# ansible gluster1 -m mount -a 'path=/gluster/vol1 state=absent'
+# gluster vol stop vol1 --mode=script ; gluster vol delete vol1 --mode=script
+# for i in {1..6}; do ssh gluster$i "rm -rf /bricks/sda/vol1"; ssh gluster$i "mkdir /bricks/sda/vol1"; done
+# for i in {1..6}; do ssh gluster$i "rm -rf /bricks/sdb/vol1"; ssh gluster$i "mkdir /bricks/sdb/vol1"; done
+# ansible all -m mount -a 'path=/bricks/sda state=absent'
+# ansible all -m mount -a 'path=/bricks/sdb state=absent'
+# for i in {2..6}; do gluster peer detach gluster$i; done
+# ansible all -a "wipefs -af /dev/sda"
+# ansible all -a "wipefs -af /dev/sdb"
+---
+- hosts: all
+  gather_facts: no
+  ignore_errors: yes
+  tasks:
+  - name: "Unmount the client's volume"
+    mount: path=/gluster/{{ item }} state=absent
+    with_items: [ vol1, vol1-snaps, vol1-clone ]
+
+  - name: "Stop the Gluster volume"
+    gluster_volume: name=vol1-clone state=stopped
+    run_once: yes
+
+#  - name: "Deactivate the Gluster volume's snapshots"
+#    command: gluster snapshot deactivate snap1 --mode=script
+#    run_once: yes
+
+  - name: "Delete the Gluster volume's snapshots"
+    command: gluster snapshot delete all --mode=script
+    run_once: yes
+
+  - name: "Delete the Gluster volume clone"
+    gluster_volume: name=vol1-clone state=absent
+    run_once: yes
+
+  - name: "Delete the Gluster volume"
+    gluster_volume: name=vol1 state=absent
+    run_once: yes
+
+  - copy:
+      content: |
+        #!/bin/bash
+        
+        for i in $(lvs --no-heading -o vg_name,lv_name | awk '{print "/dev/" $1 "/" $2}'); do umount -v $i; done
+      dest: /tmp/umount_all.sh
+      mode: 0755
+
+  - name: "Force unmount /run/gluster/snaps/* dirs"
+    script: /tmp/umount_all.sh
+
+  - name: "unset gluster snapshot options"
+    command: gluster snapshot config auto-delete disable --mode=script
+  - command: gluster snapshot config activate-on-create disable --mode=script
+
+  - name: "Dissolve the Trusted Storage Pool"
+    command: gluster peer detach {{ item }}
+    with_items: [ gluster1, gluster2, gluster3 ]
+    run_once: yes
+
+  - name: "Cleanup the nodes' fstab"
+    mount: 
+      path: /bricks/{{ item }} 
+      state: absent
+    with_items: [ sdb, sdc, sdd ]
+
+  - name: "Remove the LVs"
+    command: lvremove vg_{{ item }} --force
+    with_items: [ sdb, sdc, sdd ]
+
+  - name: "Remove the VGs"
+    command: vgremove vg_{{ item }} --force
+    with_items: [ sdb, sdc, sdd ]
+
+  - name: "Remove the PVs"
+    command: pvremove /dev/{{ item }} --force
+    with_items: [ sdb, sdc, sdd ]
+
+#  - name: "Wipe the drives"
+#    command: wipefs -af /dev/{{ item }}
+#    with_items: [ sda, sdb, sdc ]

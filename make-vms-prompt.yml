@@ -1,0 +1,97 @@
+# file: make-vms-prompt.yml
+#
+# prerequisites:
+# $ NEW: sudo dnf install redhat-rpm-config python2-devel ; sudo easy_install ovirt-engine-sdk-python
+# $ OLD: sudo yum --enablerepo=rhel-7-server-rhv-4.1-rpms install python-ovirt-engine-sdk4
+#
+# execution:
+# $ ansible-playbook -i inventory make-vms-prompt.yml --ask-vault-pass
+
+---
+- name: Query vars files for prompt dialog
+  hosts: localhost
+  gather_facts: yes
+  vars:
+    choices:
+  tasks:
+    - find: 
+        path: "{{ playbook_dir }}/{{ ansible_domain }}"
+        pattern: "*-vars.yml"
+      register: result
+    - set_fact:
+        choices: "{{ choices }} {{ item.path | basename }}"
+      no_log: true
+      with_items: "{{ result.files }}"
+    - debug:
+        msg: "Please choose one of these:{{ choices }}"
+
+
+- hosts: localhost
+  gather_facts: yes
+  vars_prompt:
+    - prompt: "Please choose one of the above"
+      name: input
+      private: no
+  vars_files:
+    - "{{ ansible_domain }}/{{ input }}"
+    - "{{ ansible_domain }}/rhvm-vault.yml"
+  vars:
+    #- ssh_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1vfRWODjNpS45BwAD864B1ezqIOb5fxCjnOwsgx/p8QchwWQhIUeC+PAUBI/QJ/nzX2pUOx0erNu8wuQRobOMxmYmsIyeuIIkBSJxffeFm4Cuy0glgkNR5ry90AHabO7bvXoY1q2QJ6sdkMeh2r1b/tx+2KFBOpe6v2HAcBpS+srl/fpdOV0GK2HNC0DsHz/2/me2hQ9gNIBOrb/Y7TJL5GcmbbHeteW4g648w1771El6r+JugmwlJ7/B/Jw5b4StpJmYQq0s1x9TJnqXO1kZGZ1YDrUEF25ZxkLZxmLxwD8hUDVbaeCAjbNQCe5OXc3wl96VvwXsPE2d838DBUTL jcall@home.lab
+    - ssh_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDP1SXmgAxJDfsZ15OfjiE1nzZa2Nh/B5J67KqXoJRlWUVLxaUw52tlbISSYdmpXmVb84huiIz+W5XcOrtK8lFB8O2seW50nevBRFuMnwQ8kgsHnvQ9TJjzCCngLlQjFrxH3g4oNUvSvv5hgd0j8dGA3NSJN7O0VMMQgWQK+Bt1YYxkwxsQ8NPnSixNevLj/bQvv3WRoekfu1c0LvL5IdY3yhpQ1no84jCXR4CD2ZA7msxzvfxgJ1/IFD0m8EDKRKmbg4RtgfTYB+fwvrTw1l/DoSlUtEdvrBx8T+1s0FCz6qjNfpvCmubAUR/2gWIu49s7q8sOmjRGBw9DL1hVdHUN mflanner@t460s
+
+  tasks:
+    - name: Login to RHV
+      ovirt_auth:
+        url: "{{ rhvurl }}"
+        insecure: yes
+        username: "{{ rhvuser }}"
+        password: "{{ rhvpass }}"
+
+    - name: Create VMs
+      ovirt_vms:
+        auth: "{{ ovirt_auth }}"
+        cluster: "{{ rhvCluster }}"
+        template: "{{ templateName }}"
+        name: "{{ item.key }}"
+        state: running
+#       clone: true
+        instance_type: "{{ instanceType }}"
+        nics:
+          - name: nic1
+            profile_name: ovirtmgmt
+        cloud_init:
+          host_name: "{{ item.key }}.{{ ansible_domain }}"
+          user_name: cloud-user
+          root_password: "{{ vm_root_password }}"
+          authorized_ssh_keys: "{{ ssh_key }}"
+          dns_servers: "{{ dnsServer }}"
+          dns_search: "{{ ansible_domain }}"
+          custom_script: |
+            runcmd:
+              - echo "Doing this the hard way because cloud-init or ovirt_vms seems to hate NetworkManager"
+              - hostnamectl set-hostname {{ item.key }}.{{ ansible_domain }}
+              - nmcli con add type ethernet connection.id eth0 connection.interface-name eth0 ipv4.auto
+              #- nmcli con add type ethernet connection.id eth0 connection.interface-name eth0 ipv4.method static ipv4.addresses {{ item.value.nic1.ipaddress }}/24 ipv4.gateway {{ item.value.nic1.gateway }} ipv4.dns {{ dnsServer }} ipv4.dns-search {{ ansible_domain }}
+              - nmcli con del "System eth0"
+              - systemctl mask cloud-init
+        wait: true
+      with_dict: "{{ vms }}" # See {{ ansible_domain }}/{{ input }} (e.g. home.lab/ocp-cns-vars.yml)
+
+    - name: Create and attach disks
+      ovirt_disk:
+        auth: "{{ ovirt_auth }}"
+        vm_name: "{{ item.0.name }}"
+        storage_domain: "{{ storageDomain }}"
+        name: "{{ item.0.name }}-disk-{{ item.1 }}"
+        size: "{{ disks_size }}"
+        format: cow
+        interface: virtio_scsi
+        wait: true
+      with_subelements:
+          - "{{ disks }}"
+          - id
+
+    - name: Cleanup RHV auth token
+      ovirt_auth:
+        ovirt_auth: "{{ ovirt_auth }}"
+        state: absent
