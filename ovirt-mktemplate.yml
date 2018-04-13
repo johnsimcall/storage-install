@@ -1,10 +1,11 @@
 # https://github.com/oVirt/ovirt-ansible-image-template.git
 # Requires: libselinux-python
+# 2min 30sec @ ansible-playbook ovirt-mktemplate.yml -e qcow_url="file:///home/jcall/Downloads/rhel-server-7.5-x86_64-kvm.qcow2" -e template_disk_storage=vmstore --ask-vault-pass
 ---
 - name: Make oVirt template
   hosts: localhost
   connection: local
-  gather_facts: false
+  gather_facts: true
   vars_files:
     - "{{ ansible_domain }}/rhvm-vault.yml"
 
@@ -24,4 +25,4 @@
     template_disk_storage: sanstore
 
   roles:
-    - oVirt.image-template
+    - ovirt-ansible-image-template

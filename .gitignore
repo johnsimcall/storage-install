@@ -3,6 +3,7 @@
 tmp*
 #home.lab/*
 cluster.net/*
+roles/ovirt-ansible-image-template/*
 roles/smc-firmware-bmc/files/smc.tgz
 roles/smc-firmware-bmc/files/bin/*
 roles/smc-firmware-bmc/files/firmware/*
