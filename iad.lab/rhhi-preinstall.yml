@@ -1,0 +1,99 @@
+---
+- hosts: all
+  gather_facts: no
+  vars:
+    nukeit: false
+
+  tasks:
+  - name: Clean disks
+    command: wipefs -af "{{ item }}"
+    with_items: [ /dev/sda, /dev/nvme0n1, /dev/nvme1n1 ]
+    when: nukeit
+    tags: [ crap ]
+
+  - name: Create engine partition
+    parted:
+      device: /dev/nvme0n1
+      number: 1
+      name: engine
+      label: gpt
+      part_end: 100GiB
+      state: present
+
+  - name: Create iso partition
+    parted:
+      device: /dev/nvme0n1
+      number: 2
+      name: iso
+      label: gpt
+      part_start: 100GiB
+      part_end: 200GiB
+      state: present
+
+  - name: Create export partition
+    parted:
+      device: /dev/nvme0n1
+      number: 3
+      name: export
+      label: gpt
+      part_start: 200GiB
+      part_end: 400GiB
+      state: present
+
+  - name: Create vmstore1 partition
+    parted:
+      device: /dev/nvme0n1
+      number: 4
+      name: vmstore1
+      label: gpt
+      part_start: 400GiB
+      part_end: 100%
+      state: present
+
+  - name: Create vmstore2 partition
+    parted:
+      device: /dev/nvme1n1
+      number: 1
+      name: vmstore2
+      label: gpt
+      part_end: 100%
+      state: present
+
+  - name: Create vmstore3 partition
+    parted:
+      device: /dev/sda
+      number: 1
+      name: vmstore3
+      label: gpt
+      part_end: 100%
+      state: present
+
+  - name: Format XFS
+    filesystem:
+      fstype: xfs
+      dev: /dev/{{ item }}
+      opts: -i size=512
+    with_items: [ sda1, nvme0n1p1, nvme0n1p2, nvme0n1p3, nvme0n1p4, nvme1n1p1 ]
+    tags: [ test ]
+
+  - name: Mount
+    mount:
+      src: /dev/{{ item }}
+      path: /bricks/{{ item }}
+      fstype: xfs
+      state: mounted
+    with_items: [ sda1, nvme0n1p1, nvme0n1p2, nvme0n1p3, nvme0n1p4, nvme1n1p1 ]
+    tags: [ test ]
+
+  - name: Create brick dirs
+    file:
+      path: /bricks/{{ item.0 }}/{{ item.1 }}
+      state: directory
+    with_list:
+      - [ nvme0n1p1, engine ]
+      - [ nvme0n1p2, iso ]
+      - [ nvme0n1p3, export ]
+      - [ nvme0n1p4, vmstore1 ]
+      - [ nvme1n1p1, vmstore2 ]
+      - [ sda1, vmstore3 ]
+    tags: [ test, test2 ]

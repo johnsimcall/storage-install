@@ -1,0 +1,27 @@
+[hosts]
+172.16.2.21
+172.16.2.22
+172.16.2.23
+
+[disktype]   #default taken as JBOD
+raid6
+
+[diskcount]  #ignored if architecture is JBOD
+12
+
+[stripesize] #This field is not necessary for JBOD
+256
+
+[selinux]
+yes
+
+[volume]  #vmstore3 (1x3) /bricks/sda1/vmstore3
+action=create
+volname=vmstore3
+transport=tcp
+replica=yes
+replica_count=3
+key=group,storage.owner-uid,storage.owner-gid,network.ping-timeout,performance.strict-o-direct,network.remote-dio,cluster.granular-entry-heal,features.shard-block-size
+value=virt,36,36,30,on,off,enable,64MB
+ignore_volume_errors=no
+brick_dirs=172.16.2.21:/bricks/sda1/vmstore3,172.16.2.22:/bricks/sda1/vmstore3,172.16.2.23:/bricks/sda1/vmstore3

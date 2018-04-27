@@ -68,3 +68,23 @@
     - name: Create /var/log/journal directory
       file: path=/var/log/journal state=directory mode=2755 owner=0 group=190 #root:systemd-journal
       when: ansible_distribution_major_version == "7"
+
+    - name: Install misc packages
+      package:
+        name: screen,vim-enhanced,libselinux-python
+        state: present
+
+    - name: Setup screen for scroll wheel
+      copy:
+        content: |
+          # jcall - Setup terminal for mouse scroll wheel
+          termcapinfo xterm* ti@:te@
+        dest: /root/.screenrc
+
+    - name: Setup BASH history
+      lineinfile:
+        path: /root/.bashrc
+        line: "{{ item }}"
+      with_items:
+        - "alias vi='vim'"
+        - "alias screen='screen -T xterm-256color'"

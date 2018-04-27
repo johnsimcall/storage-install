@@ -2,12 +2,10 @@
 
 # execution:
 # $ ansible-playbook storcli-installation.yml --limit osds
- 
-# Updated URL March 6th, 2018
-# https://docs.broadcom.com/docs-and-downloads/raid-controllers/raid-controllers-common-files/1.21.16_StorCLI.zip
 
 ---
-- hosts: osds
+- hosts: all
+  gather_facts: no
   tasks:
   - name: Create install directory
     file:
@@ -26,27 +24,27 @@
 #    unarchive:
 #      src: /root/LSI_storcli/1.21.16_StorCLI.zip
 #      dest: /root/LSI_storcli/
-#
-#$ ./1.21.16/opt/MegaRAID/storcli/storcli64 help | head
-#Storage Command Line Tool  Ver 1.21.06 Nov 18, 2016
-#(c)Copyright 2016, AVAGO Corporation, All Rights Reserved.
-#
-#
-#$ ./7.0309/opt/MegaRAID/storcli/storcli64 help | head
-#Storage Command Line Tool  Ver 007.0309.0000.0000 August 24, 2017
-#     (c)Copyright 2017, AVAGO Technologies, All Rights Reserved.
 
   - name: Download and unzip storcli (level 1)
     unarchive:
       remote_src: true
-      #src: https://docs.broadcom.com/docs-and-downloads/docs-and-downloads/raid-controllers/raid-controllers-common-files/007.0309.0000.0000_Unified_StorCLI.zip
+      # Updated URL March 6th, 2018
       src: https://docs.broadcom.com/docs-and-downloads/raid-controllers/raid-controllers-common-files/1.21.16_StorCLI.zip
       dest: /root/LSI_storcli/
 
+  - name: Find the zip inside the zip
+    find:
+      path: /root/LSI_storcli/
+      recurse: yes
+      pattern: '*.zip'
+    register: result
+
+  - debug: var=result.files
+
   - name: Unzip storcli (level 2)
     unarchive:
-      src: /root/LSI_storcli/versionChangeSet/univ_viva_cli_rel/storcli_All_OS.zip
-      dest: /root/LSI_storcli/
+      src: "{{ result.files }}"
+      dest: /root/LSI_storcli2/
 
   - name: Install RPM
     yum:
@@ -58,4 +56,4 @@
       state: link
       src: /opt/MegaRAID/storcli/storcli64
       dest: /usr/sbin/storcli
-...
+    tags: [ test ]
