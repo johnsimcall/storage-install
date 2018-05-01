@@ -70,7 +70,7 @@
               - nmcli con add type ethernet connection.id eth0 connection.interface-name eth0 ipv4.auto
               #- nmcli con add type ethernet connection.id eth0 connection.interface-name eth0 ipv4.method static ipv4.addresses {{ item.value.nic1.ipaddress }}/24 ipv4.gateway {{ item.value.nic1.gateway }} ipv4.dns {{ dnsServer }} ipv4.dns-search {{ ansible_domain }}
               - nmcli con del "System eth0"
-              - systemctl mask cloud-init
+              - yum remove cloud-init
         wait: true
       with_dict: "{{ vms }}" # See {{ ansible_domain }}/{{ input }} (e.g. home.lab/ocp-cns-vars.yml)
 
