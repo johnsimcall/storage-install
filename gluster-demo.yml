@@ -15,6 +15,10 @@
         NEXT STEP - Configure firewall
     tags: [pause]
 
+  - systemd:
+      name: firewalld
+      enabled: yes
+      state: started
   - firewalld:
       service: "{{ item }}"
       permanent: true
@@ -58,15 +62,15 @@
   - lvg:
       vg: vg_{{ item }}
       pvs: /dev/{{ item }}
-    with_items: [sda,sdb,sdc]
+    with_items: [sdb,sdc,sdd]
   - lvol:
       vg: vg_{{ item }}
       lv: tp_{{ item }}
       size: 100%FREE
       opts: --thin
-    with_items: [sda,sdb,sdc]
-  - command:  lvcreate --virtualsize 20GB -T vg_{{ item }}/tp_{{ item }} -n lv_{{ item }}
-    with_items: [sda,sdb,sdc]
+    with_items: [sdb,sdc,sdd]
+  - command:  lvcreate --virtualsize 10GB -T vg_{{ item }}/tp_{{ item }} -n lv_{{ item }}
+    with_items: [sdb,sdc,sdd]
   - pause:
       prompt: |
         Verify with: pvs && vgs && lvs
@@ -78,20 +82,20 @@
       fstype: xfs
       dev: /dev/vg_{{ item }}/lv_{{ item }}
       opts: -i size=512
-    with_items: [sda,sdb,sdc]
+    with_items: [sdb,sdc,sdd]
   - mount:
       src: /dev/vg_{{ item }}/lv_{{ item }}
-      path: /bricks/{{ item }}
+      path: /rhgs/{{ item }}
       fstype: xfs
       state: mounted
-    with_items: [sda,sdb,sdc]
+    with_items: [sdb,sdc,sdd]
   - file:
-      path: /bricks/{{ item }}/vol1
+      path: /rhgs/{{ item }}/{{ item }}
       state: directory
-    with_items: [sda,sdb,sdc]
+    with_items: [sdb,sdc,sdd]
   - pause:
       prompt: |
-        Verify with: mount | grep bricks && tree /bricks
+        Verify with: mount | grep rhgs && tree /rhgs
         
         NEXT STEP - Create a 3x replicated volume
     tags: [pause]
@@ -103,9 +107,41 @@
     gluster_volume:
       state: present
       name: vol1
+      # jcall - Disable auto-sharing for vol1, set 3x variables per Admin Guide
+      options:
+        features.uss: "on"
+        server.allow-insecure: "on"
+        performance.cache-samba-metadata: "on"
+        storage.batch-fsync-delay-usec: "0"
+        features.show-snapshot-directory: "on"
+        performance.stat-prefetch: "off"
       replicas: 3
-      bricks: /bricks/sda/vol1
-      cluster: [ gluster1, gluster2, gluster3, gluster4, gluster5, gluster6 ]
+      bricks: /rhgs/sdb/sdb
+      cluster: [ gluster1, gluster2, gluster3 ]
+  - name: "Set global snapshot variables"
+    command: gluster snapshot config snap-max-hard-limit 4 --mode=script
+  - command: gluster snapshot config auto-delete enable --mode=script
+  - command: gluster snapshot config activate-on-create enable --mode=script
+  - name: "Update /etc/samba/smb.conf with 'vol1' details"
+    blockinfile:
+      path: /etc/samba/smb.conf
+      insertafter: EOF
+      block: |
+        [gluster-vol1]
+        	comment = Created by John Call
+        	guest ok = Yes
+        	path = /
+        	read only = No
+        	vfs objects = shadow_copy2 glusterfs
+        	shadow:basedir = /
+        	shadow:snapdir = /.snaps
+        	shadow:snapprefix = ^.*$
+        	shadow:format = _GMT-%Y.%m.%d-%H.%M.%S
+        	glusterfs:loglevel = 7
+        	glusterfs:logfile = /var/log/samba/glusterfs-vol1.%M.log
+        	glusterfs:volume = vol1
+      backup: no
+  - systemd: unit=smb.service state=restarted
   - pause:
       prompt: |
         Verify with: gluster vol list
@@ -117,10 +153,24 @@
       src: gluster1:vol1
       path: /gluster/vol1
       fstype: glusterfs
+      opts: acl
       state: mounted
+  - acl:
+      path: /gluster/vol1
+      entry: "user:flannery:rwX"
+      state: present
+  - acl:
+      path: /gluster/vol1
+      entry: "default:user:flannery:rwX"
+      state: present
+  - file: 
+      owner: flannery
+      group: flannery
+      path: /gluster/vol1
   - pause:
       prompt: |
-        Verify with: mount | grep gluster && df -h /gluster/vol1
+        Verify with: mount | grep gluster && df -h /gluster/vol1 
+                     goto windows and map the network drive \\gluster1\gluster-vol1
         
         NEXT STEP - Copy our pictures into the volume
     tags: [pause]
@@ -128,42 +178,66 @@
   - copy:
       src: /root/pictures
       dest: /gluster/vol1
+      owner: flannery
+      group: flannery
   - pause:
       prompt: |
         Verify with: ls -al /gluster/vol1/pictures/
-        
+
         NEXT STEP - Make our volume bigger
     tags: [pause]
 
   - name: "Make our volume bigger"
     command: |
       gluster vol add-brick vol1 \
-        gluster1:/bricks/sdb/vol1 \
-        gluster2:/bricks/sdb/vol1 \
-        gluster3:/bricks/sdb/vol1 \
-        gluster4:/bricks/sdb/vol1 \
-        gluster5:/bricks/sdb/vol1 \
-        gluster6:/bricks/sdb/vol1 
+        gluster1:/rhgs/sdc/sdc \
+        gluster2:/rhgs/sdc/sdc \
+        gluster3:/rhgs/sdc/sdc \
+  - command: gluster vol stop vol1 --mode=script
+  - command: gluster vol start vol1 --mode=script
+  - name: "Update /etc/samba/smb.conf with 'vol1' details"
+    blockinfile:
+      path: /etc/samba/smb.conf
+      insertafter: EOF
+      block: |
+        [gluster-vol1]
+        	comment = Created by John Call
+        	guest ok = Yes
+        	path = /
+        	read only = No
+        	vfs objects = shadow_copy2 glusterfs
+        	shadow:basedir = /
+        	shadow:snapdir = /.snaps
+        	shadow:snapprefix = ^.*$
+        	shadow:format = _GMT-%Y.%m.%d-%H.%M.%S
+        	glusterfs:loglevel = 7
+        	glusterfs:logfile = /var/log/samba/glusterfs-vol1.%M.log
+        	glusterfs:volume = vol1
+      backup: no
+  - systemd: unit=smb.service state=restarted
   - pause:
       prompt: |
         Verify with: df -h /gluster/vol1
-        
+  
         NEXT STEP - Create a snapshot
     tags: [pause]
 
   - name: "Create a snapshot"
-    command: gluster snapshot create snap1 vol1 no-timestamp
-  - name: "Activate the snapshot"
-    command: gluster snapshot activate snap1
+    command: gluster snapshot create demo vol1
+    register: result
+  - set_fact:
+      snapName: "{{ result.stdout | regex_search('(demo.*[0-9])') }}"
   - name: "Mount the snapshot"
     mount:
-      src: gluster1:/snaps/snap1/vol1
+      src: gluster1:/snaps/{{ snapName }}/vol1
       path: /gluster/vol1-snaps
       fstype: glusterfs
+      opts: acl
       state: mounted
   - pause:
       prompt: |
         Verify with: gluster snapshot list vol1 && tree /gluster/vol1*
+                     rm -f /gluster/vol1/pictures/N* && tree /gluster/vol1*
         
         NEXT STEP - Enable self-service snapshots
     tags: [pause]
@@ -174,15 +248,21 @@
     mount: src=gluster1:vol1 path=/gluster/vol1 fstype=glusterfs state=unmounted
   - name: "Re-mount the volume"
     mount: src=gluster1:vol1 path=/gluster/vol1 fstype=glusterfs state=mounted
+  - systemd: unit=smb.service state=restarted
+    delegate_to: gluster1
   - pause:
       prompt: |
-        Verify with: tree /gluster/vol1/.snaps/snap1
+        Verify with: tree /gluster/vol1/.snaps/{{ snapName }}
+                     windows explorer \\gluster1\gluster-vol1\.snaps\{{ snapName }}
+                     windows explorer right click on pictures/restore previous versions
         
         NEXT STEP - Convert the snapshot to a writeable clone
     tags: [pause]
 
   - name: "Convert the snapshot to a writeable clone"
-    command: gluster snapshot clone vol1-clone snap1
+    command: gluster snapshot clone vol1-clone {{ snapName }}
+  - name: "Enable SMB/CIFS auto-share on clone"
+    command: gluster vol set vol1-clone user.cifs enable
   - name: "Start the clone"
     command: gluster vol start vol1-clone
   - name: "Mount the clone"
@@ -191,10 +271,12 @@
       path: /gluster/vol1-clone
       fstype: glusterfs
       state: mounted
+  - systemd: unit=smb.service state=restarted
   - pause:
       prompt: |
         Verify with: tree /gluster/vol1-clone
-        
+                     windows add network location \\gluster1\gluster-vol1-clone
+
         ALL DONE! 
     tags: [pause]
 
@@ -203,11 +285,15 @@
 
 
 
-#TODO
-# *geo-replication
+
+
+
+#### TODO ####
 #
-# backup:
-# gluster volume set vol1 server.allow-insecure on
-# edit /etc/glusterfs/glusterd.vol
-#   add "option rpc-auth-allow-insecure on" before "end-volume"
-# systemctl restart glusterd on all nodes
+# grow cluster 
+# show failover with glusterfs
+# add ctdb and show node failover for CIFS
+# show disk failure
+# add geo-replicate
+# add compression/dedupe?
+#
