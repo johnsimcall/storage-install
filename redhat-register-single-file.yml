@@ -49,9 +49,6 @@
         when: ansible_virtualization_role == "guest"
         async: 300
         poll: 10
-      
-      - name: Disable all repos
-        command: subscription-manager repos --disable="*"
       tags: [ rhsm ]
       # end block
 

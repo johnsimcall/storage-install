@@ -10,7 +10,14 @@
 - hosts: all
   become: true
   vars: 
-    repos: #dynamically populated below
+    repos:
+    repo_list:
+      - rhel-7-server-rpms
+      - rhel-7-server-extras-rpms
+      - rhel-7-server-ansible-2.4-rpms
+      - rhel-7-server-ose-3.9-rpms
+      - rhel-7-fast-datapath-rpms
+      - rh-gluster-3-client-for-rhel-7-server-rpms
 
 #  vars_prompt:
 #    - name: "rhsm_username"
@@ -45,23 +52,12 @@
 
   - block:
     - set_fact:
-        repos: "{{ repos }} --enable={{ item }}"
-      no_log: true
-      with_items:
-        - rhel-7-server-rpms
-        - rhel-7-server-extras-rpms
-        - rhel-7-server-ansible-2.4-rpms
-        - rhel-7-server-ose-3.9-rpms
-        - rhel-7-fast-datapath-rpms
-        - rh-gluster-3-client-for-rhel-7-server-rpms
-
-    - name: Disable all repos
-      command: subscription-manager repos --disable="*"
-
-    - name: Enable repos
-      command: subscription-manager repos {{ repos }} 
+        repos: "{{ repo_list | join(' --enable=') }}"
+    - debug:
+        var: repos
+    - name: Enable repos for RHEL7
+      command: subscription-manager repos --disable="*" --enable={{ repos }}
     tags: [repos]
-    when: ansible_distribution_major_version == "7"
     #end block
 
   - name: Install required RPMs
