@@ -11,10 +11,11 @@
       - rhel-7-server-rpms
       - rhel-7-server-extras-rpms
       - rhel-7-server-optional-rpms
-      - rhel-7-server-supplementary-rpms
-      - rhel-7-server-ose-3.7-rpms
-      - rhel-7-fast-datapath-rpms
-      - rh-gluster-3-client-for-rhel-7-server-rpms
+      - rhel-ha-for-rhel-7-server-rpms
+      - rh-gluster-3-for-rhel-7-server-rpms
+      - rh-gluster-3-nfs-for-rhel-7-server-rpms
+      - rh-gluster-3-samba-for-rhel-7-server-rpms
+      - rh-gluster-3-nagios-for-rhel-7-server-rpms
 
   vars_prompt:
     - prompt: "Enter RHN/RHSM Username"
@@ -26,45 +27,48 @@
 
   tasks:
     - name: Register with Red Hat
-      redhat_subscription:
-         state: present
-         username: "{{ rhsm_user }}"
-         password: "{{ rhsm_pass }}"
-         autosubscribe: false
-      serial: 2
-      async: 300
-      poll: 10
-    
-    - name: Attach my Employee Subscription (physical)
-      command: subscription-manager attach --pool={{ employee_sku_physical }}
-      when: ansible_virtualization_role != "guest"
-      serial: 2
-      async: 300
-      poll: 10
-    
-    - name: Attach my Employee Subscription (virtual)
-      command: subscription-manager attach --pool={{ employee_sku_virtual }}
-      when: ansible_virtualization_role == "guest"
-      async: 300
-      poll: 10
-    
-    - name: Disable all repos
-      command: subscription-manager repos --disable="*"
+      block:
+      - redhat_subscription:
+           state: present
+           username: "{{ rhsm_user }}"
+           password: "{{ rhsm_pass }}"
+           autosubscribe: false
+        serial: 2
+        async: 300
+        poll: 10
+      
+      - name: Attach my Employee Subscription (physical)
+        command: subscription-manager attach --pool={{ employee_sku_physical }}
+        when: ansible_virtualization_role != "guest"
+        serial: 2
+        async: 300
+        poll: 10
+      
+      - name: Attach my Employee Subscription (virtual)
+        command: subscription-manager attach --pool={{ employee_sku_virtual }}
+        when: ansible_virtualization_role == "guest"
+        async: 300
+        poll: 10
+      
+      - name: Disable all repos
+        command: subscription-manager repos --disable="*"
+      tags: [ rhsm ]
+      # end block
 
-    - name: Enable repos for RHEL7
+    - name: Enable repos
       block:
       - set_fact:
           repos: "{{ repo_list | join(' --enable=') }}"
       - debug:
           var: repos
-      - command: subscription-manager repos --enable={{ repos }} 
-      when: ansible_distribution_major_version == "7"
-      tags:
-        - repos
+      - name: Enable repos for RHEL7
+        command: subscription-manager repos --disable="*" --enable={{ repos }} 
+        when: ansible_distribution_major_version == "7"
     
-    - name: Enable repo for RHEL 6
-      command: subscription-manager repos --enable="rhel-6-server-rpms"
-      when: ansible_distribution_major_version == "6"
+      - name: Enable repo for RHEL 6
+        command: subscription-manager repos --disable="*" --enable="rhel-6-server-rpms"
+        when: ansible_distribution_major_version == "6"
+      tags: [ repos ]
     
     - name: Create /var/log/journal directory
       file: path=/var/log/journal state=directory mode=2755 owner=0 group=190 #root:systemd-journal

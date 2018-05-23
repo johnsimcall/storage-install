@@ -1,0 +1,1610 @@
+## This is just a sample configuration. Passing it directly to gdeploy will throw error ##
+
+[hosts]
+10.70.46.13
+10.70.46.15
+10.70.46.17
+10.70.46.19
+
+# NOTE: Patterns are supported for all the multiple values options and sections.
+# For example: hosts can be given as 10.70.46.1{3,5,7,9} specifying the 4 hosts
+# Or These can be specifies as ranges also: 10.70.46.1{1..4}. This
+# means the four IPs ranging from 10.70.46.11 to 10.70.46.14
+
+
+#------------------------------
+                            ##-- Back-end setup --##
+
+# Gluster specific backend-setup [We follow some recommended performance
+# efficient calculations here]
+#
+# Back-end setup in one or more remote machines can be done using the
+# section 'backend-setup'.
+#
+# Backend setup data can be given specific to each host or common to all
+# of them.
+#
+# Host specific configuration:
+#
+# [backend-setup:10.70.46.13]
+# devices=/dev/sdb,/dev/vdb,/dev/vda
+# vgs=CUSTOM_vg{1..3}
+# pools=CUSTOM_pool1,CUSTOM_pool2,CUSTOM_pool3
+# lvs=CUSTOM_lv1,CUSTOM_lv2,CUSTOM_lv3
+# mountpoints=/gluster/brick1,/gluster/brick2,/gluster/brick3
+# brick_dirs=glusterbrick{1,2,3}
+#
+#
+# Common configuration for all the hosts
+#
+# [backend-setup]
+# devices=/dev/sdb
+# vgs=CUSTOM_vg1
+# pools=CUSTOM_pool1
+# lvs=CUSTOM_lv1
+# mountpoints=/gluster/brick1
+# brick_dirs=glusterbrick1
+#
+# With the above configuration, the setup will be done on all the
+# machines specified under the 'hosts' section with the above data.
+#
+# Both these can be mixed up and used.
+# Example:
+#
+# [backend-setup:10.70.46.13]
+# devices=/dev/sdb,/dev/vdb,/dev/vda
+# vgs=CUSTOM_vg1,CUSTOM_vg2,CUSTOM_vg3
+# pools=CUSTOM_pool1,CUSTOM_pool2,CUSTOM_pool3
+# lvs=CUSTOM_lv1,CUSTOM_lv2,CUSTOM_lv3
+# mountpoints=/gluster/brick1,/gluster/brick2,/gluster/brick3
+# brick_dirs=glusterbrick{1,2,3}
+#
+# [backend-setup]
+# devices=/dev/sdb
+# vgs=CUSTOM_vg1
+# pools=CUSTOM_pool1
+# lvs=CUSTOM_lv1
+# mountpoints=/gluster/brick1
+# brick_dirs=glusterbrick1
+#
+# With this configuration, for the host 10.70.46.13, the first
+# configuration will be used and for the rest of the machines specified
+# under 'hosts' section the second configuration will be used.
+#
+#
+#  Section 'snapshot-reserve'
+#
+# While creating the thin pools, if the user intents not to use the
+# entire volume group and leave some space out for snapshots, she can
+# use this section. Under this section user needs to specify how much
+# space(in percentage) should be left unused in the Volume Group
+#
+# Example
+#
+# [snapshot-reserve]
+# 20%
+#
+# By default, the entire Volume Group will be used up for thin pooling.
+#
+#  Section 'default'
+#
+#
+# If the user want to stop setup at a particular step, say, at VG
+# creation, it can be done as follows:
+#
+# [default]
+# no
+#
+# [backend-setup]
+# devices=/dev/sdb
+# vgs=CUSTOM_vg1
+#
+# Here, it will create the PVs and the VGs and exit. Setting 'default'
+# section to no is important. It's default value is 'yes' and will take
+# default values for lvs, pools, mountpoints, etc. and continue taking
+# defaults value for all these.
+#
+#
+#
+# Non-GlusteFS back-end setup
+#
+# For this, to avoid the automatic computations being done an additional
+# section 'gluster' set to no must be added
+#
+# [gluster]
+# no
+#
+#
+# To setup back-end, Configuration similar to following example can be
+# followed:
+#
+# To setup back-end for hyperconvergence:
+#
+# [backend-setup]
+# devices=sdb
+# vgs=RHS_vg1
+# lvs=lv_ctdb:1G,lv_engine:50G,lv_data:100%FREE
+# mountpoints=/rhgs/ctdb,/rhgs/engine,/rhgs/data
+#
+# To add SSD for caching:
+#
+# [backend-setup]
+# ssd=sdc
+# vgs=RHS_vg1
+# datalv=lv_data
+# chachedatalv=lv_cachedata:1G
+# chachemetalv=lv_cachemeta:230G
+#
+# NOTE: Specifying the name of the data LV is necessary while adding
+# SSD. Make sure the datalv is created already. Otherwise just give it
+# in the lvs section as well.
+#
+#
+#
+#
+#                 SeLinux section
+#
+# If selinux is enabled, provide the value 'yes' in this
+# section, so gdeploy can set selinux labels for the
+# brick directories. By default it is 'no'.
+#
+#
+# [selinux]
+# yes
+#
+#
+#
+#      Old/Soon to be deprecated configuration option
+#
+#
+#
+#
+# Generic section [devices] is applicable to all the hosts listed in the [hosts]
+# section. However, if sections of hosts [hostname] or [ip-address] is present,
+# then the data in generic sections like [devices] are ignored. Host specific
+# data take precedence.
+
+# [devices]
+# /dev/sda
+# /dev/vdb
+# /dev/vda
+#------------------------------
+# vg names for the above devices
+# The number of vgs in the [vgs] should match the devices
+
+# [vgs]
+# CUSTOM_vg
+#------------------------------
+
+# pool names for the above volume groups
+# The number of pools listed in the [pools] section should match the number of
+# vgs.
+
+# [pools]
+# CUSTOM_pool
+#------------------------------
+
+# lv names for the above volume groups
+# The number of logical volumes listed in the [lvs] section should match the
+# number of vgs.
+
+# [lvs]
+# CUSTOM_lv
+#-------------------------------
+
+# Brick mountpoints for the logical volumes
+# The number of mountpoints should match the number of logical volumes listed
+# above.
+
+# [mountpoints]
+# /gluster/brick
+#-------------------------------
+
+# brick_dirs is the directory which is to be used as brick while creating the
+# volume. A mountpoint cannot be used as a brick directory, so brick_dirs
+# specifies the directory to be made inside the LV mount point that will be
+# used as a brick.
+# This field can be left empty in which case a directory will be created
+# inside the mountpoint with a default name. If backend setup is not being done
+# this field will be ignored.
+
+# IMP: If only gluster deployment is to be done and not back-end setup, just
+# provide value for 'brick_dirs' option, skipping all the above data other than
+# 'hosts' and skip ahead to the 'volume' section
+
+# [brick_dirs]
+# gluster_brick
+
+
+# Host specific data are to be given as follows
+
+[10.70.46.13]
+devices=/dev/sdb,/dev/vdb,/dev/vda
+vgs=CUSTOM_vg1,CUSTOM_vg2,CUSTOM_vg3
+pools=CUSTOM_pool1,CUSTOM_pool2,CUSTOM_pool3
+lvs=CUSTOM_lv1,CUSTOM_lv2,CUSTOM_lv3
+mountpoints=/gluster/brick1,/gluster/brick2,/gluster/brick3
+brick_dirs=glusterbrick{1,2,3}
+
+# NOTE: The host specific data of 10.70.46.15 and 10.70.46.17 are
+# the same. It can be fed either of the ways. Two separate
+# ways defines are just to demonstrate the format of
+# patterns usage
+
+[10.70.46.15]
+devices=/dev/vd{b,c}
+vgs=CUSTOM_vg{1,2}
+pools=CUSTOM_pool{1,2}
+lvs=CUSTOM_lv{1,2}
+mountpoints=/gluster/brick{1,2}
+
+[10.70.46.17]
+devices=/dev/vdc,/dev/vdb
+vgs=CUSTOM_vg1,CUSTOM_vg2
+pools=CUSTOM_pool1,CUSTOM_pool2
+lvs=CUSTOM_lv1,CUSTOM_lv2
+mountpoints=/gluster/brick1,/gluster/brick2
+
+[10.70.46.19]
+devices=/dev/vdb
+vgs=CUSTOM_vg1
+pools=CUSTOM_pool1
+lvs=CUSTOM_lv1
+mountpoints=/gluster/brick1
+
+#------------------------------
+                            ##-- pv, vg, and lv sections --##
+
+# 'backend-setup' section works pretty well for the recommended
+# provisioning for GlusterFS, but if a user needs more control over the
+# creation of pv, vg, and lv(say, specifying the poolsize), then this
+# section becomes a bit flaky. In such cases, individually one can
+# control PV, VG, and LV
+
+#------------------------------
+                            ##-- Disktype, Disk count and stripe size --##
+
+# Section [disktype] specifies which disk configuration is used while
+# setting up the back-end. Supports RAID 10, RAID 6 and JBOD configurations.
+# If this field is left empty, it will be by default taken as JBOD.
+# This is common for all the hosts.
+
+# [disktype]
+# raid6
+
+# Section [diskcount] specifies the number of data disks in the setup. This is a
+# mandatory field if the disk configuration specified is either RAID 10 or
+# RAID 6 and will be ignored if architecture is JBOD. This is host specific
+# data.
+
+# [diskcount]
+# 10
+
+# Section [stripesize] specifies the stripe_unit size in KB. This is a mandatory
+# field if disk configuration is RAID 6. If this is not specified in case of
+# RAID 10 configurations, it will take the default value 256K. This field is
+# not necessary for JBOD configuration of disks. Do not add any suffixes like
+# K, KB, M, etc.This is host specific data.
+
+# [stripesize]
+# 128
+
+#----------------------------------
+                            ##-- Tune profile --##
+
+# The section 'tune-profile' takes in the name of the performance tuning
+# profile to be used. If not specified, gdeploy will not set any tuning
+# profiles.
+#
+# Please look up the available tunes-adm profiles in your version of
+# RHEL using the command 'tuned-adm list'
+
+[tune-profile]
+rhgs-sequential-io
+
+#----------------------------------
+
+
+                            ##-- backend-reset --##
+
+
+# This section allows backend reset in remote machines. Backend reset includes
+# unmouting of LVs and deletion of LVs, VGs, and PVs.
+#
+# NOTE: Make sure you have your data backed up before using this
+#
+# To delete PV, VG, LV and to unmount it:
+#
+# [backend-reset]
+# pvs=/dev/sdb,/dev/vdb
+# unmount=yes
+#
+# This will automatically figure out the VGs and LVs associated and delete them
+# in all the hosts specified under 'hosts' section.
+# Giving the option unmount=yes is necessary. This is to make sure the user knows
+# what she/he is up to. If not specified or given 'no', then gdeploy will try
+# removing lv directly without unmounting and if mounted this will fail,
+#
+# To unmount bricks without going for other resets, one can use:
+#
+# [backend-reset]
+# mountpoints=/dev/GLUSTER_vg1/GLUSTER_lv1,/dev/GLUSTER_vg2/GLUSTER_lv2
+# unmount=yes
+#
+# To remove LVs only:
+#
+# With unmount:
+#
+# [backend-reset]
+# lvs=GLUSTER_lv{1,2}
+# unmount=yes
+#
+#
+# Without unmount:
+#
+# [backend-reset]
+# lvs=GLUSTER_lv1,GLUSTER_lv2
+#
+#
+# To remove VGs and associated LVs only:
+#
+# With unmount:
+#
+# [backend-reset]
+# vgs=GLUSTER_vg1,GLUSTER_vg2
+# unmount=yes
+#
+#
+# Without unmount:
+#
+# [backend-reset]
+# vgs=GLUSTER_vg{1,2}
+#
+#
+# To remove backend in n different machines with different configurations:
+#
+# [backend-reset:10.70.46.15]
+# pvs=/dev/sdb,/dev/vdb
+# unmount=yes
+#
+#
+# [backend-reset:10.70.46.13]
+# pvs=/dev/sdb
+# unmount=yes
+#
+# Here 'hosts' section in not necessary
+#----------------------------------
+                            ##-- peer --##
+
+
+# The section peer specifies the configurations for the Trusted Storage
+# Pool management(TSP)
+
+# This section helps in making all the hosts specified in the section 'hosts'
+# to either probe each other making the TSP or detach all of them from TSP
+
+# The only option in this section is the option names 'action' which can have
+# it's values to be  [probe, detach, ignore]
+
+# If provided 'ignore' it will skip the peer probing completely even for volume
+# creation and add-brick for which usually they run by default
+
+# To do a peer probe
+
+[peer]
+action=probe
+
+# To do a peer detach
+
+# [peer]
+# action=detach
+#
+#
+# NOTE: In the previous releases, we used the option 'manage' instead of
+# 'action'. This option is deprecated and will be removed in the future
+# release.
+
+#-----------------------------------
+
+
+                            ##-- Volume --##
+
+
+
+# The section volume specifies the configuration options for the volume.
+
+# 'action' option specifies what action id to be performed in the volume.
+# The choices are: [create, delete, add-brick, remove-brick, rebalance,
+# set].
+
+# If delete is provided all the options other than 'volname' will be ignored.
+
+# If 'add-brick' or 'remove-brick' is chosen, extra option 'bricks' with a
+# comma separated list of brick names(in the format <hostname>:<brick path>)
+# is be provided.
+
+# In case of remove-brick and rebalance, 'state' option should also
+# be provided. Choices for 'state' are:
+# For remove-brick: [start, stop, commit, force]
+# For rebalance: [start, stop, fix-layout]
+
+# 'volname' option specifies the volume name. Default is glustervol
+#  If the user wishes to do just a volume operation, she can omit the
+#  'hosts' section if the volname is provided in the format
+#  <hostname>:<volname>, where hostname is the hostname or IP of one of
+#  the nodes in the cluster
+
+#  IMP: Only single volume creation/deletion/configuration is supported
+#  as of now.
+
+# 'transport' option specifies the transport type. Default is tcp. Options are
+# tcp or rdma or tcp,rdma
+
+# 'replica' option will specify if the volume should be of type replica or not.
+# options are yes and no. Default is no.
+# If 'replica' is given as yes, 'replica_count' should be given.
+# Option 'arbiter_count' is optional.
+
+# 'disperse' option will specify if the volume should be of type disperse.
+# options are yes and no. Default is no.
+# 'disperse_count' is optional even if the 'disperse' is yes. if not specified,
+# the number of bricks specified in the command line is taken as the
+# disperse_count value.
+# If 'redundancy_count' is not specified, and if 'disperse' is yes,  it's
+# default value is computed so that it generates an optimal configuration.
+# An option 'force' can be used, in case the brick_dirs specified are
+# some mountpoints and must be used anyway.
+
+
+# For creating a volume of type disperse:
+
+[volume]
+action=create
+volname=glustervol
+transport=tcp,rdma
+disperse=yes
+disperse_count=0
+redundancy_count=2
+force=yes
+
+
+
+# For creating a volume of type replicate:
+
+# [volume]
+# action=create
+# volname=glustervol
+# transport=tcp,rdma
+# replica=yes
+# replica_count=2
+# arbiter_count=1
+# force=yes
+
+
+# To start a volume
+
+# [volume]
+# action=start
+# volname=10.70.46.13:glustervol
+
+
+
+# To stop a volume
+
+# [volume]
+# action=stop
+# volname=10.70.46.13:glustervol
+
+
+
+# To delete a volume
+
+# [volume]
+# action=delete
+# volname=10.70.46.13:glustervol
+
+
+
+# Add brick operation can be done by using:
+
+# [volume]
+# action=add-brick
+# volname=glustervol
+# bricks=10.70.46.13:/mnt/new_brick{1,8}
+
+# Remove brick operation can be done by using:
+
+# [volume]
+# action=remove-brick
+# volname=10.70.46.13:glustervol
+# bricks=10.70.46.17:/mnt/brick{1,8}
+# state=commit
+
+# Rebalance operation can be done by using:
+
+# [volume]
+# action=rebalance
+# volname=10.70.46.13:glustervol
+# state=start
+
+# Setting option to the volume can be done by using:
+
+# [volume]
+# action=set
+# volname=10.70.46.13:glustervol
+# key=cluster.nufa
+# value=on
+
+#
+# NOTE: If multiple volumes are to be created, or multiple actions are
+# to be done on volume using a single configuration file, suffix the
+# section name with a number.
+#
+# For example:
+#
+# [volume-1]
+# action=create
+# volname=kyloren
+# brick_dirs=/mnt/snook,/mnt/vader
+#
+# [volume-2]
+# action=create
+# volname=rey
+# brick_dirs=/mnt/luke,/mnt/kenobi
+#
+# If there are multiple volumes to be created, provide brick_dirs under
+# each section. Otherwise, it will error out.
+#
+#
+#
+#
+#
+#               ## SMB volume share
+
+# To enable SMB volume share, along with volume creation
+# 'smb' option should be set to yes in 'volume' section.
+# To setup SMB share separately, use the action 'smb-setup'.
+# The other options necessary are:
+#
+# smb_username: The Samba username. Default value is 'smbuser'
+#
+# smb_password: Password for the Samba user. Default value is 'password'
+#
+# smb_mountpoint: This mountpoint will be used to mount the to be shared
+# volume on one of the Samba servers itself. For more info refer Samba
+# documentation. Default value is /mnt/smbserver
+#
+# path: It represents the path that is relative to the root of the
+# gluster volume that is being shared. Default value is '/'
+#
+# glusterfs:logfile : Path to the log file that will be used by the
+# gluster modules that are loaded by the vfs plugin. Default value is
+# /var/log/samba/<volname>.log
+#
+# glusterfs:loglevel : This option is equivalent to the
+# client-log-level option of gluster. 7 is the default value and
+# corresponds to the INFO level.
+#
+# glusterfs:volfile_server : The gluster server to be contacted to fetch
+# the volfile for the volume. Default is 'localhost'.
+#
+# NOTE: Samba needs CTDB setup as well to work. Please refer the CTDB
+# section below to setup this.
+#
+# Example:
+# [volume]
+# action=smb-setup
+# volname=smbvolume
+# smb_username=bilbo
+# smb_password=shireeleventyone
+# smb_mountpoint=/mnt/precious
+#
+# To disable automatic SMB sharing per-volume
+#
+# [volume]
+# action=smb-disable
+# volname=smbvolume
+
+
+#-----------------------------------
+
+
+                            ##-- Clients --##
+
+
+# IMP: If only back-end setup is to be done but not GlusterFs
+# deployment omit the following section
+
+# Specifies the client hosts and client_mount_points to mount the gluster
+# volume created.
+# 'action' option is to be specified for the framework to understand
+# what action is to be done.
+# The choices are: ['mount', 'unmount']
+# 'hosts' field is mandatory.
+# The option 'fstype' specifies how gluster volume is to be mounted.
+# Choices are: [glusterfs, nfs] (Default is glusterfs)
+
+# If the fstype is given as nfs, the version by default will be taken as
+# 3. This can be changed by providing the option 'nfs-version'.
+# eg: nfs-version=4
+
+# Each client can have different types of volume mount. Just specify it comma
+# separated.
+
+# Option 'client_mount_points' specifies where the clients are to be mounted
+# in each host. Each host can have a separate mountpoint, in which case it will
+# be given comma separated or else every mountpoint can have a mountpoint of the
+# same name. If 'client_mount_points'
+# are not specified, default will be taken as /mnt/gluster
+# for all the hosts
+
+
+# Mounting a volume using native fuse on 3 client hosts
+
+[clients]
+action=mount
+volname=glustervol
+hosts=10.70.46.1{3,5}
+fstype=glusterfs
+client_mount_points=/mnt/gluster{1,3}
+
+
+# Mounting a volume using nfs on a single client host
+
+# [clients]
+# action=mount
+# # volname=glustervol
+# hosts=10.70.46.13
+# fstype=nfs
+# nfs-version=4
+# client_mount_points=/mnt/gluster
+
+#
+# NOTE: If multiple volumes are to be mounted or unmounted,
+# using a single configuration file, use separate 'clients' sections with the
+# section name suffixed with appropriate numbers.
+#
+# For example:
+#
+# [clients-1]
+# action=mount
+# volname=kyloren
+# hosts=host1,host2
+# client_mount_points=/mnt/snook,/mnt/vader
+#
+# [clients-2]
+# action=mount
+# volname=rey
+# hosts=host1,host1
+# client_mount_points=/mnt/luke,/mnt/kenobi
+#
+#-----------------------------------
+
+
+                            ##-- Snapshot --##
+
+
+# 'snapshot' section can be used if the user wants to create or delete
+# a snapshot.
+# The option 'action' is to be used to specify which snapshot action is to be
+# executed.
+# The choices are [create, delete, clone, config, and restore]
+
+
+# For snapshot creation:
+
+# The name of the snapshot can be specified as the value to the snapname option.
+# If the action is create the name of the volume is to specified as the value
+# to the option 'volname'.
+
+# [snapshot]
+# action=create
+# volname=10.70.46.13:glustervol
+# snapname=glustersnap
+
+# For snapshot activation:
+
+# [snapshot]
+# action=activate
+# snapname=glustersnap
+
+# For snapshot deactivation:
+
+# [snapshot]
+# action=deactivate
+# snapname=glustersnap
+
+# For snapshot deletion:
+
+# [snapshot]
+# action=delete
+# snapname=glustersnap
+## volname=glustervol [alternative]
+
+# For snapshot cloning:
+
+# [snapshot]
+# action=clone
+# snapname=glustersnap
+# clonename=an_old_snap
+
+# For snapshot configure:
+
+# [snapshot]
+# action=config
+# snap_max_soft_limit=92
+# snap_max_hard_limit=95
+# auto_delete=disable
+# activate_on_create=enable
+
+# For snapshot restore:
+
+# [snapshot]
+# action=restore
+# snapname=glustersnap
+
+#-----------------------------------
+
+
+                            ##-- Quota --##
+
+# 'quota' section can be used to set quota limits on mounted
+# volume directories and sub directories. The actions supported are
+#     [enable, disable, remove, remove-objects, default-soft-limit,
+#     limit-usage, limit-objects, alert-time, soft-timeout, hard-timeout].
+#
+# For enabling quota:
+#
+# [quota]
+# action=enable
+# volname=10.70.46.15:glustervol
+#
+#
+# For disabling quota:
+#
+# [quota]
+# action=disable
+# volname=10.70.46.15:glustervol
+#
+#
+# For removing quota limits on a path
+#
+# [quota]
+# action=remove
+# volname=glustervol
+# path=/,/dir1
+#
+#
+# For removing quota objects on a path
+#
+# [quota]
+# action=remove-objects
+# volname=glustervol
+# path=/,/dir1
+#
+# For setting default soft limits
+#
+# [quota]
+# action=default-soft-limit
+# volname=glustervol
+# percent=85
+#
+#
+# For limiting usage for volume
+#
+# [quota]
+# action=limit-usage
+# volname=glustervol
+# path=/,/dir1
+# size=5MB,6MB
+#
+#
+# For limiting object count for volume
+#
+# [quota]
+# action=limit-objects
+# volname=glustervol
+# path=/,/dir1
+# number=10,20
+#
+#
+# For setting alert-time
+#
+# [quota]
+# action=alert-time
+# volname=glustervol
+# time=1W
+#
+#
+# For setting soft-timeout
+#
+# [quota]
+# action=soft-timeout
+# volname=glustervol
+# client_hosts=10.70.46.23,10.70.46.24
+# time=100
+#
+#
+#
+# For setting hard-timeout
+#
+# [quota]
+# action=hard-timeout
+# volname=glustervol
+# client_hosts=10.70.46.23,10.70.46.24
+# time=100
+
+
+#-----------------------------------
+
+
+                            ##-- Geo-replication --##
+
+# section 'geo-replication' can be used to setup geo-replication.
+# The option 'action' specifies which geo-replication operation is
+# to be performed. The choices available are: [create, start, stop, delete,
+# pause, resume]
+#
+# NOTE: As of now, a single slave volume is supported
+#
+#
+# To create a geo-rep session
+#
+# [geo-replication]
+# action=create
+# mastervol=10.70.46.13:mastervolname
+# slavevol=10.70.46.15:slavevolname
+# force=yes
+#
+# This will automatically enable password less ssh between master and slave and
+# creates the geo-rep session
+#
+#
+# To create a secure geo-rep session
+#
+# [geo-replication]
+# action=secure-session
+# mastervol=10.70.46.13:mastervolname
+# slavevol=10.70.46.15:slavevolname
+# force=yes
+#
+#
+#
+# To start a geo-rep session
+#
+# [geo-replication]
+# action=start
+# mastervol=10.70.46.13:mastervolname
+# slavevol=10.70.46.15:slavevolname
+# force=yes
+#
+#
+#
+# To pause a geo-rep session
+#
+# [geo-replication]
+# action=pause
+# mastervol=10.70.46.13:mastervolname
+# slavevol=10.70.46.15:slavevolname
+# force=yes
+#
+#
+#
+# To resume a geo-rep session
+#
+# [geo-replication]
+# action=resume
+# mastervol=10.70.46.13:mastervolname
+# slavevol=10.70.46.15:slavevolname
+# force=yes
+#
+#
+#
+# To stop a geo-rep session
+#
+# [geo-replication]
+# action=stop
+# mastervol=10.70.46.13:mastervolname
+# slavevol=10.70.46.15:slavevolname
+# force=yes
+#
+#
+#
+# To delete a geo-rep session
+#
+# [geo-replication]
+# action=delete
+# mastervol=10.70.46.13:mastervolname
+# slavevol=10.70.46.15:slavevolname
+# force=yes
+#
+#
+#
+# To configure a geo-rep session
+#
+# Available configuration options are:
+#
+# gluster-log-file        - The path to the geo-replication glusterfs log file.
+# gluster-log-level       - The log level for glusterfs processes.
+# log-file                - The path to the geo-replication log file.
+# log-level               - The log level for geo-replication.
+# ssh-command             - The SSH command to connect to the remote machine
+#                           (the default is SSH).
+# rsync-command           - The rsync command to use for synchronizing the files
+#                           (the default is rsync).
+# use-tarssh              - The use-tarssh option allows tar over Secure Shell
+#                           protocol. Use this option to handle workloads of
+#                           files that have not undergone edits. Value of
+#                           this option can be [true, false]
+# volume-id               - The option to delete the existing master UID for the
+#                           intermediate/slave node. Value to this option should
+#                           be a UID
+# timeout                 - The timeout period in seconds.
+# sync-jobs               - The number of simultaneous files/directories that
+#                           can be synchronized.
+# ignore-deletes          - If this option is set to 1, a file deleted on the
+#                           master will
+#                           not trigger a delete operation on the slave.
+# checkpoint              - Sets a checkpoint with the given value. If the
+#                           option is set as now, then the current time will
+#                           be used as the label.
+#
+# Use only one configuration option at a time.
+#
+# If the value of any of the above option(other than volume-id) in set to
+# 'reset', the setting of that config option will be deleted
+#
+#
+# Examples:
+#
+#
+# To reset log-level to the default value:
+#
+# [geo-replication]
+# action=config
+# mastervol=10.70.46.13:mastervolname
+# slavevol=10.70.46.15:slavevolname
+# log-level=reset
+#
+#
+#
+#
+# To set checkpoint as the current time
+#
+# [geo-replication]
+# action=config
+# mastervol=10.70.46.13:mastervolname
+# slavevol=10.70.46.15:slavevolname
+# checkpoint=now
+#
+#
+#
+#
+# Disaster Recovery
+#
+#
+#  1. Failover
+#  [geo-replication]
+#  action=failover
+#  mastervol=10.70.46.13:mastervolname
+#  slavevol=10.70.46.15:slavevolname
+#
+#  Here mastervol and slavevol are the original master and slave volumes
+#  respectively.
+#
+#  This configuration will first promote the slave to be the master and
+#  then sets necessary configurations
+#
+#
+#  2. Failback
+#  [geo-replication]
+#  action=failback
+#  mastervol=10.70.46.13:mastervolname
+#  slavevol=10.70.46.15:slavevolname
+#
+#  Here mastervol and slavevol are the original master and slave volumes
+#  respectively.
+#
+#  This will make the original master be master again and demote the
+#  original slave
+#
+#
+#
+#-----------------------------------
+
+
+                            ##-- Subscription Management --##
+
+# Section 'RH-subscription' can be used to register the system to RHSM,
+# attach to a pool, enable repos, disable repos, and unregister from RHSM
+#
+# Registering the system
+#
+# To register the system use the 'action' register and specify 'password' and
+# 'username'.
+# Set 'auto-attach' option as 'true' if the product certificates
+# are are available at /etc/pki/product/
+# 'disable-repos', if set to "yes", will disable all the repos currently
+# enabled in the system.
+# 'repos' can also be specified in the same configuration section to
+# specify which all repos it should subscribe to, at the time of
+# registration itself.
+# We can even make subscription-manager attach this system to a subscription
+# pool at this section itself. Use the option 'pool' for this.
+#
+# [RH-subscription]
+# action=register
+# username=bilbobaggins
+# password=shire46
+# auto-attach=true
+# disable-repos=yes
+# repos=rhel-7-cool-server
+# pool=a_big_pool_id_with_numbers
+# ignore_register_errors=no
+# ignore_attach_pool_errors=no
+# 
+#
+# Instead of using username and password, one could even use an
+# activationkey
+#
+# [RH-subscription]
+# action=register
+# activationkey=my_big_activation_key
+#
+# The options: auto-attach, disable-repos, repos, and pools applies here
+# as well
+#
+# Attaching to the Red Hat subscription
+#
+# If not auto-attached, then attaching to the subscription needs to be done
+# explicitly. One could either give the option 'pool' with the pool id as value
+# along with the register action or can be separately provided as follows
+#
+# [RH-subscription]
+# action=attach-pool
+# pool=a_big_pool_id_with_numbers
+# ignore_attach_pool_errors=yes
+#
+# Enabling repos
+#
+# To enable repos, provide the repo names as value to option 'repos'. This can
+# be provided with register action as well or separately as follows
+#
+# [RH-subscription]
+# action=enable-repos
+# repos=fancy_repo1,fancy,repo2
+# ignore_enable_errors=no
+#
+#
+# Registering, subscribing and enabling repos together
+#
+# These 3 can be done together in a single config leaving the action empty as
+# follows
+#
+# [RH-subscription]
+# action=register
+# username=bilbobaggins
+# password=shire46
+# pool=a_big_pool_id_with_numbers
+# repos=fancy_repo1,fancy,repo2
+#
+#
+# Disabling repos
+#
+# To disable enabled repos, use the action 'disable-repos'. The required repos
+# should be passed as value to repos option.
+# NOTE: If repos are not provided all the enabled  repos will be disabled
+#
+# [RH-subscription]
+# action=disable-repos
+# repos=fancy_repo1,fancy,repo2
+#
+#
+# Unregister from RHSM
+#
+# To unregister the system from RHSM just provide the action 'unregister'
+#
+# [RH-subscription]
+# action=unregister
+#
+#
+#
+#
+#-----------------------------------
+
+
+                            ##-- Yum --##
+
+#
+# 'yum' section allows you to install or remove packages using yum
+# package manager.
+#
+# To install package(s):
+#
+# [yum]
+# action=install
+# repos=<repos>
+# packages=vi,glusterfs
+# gpgcheck=no
+# update=no
+# ignore_yum_errors=no   # Do not continue if yum errors out.
+#
+# If 'no' provided to gpgcheck, it will disable gpgcheck. By default
+# it is 'yes'.
+#
+# If 'no' provided to update, gdeploy will not run  'yum update' before
+# installation. By default  it is 'yes'.
+# To remove package(s)
+#
+# [yum]
+# action=remove
+# packages=vi
+#
+#
+#
+# Make sure your system is registered with subscription manager before
+# trying to install packages.
+#-----------------------------------
+
+
+                            ##-- Firewalld --##
+#
+# This section allows addition or deletion of ports and services in
+# either running or permanent firewalld rules.
+#
+# To add ports in permanent firewalld rules
+#
+# [firewalld]
+# action=add
+# ports=8081/tcp,161-162/udp
+# permanent=true
+# zone=public
+#
+# By default permanent will be set to true and zone will be set to public
+#
+#
+#
+# To delete ports from permanent firewalld rules
+#
+# [firewalld]
+# action=delete
+# ports=8081/tcp,161-162/udp
+#
+#
+#
+# To add services in permanent firewalld rules
+#
+# [firewalld]
+# action=add
+# services=https
+# permanent=true
+# zone=public
+#
+# To delete service from permanent firewalld rules
+#
+# [firewalld]
+# action=delete
+# services=https
+#
+# Ports and services can be added and deleted together as well
+#
+# [firewalld]
+# action=add
+# ports=8081/tcp,161-162/udp
+# services=https
+# permanent=true
+# zone=public
+#-----------------------------------
+
+
+                            ##-- CTDB --##
+#
+# This section allows setting up and starting of CTDB.
+# Actions available are ['setup', 'start', 'stop', 'enable', 'disable']
+#
+#
+#
+# To setup ctdb:
+#
+# Make sure all the nodes in the cluster are specified in the hosts
+# section. Gdeploy takes the CTDB nodes from that section.
+# Set 'action' to be 'setup'
+#
+# Option 'physical_address': This option is only required if you plan
+# to use IP takeover. Provide the virtual public IP address which will
+# served by CTDB. The format of it's value should be like this:
+# <Virtual IP>/<routing prefix> <node interfaces separated by semicolon>
+#
+# Make sure that the node interfaces are separated by semicolon and
+# should follow routing prefix after a space. Interfaces are optional.
+#
+#
+# If option 'physical_address' is specified, the CTDB_PUBLIC_ADDRESSES
+# configuration option must be set to point to the file
+# /etc/ctdb/public_addresses
+#
+# To override these default values, specify them as the values. If the
+# option should not be set at all, leave the value empty or specify it
+# as 'none'.
+#
+# The public_address variable type in the below example fails because of bug:
+# https://bugzilla.redhat.com/show_bug.cgi?id=1360351
+#
+# Example:
+#
+# [ctdb]
+# action=setup
+# public_address=10.70.37.6/24 eth0,10.70.37.8/24 eth0
+# ctdb_nodes=192.168.1.1,192.168.2.5
+# volname=samba1
+#
+# `ctdb_nodes' variable in the above example is optional, if it is removed the
+# nodes used to create volume are used as ctdb nodes.
+#
+#
+# NOTE: Expect the user to specify nodes in the cluster under section
+# 'hosts'
+#
+# To start CTDB
+#
+# [ctdb]
+# action=start
+#
+# To enable CTDB on boot
+#
+# [ctdb]
+# action=enable
+#
+# Both of this will be triggered along with setup
+#
+#
+# To stop CTDB
+#
+# [ctdb]
+# action=stop
+#
+# To disable CTDB on boot
+#
+# [ctdb]
+# action=disable
+#
+# Setup ctdb on an existing volume
+#
+# [hosts]
+# 10.70.37.192
+# 10.70.37.88
+#
+# [ctdb]
+# action=setup
+# public_address=10.70.37.6/24 eth0,10.70.37.8/24 eth0
+# volname=ctdb
+#
+#-----------------------------------
+
+
+                            ##-- NFS-Ganesha --##
+
+# The option 'nfs-ganesha' can be used to configure NFS-Ganesha using gdeploy
+# The actions available are: [create-cluster, destroy-cluster, add-node,
+# delete-node, export-volume, unexport-volume]
+#
+# To create an HA cluster:
+#
+# ** IMPORTANT **
+# Cluster nodes *HAVE TO* be hostnames, IP addresses are not allowed. Also
+# ensue to give hostnames in the `hosts' section. See example below.
+#
+# [nfs-ganesha]
+# action=create-cluster
+# ha-name=ganesha-ha-360
+# cluster-nodes=host1,host2
+# vip=10.70.44.121,10.70.44.122
+# volname=glustervol
+#
+# ha-name       -  Name for the cluster to be created. Default is ganesha-ha-360
+# cluster-nodes -  Subset of the 'hosts' which are to be part of the cluster
+# vip           -  Virtual IPs assigned to each of the 'cluster-nodes'
+# volname       -  volume to be exported using NFS-Ganesha. If not provided, volume
+#                   export will be skipped
+#
+#
+#                  **** NFS-GANESHA SETUP --- COMPLETE EXAMPLE
+# [hosts]
+# server1
+# server2
+#
+# [backend-setup]
+# devices=/dev/vdb
+# vgs=vg1
+# pools=pool1
+# lvs=lv1
+# mountpoints=/mnt/brick
+#
+# [volume]
+# action=create
+# volname=ganesha
+# transport=tcp
+# replica_count=2
+# force=yes
+#
+# [clients]
+# action=mount
+# volname=
+# hosts=rhs-5
+# fstype=glusterfs
+# client_mount_points=/mnt/glusterfs
+#
+# [nfs-ganesha]
+# action=create-cluster
+# ha-name=ganesha-ha-360
+# cluster-nodes=server1,server2
+# vip=10.70.44.121,10.70.44.122
+# volname=ganesha
+#
+# In the above example a complete end-to-end Ganesha setup is done.
+#
+#
+# To destroy an HA cluster
+#
+# [nfs-ganesha]
+# action=destroy-cluster
+#
+# To add a node to an HA cluster:
+#
+# [nfs-ganesha]
+# action=add-node
+# nodes=10.70.46.17
+# vip=10.70.44.123
+#
+# To delete a node to an HA cluster:
+#
+# [nfs-ganesha]
+# action=delete-node
+# nodes=10.70.46.15
+#
+# To export a volume:
+#
+# [nfs-ganesha]
+# action=export-volume
+# volname=glustervol
+#
+# To un-export a volume:
+#
+# [nfs-ganesha]
+# action=unexport-volume
+# volname=glustervol
+#
+#
+
+
+#-----------------------------------
+
+
+                            ##-- Update remote files --##
+
+
+#
+#
+# The section 'update-file' helps in updating the configuration file
+# in the remote machine from the local machine.
+#
+# The configuration can be updated in 2 ways:
+#
+# 1. Either copy the config created in the local
+# 2. Edit the configuration present in the remote
+# 3. Add lines to the end of the file
+#
+# 1. Copy file from local to remote
+#
+# For this, use the 'copy' action in 'update-file'.
+# 'src' should be the absolute path of the file in the local machine and
+# 'dest' should the the absolute directory path where the file should be
+# copied to in the remote machines
+#
+# [update-file]
+# action=copy
+# src=/home/bilbobaggins/hosts
+# dest=/etc/
+#
+# You can send multiple files at a time. Provide them comma separated.
+# 'dest' can be a single directory name or provide that too comma
+# separated.
+#
+# 2. Edit configuration file in the remote
+#
+# for this, use the 'edit' action in 'update-file'.
+#
+# 'dest' specifies the file to be edited.
+# 'replace' specifies the starting of the line to be edited. All the lines
+# with the specified beginning will be replaced with what is provided in
+# the 'line' option
+# 'line' option specifies what the 'replace' is to be replaced with
+#
+# You cannot edit multiple files at a time. Although you can edit
+# multiple lines at a time. Provide them comma separated.
+#
+# NOTE: Keep in mind that 'replace' specifies just the starting of the line
+# you want to replace. Provide it carefully, otherwise one can end up
+# screwing up the file.
+#
+# [update-file]
+# action=edit
+# dest=/etc/ganesha/ganesha-ha.conf
+# replace=VIP
+# line=VIP_10.70.46.15="192.168.13.14"
+#
+#
+# 3. Add lines to the end of the file
+#
+# for this, use the 'add' action in 'update-file'.
+#
+# 'dest' specifies the file to be edited.
+# 'line' specifies the new line to be added. This line will get appended
+# to the end of the file. If multiple lines are to be added, give it
+# comma separated.
+#
+#
+# [update-file]
+# action=add
+# dest=/etc/ganesha/ganesha-ha.conf
+# line=VIP_10.70.46.15="192.168.13.14",VIP_10.70.46.17="192.168.13.15"
+#
+#
+#
+#
+
+
+#-----------------------------------
+
+
+                            ##-- Service --##
+
+
+# 'service' section lets you start, stop, enable, disable, restart, or
+# reload services. The actions available are: [start, stop, restart,
+# reload, enable, disable]. Multiple service names can be provided comma
+# separated.
+#
+# To start services
+#
+# [service]
+# action=start
+# service=glusterd,httpd
+#
+# To stop services
+#
+# [service]
+# action=stop
+# service=glusterd,httpd
+#
+# To enable services
+#
+# [service]
+# action=enable
+# service=glusterd,httpd
+#
+# To disable services
+#
+# [service]
+# action=disable
+# service=glusterd,httpd
+#
+# To restart services
+#
+# [service]
+# action=restart
+# service=glusterd,httpd
+#
+# To reload services
+#
+# [service]
+# action=reload
+# service=glusterd,httpd
+
+
+
+
+#-----------------------------------
+
+
+                            ##-- Shell --##
+
+# The 'shell' section lets you run any shell command in the remote
+# machine(s). If multiple commands are to be executed, they must be
+# provided comma separated.  Provide the action option with value
+# 'execute' always.
+#
+# To run a command:
+#
+# [shell]
+# action=execute
+# command=touch /etc/gluster/dummy.conf,export MY_VAR="DUMMY_VALUE"
+
+
+
+
+#-----------------------------------
+
+
+
+                            ##-- Script --##
+
+# The 'script' module lets you run a shell script in the remote
+# machine(s). If multiple scripts are to be executed, they must be
+# provided comma separated.  Provide the action option with value
+# 'execute' always.
+#
+# To run a command:
+#
+# [script]
+# action=execute
+# file=/path/to/some/script.sh
+# args=arg1 arg2 arg3
+#
+# Separate arguments for each shell script with comma
+#
+# [script]
+# action=execute
+# file=/path/to/some/script1.sh,/path/to/some/script2.sh
+# args=argForScript1 anotherArgForScript1,argForScript2
+
+
+
+#-----------------------------------
+
+
+                            ##-- openshift-ctl --##
+#
+# This section can be used to create and manipulate openshift pods.
+#
+# To create openshift pods using templates:
+#
+# [openshift-ctl]
+# action=create
+# filetype=template
+# resourcename=mytemplate
+# variable=NAME=mytemplatepod
+#
+# In this case, gdeploy goes and look inside the
+# /usr/share/gdeploy/extras or ~/.gdeploy/templates directories
+# for a file with name mytemplate-template.json.
+#
+# In case the filetype is defined as json, gdeploy will look inside the
+# above mentioned directories for a json file that has the word
+# mytemplate in its name. Similarly if filetype is defined as yml, it
+# looks for a yml file with 'mytemplate' in the file name.
+#
+# By default, the filetype is json
+#
+# Alternatively, one could just provide the filename directly, in which
+# case resourcename isn't necessary.
+#
+# If you have any undefined variables in the template file, do provide
+# its value in the variable option, like shown above. (In this case
+# variable is NAME)
+#
+# If the place holder for the variable is in the format {{ VARNAME }}
+# inside the tempalte file, this VARNAME can be directly passed on as an
+# option under the same section
+#
+# [openshift-ctl]
+# action=create
+# filename=/path/to/jsonfile
+# HOSTNAME=10.70.47.89
+#
+# Multiple pod creations can be done in a single go if filenames or
+# resource names are given comma separated. In this case, the variables
+# can be common to all the pod files and can be defined in 'variable'
+# option or separate variables can be provided for each pod file by
+# using the option variable post-fixed by a digit showing the count of
+# that podfile.
+#
+# Example:
+#
+#
+# [openshift-ctl]
+# action=create
+# filetype=template
+# resourcename=heketi,rhgs
+# variable1=NAME=heketiresource
+# variable2=NAME=rhgsresource,HOSTNAME=mytestvar

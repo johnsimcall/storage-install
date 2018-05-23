@@ -1,8 +1,9 @@
 # file: make-vms-prompt.yml
 #
 # prerequisites:
-# $ NEW: sudo dnf install redhat-rpm-config python2-devel ; sudo easy_install ovirt-engine-sdk-python
-# $ OLD: sudo yum --enablerepo=rhel-7-server-rhv-4.1-rpms install python-ovirt-engine-sdk4
+# NEW: sudo dnf install redhat-rpm-config python2-devel libxml2-devel libcurl-devel ; sudo easy_install ovirt-engine-sdk-python
+# RPM: yum --enablerepo=rhel-7-server-rhv-4.2-manager-rpms install python-ovirt-engine-sdk4
+# OLD: sudo yum --enablerepo=rhel-7-server-rhv-4.1-rpms install python-ovirt-engine-sdk4
 #
 # execution:
 # $ ansible-playbook -i inventory make-vms-prompt.yml --ask-vault-pass
