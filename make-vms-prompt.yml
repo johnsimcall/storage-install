@@ -27,7 +27,8 @@
         msg: "Please choose one of these:{{ choices }}"
 
 
-- hosts: localhost
+#- hosts: localhost
+- hosts: rhvm
   gather_facts: yes
   vars_prompt:
     - prompt: "Please choose one of the above"
@@ -68,8 +69,8 @@
             runcmd:
               - echo "Doing this the hard way because cloud-init or ovirt_vms seems to hate NetworkManager"
               - hostnamectl set-hostname {{ item.key }}.{{ ansible_domain }}
-              - nmcli con add type ethernet connection.id eth0 connection.interface-name eth0 ipv4.auto
-              #- nmcli con add type ethernet connection.id eth0 connection.interface-name eth0 ipv4.method static ipv4.addresses {{ item.value.nic1.ipaddress }}/24 ipv4.gateway {{ item.value.nic1.gateway }} ipv4.dns {{ dnsServer }} ipv4.dns-search {{ ansible_domain }}
+              #- nmcli con add type ethernet connection.id eth0 connection.interface-name eth0 ipv4.auto
+              - nmcli con add type ethernet connection.id eth0 connection.interface-name eth0 ipv4.method static ipv4.addresses {{ item.value.nic1.ipaddress }}/24 ipv4.gateway {{ item.value.nic1.gateway }} ipv4.dns {{ dnsServer }} ipv4.dns-search {{ ansible_domain }}
               - nmcli con del "System eth0"
               - yum remove cloud-init
         wait: true

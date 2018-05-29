@@ -297,3 +297,7 @@
 # add geo-replicate
 # add compression/dedupe?
 #
+## Configure RHVM to look for bricks in our directory
+#[root@rhvm ~]# engine-config -g GlusterDefaultBrickMountPoint
+#  GlusterDefaultBrickMountPoint: /gluster_bricks version: general
+#[root@rhvm ~]# #engine-config -s GlusterDefaultBrickMountPoint=/gluster_bricks
