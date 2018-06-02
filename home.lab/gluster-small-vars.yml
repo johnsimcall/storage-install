@@ -1,0 +1,36 @@
+---
+rhvCluster: Default
+templateName: rhel75cloud
+storageDomain: sanstore
+instanceType: Large
+dnsServer: 192.168.0.99
+vm_root_password: passw0rd
+ssh_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1vfRWODjNpS45BwAD864B1ezqIOb5fxCjnOwsgx/p8QchwWQhIUeC+PAUBI/QJ/nzX2pUOx0erNu8wuQRobOMxmYmsIyeuIIkBSJxffeFm4Cuy0glgkNR5ry90AHabO7bvXoY1q2QJ6sdkMeh2r1b/tx+2KFBOpe6v2HAcBpS+srl/fpdOV0GK2HNC0DsHz/2/me2hQ9gNIBOrb/Y7TJL5GcmbbHeteW4g648w1771El6r+JugmwlJ7/B/Jw5b4StpJmYQq0s1x9TJnqXO1kZGZ1YDrUEF25ZxkLZxmLxwD8hUDVbaeCAjbNQCe5OXc3wl96VvwXsPE2d838DBUTL jcall@home.lab
+vms:
+  gluster-1:
+    nic1:
+      ipaddress: 192.168.0.111
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+  gluster-2:
+    nic1:
+      ipaddress: 192.168.0.112
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+  gluster-3:
+    nic1:
+      ipaddress: 192.168.0.113
+      netmask:   255.255.255.0
+      gateway:   192.168.0.1
+
+disks_size: 10GiB
+disks:
+  - name: gluster-1
+    id:
+      - 1
+  - name: gluster-2
+    id:
+      - 1
+  - name: gluster-3
+    id:
+      - 1

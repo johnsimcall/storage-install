@@ -8,7 +8,16 @@
 ---
 - hosts: all
   vars: 
-    repos: #dynamically populated below
+    repos:
+    repo_list:
+      - rhel-7-server-rpms
+      - rhel-7-server-extras-rpms
+      - rhel-7-server-optional-rpms
+      - rhel-ha-for-rhel-7-server-rpms
+      - rh-gluster-3-for-rhel-7-server-rpms
+      - rh-gluster-3-nfs-for-rhel-7-server-rpms
+      - rh-gluster-3-samba-for-rhel-7-server-rpms
+      - rh-gluster-3-nagios-for-rhel-7-server-rpms
 
     firewall_services:
       - glusterfs
@@ -52,100 +61,48 @@
       private: no
 
   tasks:
-  - name: Register with Red Hat
-    redhat_subscription:
-      state: present
-      username: "{{ rhsm_username }}"
-      password: "{{ rhsm_password }}"
-      autosubscribe: false
-      force_register: true
-    ignore_errors: True
-    async: 60
-    poll: 10
-    tags:
-      - rhsm
-
-  - name: Attach Pool
-    command: subscription-manager attach --pool "{{ poolid }}"
-    ignore_errors: True
-    async: 60
-    poll: 10
-    tags:
-      - rhsm
-
-  - name: Enable repos
-    block:
-    - set_fact:
-        repos: "{{ repos }} --enable={{ item }}"
-      no_log: true
-      with_items:
-        - rhel-7-server-rpms
-        - rhel-7-server-extras-rpms
-        - rhel-7-server-optional-rpms
-        - rhel-ha-for-rhel-7-server-rpms
-        - rh-gluster-3-for-rhel-7-server-rpms
-        - rh-gluster-3-nfs-for-rhel-7-server-rpms
-        - rh-gluster-3-samba-for-rhel-7-server-rpms
-        - rh-gluster-3-nagios-for-rhel-7-server-rpms
-    - debug:
-        var: repos
-    - command: subscription-manager repos --disable="*"
-    - command: subscription-manager repos {{ repos }}
-    when: ansible_distribution_major_version == "7"
-    tags:
-      - repos
+  - block:
+    - name: Register with Red Hat
+      redhat_subscription:
+        state: present
+        username: "{{ rhsm_username }}"
+        password: "{{ rhsm_password }}"
+        autosubscribe: false
+        force_register: true
+      ignore_errors: True
+      async: 60
+      poll: 10
+    - name: Attach Pool
+      command: subscription-manager attach --pool "{{ poolid }}"
+      ignore_errors: True
+      async: 60
+      poll: 10
+    tags: [ rhsm ]
     #end block
 
-#  - name: Install ssh private key
-#    copy:
-#      content: "{{ lookup('file', '/root/.ssh/id_rsa') }}"
-#      dest: /root/.ssh/id_rsa
-#      mode: 0600
-#      owner: root
-#    tags:
-#      - ssh
-#
-#  - name: Install ssh public key
-#    copy:
-#      content: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
-#      dest: /root/.ssh/id_rsa.pub
-#      mode: 0644
-#      owner: root
-#    tags:
-#      - ssh
-#
-#  - name: Set authorized key
-#    authorized_key:
-#      user: root
-#      state: present
-#      key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
-#    tags:
-#      - ssh
+  - block:
+    - set_fact:
+        repos: "{{ repo_list | join(' --enable=') }}"
+    - debug:
+        var: repos
+    - name: Enable repos
+      command: subscription-manager repos --disable="*" --enable={{ repos }}
+    tags: [repos]
+    #end block
 
   - name: Install firewalld
     yum: 
       name: firewalld
       state: latest
-
   - name: Start firewalld
     systemd:
       name: firewalld
       enabled: yes
       state: started
 
-  - name: Install gluster
+  - name: Install gluster, NFS-Ganesha and gstatus
     yum:
-      name: redhat-storage-server
-      state: latest
-
-  - name: Install NFS-Ganesha
-    yum:
-      name: glusterfs-ganesha
-      state: latest
-
-  - name: Install gstatus
-    yum:
-      name: gstatus
+      name: redhat-storage-server,glusterfs-ganesha,gstatus
       state: latest
 
   - name: Install Samba

@@ -11,7 +11,8 @@
 # $ ansible-playbook vm-make-snapshots.yml --ask-vault-pass -e 'vmVars=home.lab/ocp-cns-vars.yml' -e 'snapState=restore '-e 'snapDescription="Before a big change"'
 
 ---
-- hosts: localhost
+#- hosts: localhost
+- hosts: rhvm
   gather_facts: yes
   vars:
     snapState: present
