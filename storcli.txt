@@ -1,4 +1,4 @@
-curl -O https://docs.broadcom.com/docs-and-downloads/raid-controllers/raid-controllers-common-files/1.21.16_StorCLI.zip
+https://www.broadcom.com/support/download-search/?dk=storcli
 
 # General information
 storcli64 show
