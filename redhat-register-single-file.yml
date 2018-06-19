@@ -9,13 +9,13 @@
     repos:
     repo_list:
       - rhel-7-server-rpms
-      - rhel-7-server-extras-rpms
-      - rhel-7-server-optional-rpms
-      - rhel-ha-for-rhel-7-server-rpms
-      - rh-gluster-3-for-rhel-7-server-rpms
-      - rh-gluster-3-nfs-for-rhel-7-server-rpms
-      - rh-gluster-3-samba-for-rhel-7-server-rpms
-      - rh-gluster-3-nagios-for-rhel-7-server-rpms
+#      - rhel-7-server-extras-rpms
+#      - rhel-7-server-optional-rpms
+#      - rhel-ha-for-rhel-7-server-rpms
+#      - rh-gluster-3-for-rhel-7-server-rpms
+#      - rh-gluster-3-nfs-for-rhel-7-server-rpms
+#      - rh-gluster-3-samba-for-rhel-7-server-rpms
+#      - rh-gluster-3-nagios-for-rhel-7-server-rpms
 
   vars_prompt:
     - prompt: "Enter RHN/RHSM Username"

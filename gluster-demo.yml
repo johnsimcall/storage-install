@@ -62,6 +62,8 @@
   - lvg:
       vg: vg_{{ item }}
       pvs: /dev/{{ item }}
+      #TODO vg_options:
+      #TODO pv_options:
     with_items: [sdb,sdc,sdd]
   - lvol:
       vg: vg_{{ item }}
@@ -69,6 +71,7 @@
       size: 100%FREE
       opts: --thin
     with_items: [sdb,sdc,sdd]
+  #TODO - name: Create lvmcache device
   - command:  lvcreate --virtualsize 10GB -T vg_{{ item }}/tp_{{ item }} -n lv_{{ item }}
     with_items: [sdb,sdc,sdd]
   - pause:
