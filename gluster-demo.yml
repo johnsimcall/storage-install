@@ -1,3 +1,4 @@
+# Pre-requisistes: user=flannery && smbuser=flannery
 ---
 - hosts: all
   gather_facts: no
@@ -5,7 +6,8 @@
   - pause:
       prompt: "NEXT STEP - Install Gluster RPMs"
     tags: [pause]
-  - yum: 
+  - name: "yum install glusterfs-server" 
+    yum: 
       name: redhat-storage-server,firewalld,gstatus,tree
       state: present
   - pause:
@@ -264,6 +266,10 @@
 
   - name: "Convert the snapshot to a writeable clone"
     command: gluster snapshot clone vol1-clone {{ snapName }}
+    register: result
+    until: "'success' in result.stdout"
+    retries: 3
+    delay: 10
   - name: "Enable SMB/CIFS auto-share on clone"
     command: gluster vol set vol1-clone user.cifs enable
   - name: "Start the clone"
@@ -292,15 +298,18 @@
 
 
 #### TODO ####
-#
 # grow cluster 
 # show failover with glusterfs
 # add ctdb and show node failover for CIFS
 # show disk failure
 # add geo-replicate
 # add compression/dedupe?
-#
+
+# Cleanup smb.conf
+  # egrep -v '^;|^$|^#|^[[:space:]]#' /etc/samba/smb.conf
+
 ## Configure RHVM to look for bricks in our directory
-#[root@rhvm ~]# engine-config -g GlusterDefaultBrickMountPoint
-#  GlusterDefaultBrickMountPoint: /gluster_bricks version: general
-#[root@rhvm ~]# #engine-config -s GlusterDefaultBrickMountPoint=/gluster_bricks
+  # engine-config -g GlusterDefaultBrickMountPoint
+    GlusterDefaultBrickMountPoint: /gluster_bricks version: general
+  # engine-config -s GlusterDefaultBrickMountPoint=/gluster_bricks
+  # systemctl restart ovirt-engine
