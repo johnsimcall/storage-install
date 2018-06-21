@@ -232,6 +232,7 @@
     register: result
   - set_fact:
       snapName: "{{ result.stdout | regex_search('(demo.*[0-9])') }}"
+  - debug: var=snapName
   - name: "Mount the snapshot"
     mount:
       src: gluster1:/snaps/{{ snapName }}/vol1
@@ -305,11 +306,10 @@
 # add geo-replicate
 # add compression/dedupe?
 
-# Cleanup smb.conf
-  # egrep -v '^;|^$|^#|^[[:space:]]#' /etc/samba/smb.conf
+## Cleanup smb.conf
+ # egrep -v '^;|^$|^#|^[[:space:]]#' /etc/samba/smb.conf
 
 ## Configure RHVM to look for bricks in our directory
-  # engine-config -g GlusterDefaultBrickMountPoint
-    GlusterDefaultBrickMountPoint: /gluster_bricks version: general
-  # engine-config -s GlusterDefaultBrickMountPoint=/gluster_bricks
-  # systemctl restart ovirt-engine
+ # engine-config -g GlusterDefaultBrickMountPoint (default: /rhgs)
+ # engine-config -s GlusterDefaultBrickMountPoint=/gluster_bricks
+ # systemctl restart ovirt-engine
