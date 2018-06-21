@@ -76,9 +76,9 @@
 
           custom_script: |
             runcmd:
-              - echo "Doing this the hard way because cloud-init or ovirt_vms seems to hate NetworkManager"
-              - yum remove cloud-init
               - hostnamectl set-hostname {{ item.key }}.{{ ansible_domain }}
+              - sed -i -e '/192.168.122.1/d' -e '/^[;#]/d' /etc/resolv.conf
+              - yum remove cloud-init
         wait: true
       with_dict: "{{ vms }}" # See {{ ansible_domain }}/{{ input }} (e.g. home.lab/ocp-cns-vars.yml)
 

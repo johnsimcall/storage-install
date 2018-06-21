@@ -1,0 +1,75 @@
+# Annette - https://github.com/red-hat-storage/openshift-cic
+[masters]
+ocp-cns1.dota-lab.iad.redhat.com
+
+[etcd]
+ocp-cns1.dota-lab.iad.redhat.com
+
+[nodes]
+ocp-cns1.dota-lab.iad.redhat.com openshift_node_labels="{'role':'infra','region':'infra'}"
+ocp-cns2.dota-lab.iad.redhat.com openshift_node_labels="{'role':'infra','region':'infra'}"
+ocp-cns3.dota-lab.iad.redhat.com openshift_node_labels="{'role':'infra','region':'infra'}"
+
+[glusterfs]
+ocp-cns1.dota-lab.iad.redhat.com glusterfs_devices="[ '/dev/sdc' ]"
+ocp-cns2.dota-lab.iad.redhat.com glusterfs_devices="[ '/dev/sdc' ]"
+ocp-cns3.dota-lab.iad.redhat.com glusterfs_devices="[ '/dev/sdc' ]"
+
+[OSEv3:children]
+etcd
+nodes
+masters
+glusterfs
+
+[OSEv3:vars]
+#ansible_become=yes
+ansible_ssh_user=root
+openshift_release=3.9
+dynamic_volumes_check=false
+openshift_deployment_type=openshift-enterprise
+openshift_master_default_subdomain=ocp.dota-lab.iad.redhat.com
+openshift_storageclass_default=false
+openshift_disable_check=disk_availability,memory_availability
+
+openshift_metrics_install_metrics=true
+openshift_metrics_storage_kind=dynamic
+openshift_metrics_cassandra_pvc_size=30Gi
+openshift_metrics_hawkular_nodeselector={"role":"infra"}     
+openshift_metrics_cassandra_nodeselector={"role":"infra"}
+openshift_metrics_heapster_nodeselector={"role":"infra"}
+
+openshift_logging_install_logging=true
+openshift_logging_storage_kind=dynamic
+openshift_logging_es_pvc_size=30Gi
+openshift_logging_es_nodeselector={'role':'infra'}
+openshift_logging_curator_nodeselector={'role':'infra'}
+openshift_logging_kibana_nodeselector={'role':'infra'}
+
+# openshift_enable_service_catalog=false
+# ansible_service_broker_install=false
+# template_service_broker_install=false
+
+#openshift_storage_glusterfs_wipe=true
+###openshift_hosted_registry_selector='region=infra' ###annette on sme-storage
+openshift_hosted_registry_storage_kind=glusterfs
+openshift_hosted_registry_storage_volume_size=10Gi
+openshift_storage_glusterfs_heketi_user_key=redhat1
+openshift_storage_glusterfs_heketi_admin_key=redhat1
+openshift_storage_glusterfs_block_deploy=true
+openshift_storage_glusterfs_block_host_vol_size=75
+openshift_storage_glusterfs_block_storageclass=true
+openshift_storage_glusterfs_block_storageclass_default=true
+
+#redhat1
+openshift_master_htpasswd_users={'admin': '$apr1$pZ6/aC.o$ZAK3XSQH2v40QFqk95ucd0'}
+openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
+
+### APPENDIX ###
+# https://redhatstorage.redhat.com/2018/03/28/container-native-storage-3-9/
+# https://github.com/openshift/openshift-ansible/tree/master/roles/openshift_storage_glusterfs
+
+# ansible-playbook /usr/share/ansible/openshift-ansible/playbooks/prerequisites.yml
+# ansible-playbook /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml
+# ansible-playbook /usr/share/ansible/openshift-ansible/playbooks/openshift-glusterfs/config.yml
+
+# oc annotate storageclass glusterfs-storage storageclass.kubernetes.io/is-default-class="true"
