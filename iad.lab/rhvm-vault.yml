@@ -1,0 +1,3 @@
+rhvuser: admin@internal
+rhvpass: redhat1
+rhvurl: https://rhvm-2940.dota-lab.iad.redhat.com/ovirt-engine/api

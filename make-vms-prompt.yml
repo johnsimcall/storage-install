@@ -7,6 +7,7 @@
 #
 # execution:
 # $ ansible-playbook -i inventory make-vms-prompt.yml --ask-vault-pass
+# $ ansible-playbook make-vms-prompt.yml -e @./someVarFile.yml
 
 ---
 - name: Query vars files for prompt dialog
@@ -21,14 +22,14 @@
       register: result
     - set_fact:
         choices: "{{ choices }} {{ item.path | basename }}"
-      no_log: true
       with_items: "{{ result.files }}"
+      no_log: true
     - debug:
         msg: "Please choose one of these:{{ choices }}"
 
 
-#- hosts: localhost
-- hosts: rhvm
+- hosts: localhost
+#- hosts: rhvm
   gather_facts: yes
   vars_prompt:
     - prompt: "Please choose one of the above"
@@ -60,19 +61,24 @@
             profile_name: ovirtmgmt
         cloud_init:
           host_name: "{{ item.key }}.{{ ansible_domain }}"
-          user_name: cloud-user
+          user_name: root
           root_password: "{{ vm_root_password }}"
           authorized_ssh_keys: "{{ ssh_key }}"
           dns_servers: "{{ dnsServer }}"
           dns_search: "{{ ansible_domain }}"
+          nic_name: eth0
+          nic_on_boot: true
+          nic_boot_protocol: "{{ item.value.nic1.ipaddress | ipaddr | ternary(item.value.nic1.ipaddress,'dhcp') }}"
+          #nic_boot_protocol: "{{ item.value.nic1.ipaddress | default('dhcp') | ipaddr | ternary(item.value.nic1.ipaddress,'dhcp') }}"
+          nic_ip_address: "{{ item.value.nic1.ipaddress | default(omit) }}"
+          nic_netmask: "{{ item.value.nic1.netmask | default(omit) }}"
+          nic_gateway: "{{ item.value.nic1.gateway | default(omit) }}"
+
           custom_script: |
             runcmd:
               - echo "Doing this the hard way because cloud-init or ovirt_vms seems to hate NetworkManager"
-              - hostnamectl set-hostname {{ item.key }}.{{ ansible_domain }}
-              #- nmcli con add type ethernet connection.id eth0 connection.interface-name eth0 ipv4.auto
-              - nmcli con add type ethernet connection.id eth0 connection.interface-name eth0 ipv4.method static ipv4.addresses {{ item.value.nic1.ipaddress }}/24 ipv4.gateway {{ item.value.nic1.gateway }} ipv4.dns {{ dnsServer }} ipv4.dns-search {{ ansible_domain }}
-              - nmcli con del "System eth0"
               - yum remove cloud-init
+              - hostnamectl set-hostname {{ item.key }}.{{ ansible_domain }}
         wait: true
       with_dict: "{{ vms }}" # See {{ ansible_domain }}/{{ input }} (e.g. home.lab/ocp-cns-vars.yml)
 
@@ -94,3 +100,9 @@
       ovirt_auth:
         ovirt_auth: "{{ ovirt_auth }}"
         state: absent
+
+
+### RUBBISH ###
+              #- nmcli con add type ethernet connection.id eth0 connection.interface-name eth0 ipv4.auto
+              #- nmcli con add type ethernet connection.id eth0 connection.interface-name eth0 ipv4.method static ipv4.addresses {{ item.value.nic1.ipaddress }}/24 ipv4.gateway {{ item.value.nic1.gateway }} ipv4.dns {{ dnsServer }} ipv4.dns-search {{ ansible_domain }}
+              #- nmcli con del "System eth0"
