@@ -11,9 +11,9 @@ ocp-cns2.dota-lab.iad.redhat.com openshift_node_labels="{'role':'infra','region'
 ocp-cns3.dota-lab.iad.redhat.com openshift_node_labels="{'role':'infra','region':'infra'}"
 
 [glusterfs]
-ocp-cns1.dota-lab.iad.redhat.com glusterfs_devices="['/dev/sdc']"
-ocp-cns2.dota-lab.iad.redhat.com glusterfs_devices="['/dev/sdc']"
-ocp-cns3.dota-lab.iad.redhat.com glusterfs_devices="['/dev/sdc']"
+ocp-cns1.dota-lab.iad.redhat.com glusterfs_devices="['/dev/sdb']"
+ocp-cns2.dota-lab.iad.redhat.com glusterfs_devices="['/dev/sdb']"
+ocp-cns3.dota-lab.iad.redhat.com glusterfs_devices="['/dev/sdb']"
 
 [OSEv3:children]
 etcd
