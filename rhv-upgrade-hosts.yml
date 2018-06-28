@@ -1,0 +1,25 @@
+# sudo ansible-galaxy install oVirt.cluster-upgrade -p /etc/ansible/roles/
+# https://github.com/oVirt/ovirt-ansible-cluster-upgrade
+
+---
+- name: Upgrade RHV Hosts
+  hosts: rhvm
+  vars_files:
+    - "{{ ansible_domain }}/rhvm-vault.yml"
+  vars:
+    cluster_name: Default
+    check_upgrade: true
+    reboot_after_upgrade: true
+    upgrade_timeout: 1200
+    host_names:
+      - rhclient2
+#    host_statuses:
+#      - up
+#      - installing
+#      - install_failed
+#      - non_operational
+#    stopped_vms:
+#      - gluster-win10
+
+  roles:
+    - oVirt.cluster-upgrade
