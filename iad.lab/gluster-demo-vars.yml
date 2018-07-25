@@ -1,0 +1,47 @@
+# Consider changing dict so it looks like this https://everythingshouldbevirtual.com/creating-vsphere-vms-using-ansible/
+---
+rhvCluster: Default
+templateName: rhel75cloud
+instanceType: Large
+storageDomain: ssd-vmstore
+dnsServer: 10.15.168.14
+vm_root_password: redhat1
+vms:
+  gluster1:
+    nic1:
+      ipaddress: 10.15.168.95
+      netmask:   255.255.255.128
+      gateway:   10.15.168.126
+  gluster2:
+    nic1:
+      ipaddress: 10.15.168.96
+      netmask:   255.255.255.128
+      gateway:   10.15.168.126
+  gluster3:
+    nic1:
+      ipaddress: 10.15.168.97
+      netmask:   255.255.255.128
+      gateway:   10.15.168.126
+  gluster-win10:
+    nic1:
+      ipaddress: 10.15.168.74
+      netmask:   255.255.255.128
+      gateway:   10.15.168.126
+
+disks_size: 10GiB
+disks:
+  - name: gluster1
+    id:
+      - 1
+      - 2
+      - 3
+  - name: gluster2
+    id:
+      - 1
+      - 2 
+      - 3
+  - name: gluster3
+    id:
+      - 1
+      - 2
+      - 3
