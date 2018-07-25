@@ -7,9 +7,8 @@
       prompt: "NEXT STEP - Install Gluster RPMs"
     tags: [pause]
   - name: "yum install glusterfs-server" 
-    yum: 
-      name: redhat-storage-server,firewalld,gstatus,tree
-      state: present
+    command: rpm -q redhat-storage-server
+
   - pause:
       prompt: |
         Verify with: rpm -q redhat-storage-server
