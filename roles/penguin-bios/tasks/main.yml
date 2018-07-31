@@ -1,0 +1,25 @@
+---
+- name: Upload firmware and utilities
+  file:
+    path: /root/PenguinComputing
+    state: directory
+
+- copy:
+    src: "{{ item }}"
+    dest: /root/PenguinComputing
+    mode: preserve
+  with_items: [ afulnx_64, MD90-FS0-ZB_R13.bin ]
+
+- name: Get motherboard type
+  command: dmidecode -s baseboard-product-name
+  register: baseboard-product-name
+
+- debug:
+    var: baseboard-product-name.stdout
+
+# TODO - Check if firmware is for motherboard
+
+- name: Flash firmware
+  #command: /root/PenguinComputing/afulnx_64 /root/PenguinComputing/MD90-FS0-ZB_R13.bin /P /B /N /X /K /L /ME
+  command: /root/PenguinComputing/afulnx_64 /root/PenguinComputing/MD90-FS0-ZB_R13.bin /P /B /N /K /L /ME
+  tags: [ test ]
