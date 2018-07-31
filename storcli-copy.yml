@@ -1,0 +1,21 @@
+# file: storcli-copy.yml
+# execution: ansible-playbook storcli-copy.yml --limit osds
+---
+- hosts: all
+  gather_facts: no
+  tasks:
+  - name: Push the RPM to the host
+    copy:
+      src: ./storcli-1.21.06-1.noarch.rpm
+      dest: /tmp/
+
+  - name: Install RPM
+    yum:
+      state: latest
+      name: /tmp/storcli-1.21.06-1.noarch.rpm
+
+  - name: Create symlink to /usr/sbin
+    file:
+      state: link
+      src: /opt/MegaRAID/storcli/storcli64
+      dest: /usr/sbin/storcli

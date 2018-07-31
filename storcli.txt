@@ -1,0 +1,81 @@
+https://www.broadcom.com/support/download-search/?dk=storcli
+
+# General information
+storcli64 show
+
+
+# Controller details
+storcli64 /cALL show all
+
+
+# WIPE ALL DATA
+storcli /cALL delete config force
+# WIPE VIRTUAL DRIVES -- does not prompt!
+storcli /c0 /vALL del
+storcli /c0 /v1-11 del -- don't whack the "0" VD which is OS Mirror
+storcli /c0 /v12 del
+
+# CREATE OS RAID-1 (assume SMC enclosure @ 252)
+storcli /c0 add vd r1 drives=252:0,252:1 pdcache=off WB NORA
+
+# CREATE RAID-BOD (assume SMC enclosure @50 with 12 HDD)
+storcli /c0 add vd each r0 drives=50:0-11 pdcache=off WB NORA
+..for i in $(seq 0 11); do 
+..  storcli /c0 add vd r0 drives=50:$i pdcache=off WB NORA;
+..done
+
+# CREATE 2x RAID-6 (4+2 & 4+2)
+storcli /c0 add vd r6 drives=50:0-5 pdcache=off WB nora
+storcli /c0 add vd r6 drives=50:0,50:1,50:2,50:3,50:4,50:5 pdcache=off WB nora
+storcli /c0 add vd r6 drives=50:6-11 pdcache=off WB nora
+storcli /c0 add vd r6 drives=50:6,50:7,50:8,50:9,50:10,50:11 pdcache=off WB nora
+# CREATE 1x RAID-6 (10+2)
+storcli /c0 add vd r6 drives=50:0-11 pdcache=off WB nora
+
+# Turn on/off write-back caching
+storcli /cx/vx set wrcache=WT|WB|AWB
+storcli /c0/v1 set wrcache=WB
+
+
+# Detailed drive information
+# show disks attached to enclosure 50, 252, ALL
+storcli /cALL /e50  /sALL show
+storcli /cALL /e252 /sALL show
+storcli /cALL /eALL /sALL show
+
+
+# Logical Drive / Virtual Disk infor
+storcli64 /c0 /vall show
+
+
+### APPENDIX
+
+# we create JBOD LUNS with writeback caching and without readahead
+# readahead can be done by the operating system
+# someday if we detect journaling SSDs in the config, turn off WB caching
+storcli /c0 add vd r0 drives=50:0 pdcache=off WB nora
+**storcli /cx add vd each r0 [name=<VDNAME1>,..] [drives=e:s|e:s-x|e:s-x,y]
+
+# same for RAID-6
+storcli /c0 add vd r6 drives=50:6,50:7,50:8,50:9,50:10,50:11 pdcache=off WB nora
+
+
+# INIT, eta 9+ hours for 6TB HDD
+storcli /cALL /v2-3 start init full
+
+
+storcli /cALL show jbod
+storcli /cALL set jbod=on | storcli /cALL set jbod=off
+*storcli /c0 set personality=RAID|HBA|JBOD 
+*storcli /c0 set personality behavior=JBOD|None 
+*storcli /c0 show jbodwritecache
+*storcli /c0 set jbodwritecache=on|off|default
+
+*storcli /c0 /e50 /s0-11 set jbod
+*storcli /c0 /e252 /s0-1 set jbod
+
+storcli /cx add JBOD [drives=e:s|e:s-x|e:s-x,y]
+
+
+# RESET TO FACTORY DEFAULTS
+storcli /cALL set factory defaults

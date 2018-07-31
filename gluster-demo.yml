@@ -1,3 +1,4 @@
+# Pre-requisistes: user=flannery && smbuser=flannery
 ---
 - hosts: all
   gather_facts: no
@@ -5,9 +6,9 @@
   - pause:
       prompt: "NEXT STEP - Install Gluster RPMs"
     tags: [pause]
-  - yum: 
-      name: redhat-storage-server,firewalld,gstatus,tree
-      state: present
+  - name: "yum install glusterfs-server" 
+    command: rpm -q redhat-storage-server
+
   - pause:
       prompt: |
         Verify with: rpm -q redhat-storage-server
@@ -62,6 +63,8 @@
   - lvg:
       vg: vg_{{ item }}
       pvs: /dev/{{ item }}
+      #TODO vg_options:
+      #TODO pv_options:
     with_items: [sdb,sdc,sdd]
   - lvol:
       vg: vg_{{ item }}
@@ -69,6 +72,7 @@
       size: 100%FREE
       opts: --thin
     with_items: [sdb,sdc,sdd]
+  #TODO - name: Create lvmcache device
   - command:  lvcreate --virtualsize 10GB -T vg_{{ item }}/tp_{{ item }} -n lv_{{ item }}
     with_items: [sdb,sdc,sdd]
   - pause:
@@ -227,6 +231,7 @@
     register: result
   - set_fact:
       snapName: "{{ result.stdout | regex_search('(demo.*[0-9])') }}"
+  - debug: var=snapName
   - name: "Mount the snapshot"
     mount:
       src: gluster1:/snaps/{{ snapName }}/vol1
@@ -261,6 +266,10 @@
 
   - name: "Convert the snapshot to a writeable clone"
     command: gluster snapshot clone vol1-clone {{ snapName }}
+    register: result
+    until: "'success' in result.stdout"
+    retries: 3
+    delay: 10
   - name: "Enable SMB/CIFS auto-share on clone"
     command: gluster vol set vol1-clone user.cifs enable
   - name: "Start the clone"
@@ -289,11 +298,17 @@
 
 
 #### TODO ####
-#
 # grow cluster 
 # show failover with glusterfs
 # add ctdb and show node failover for CIFS
 # show disk failure
 # add geo-replicate
 # add compression/dedupe?
-#
+
+## Cleanup smb.conf
+ # egrep -v '^;|^$|^#|^[[:space:]]#' /etc/samba/smb.conf
+
+## Configure RHVM to look for bricks in our directory
+ # engine-config -g GlusterDefaultBrickMountPoint (default: /rhgs)
+ # engine-config -s GlusterDefaultBrickMountPoint=/gluster_bricks
+ # systemctl restart ovirt-engine

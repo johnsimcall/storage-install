@@ -12,6 +12,7 @@
 
 ---
 - hosts: localhost
+#- hosts: rhvm
   gather_facts: yes
   vars:
     snapState: present

@@ -1,0 +1,18 @@
+## Notes to rebuild fio RPM to include gfio
+ # https://wiki.centos.org/HowTos/RebuildSRPM
+ # https://blog.packagecloud.io/eng/2015/04/20/working-with-source-rpms/
+
+# yum-builddep fio
+# yum install rpm-build gcc libpmem-devel libpmemblk-devel libaio-devel librdmacm-devel librbd1-devel gtk2-devel
+# yum install PackageKit-gtk3-module libcanberra-gtk2 "liberation-*-fonts" xorg-x11-xauth
+# yumdownloader --source fio
+# rpm -i ~/fio-3.1-2.el7.src.rpm
+
+# vi ~/rpmbuild/SPECS/fio.spec
+ Release:        2%-JCALL{?dist}
+ ./configure --disable-optimizations --enable-gfio
+
+# rpmbuild -ba mypackage.spec
+# yum install ~/rpmbuild/RPMS/x86_64/fio-3.1-2-JCALL.el7.x86_64.rpm
+
+# /usr/local/bin/gfio
