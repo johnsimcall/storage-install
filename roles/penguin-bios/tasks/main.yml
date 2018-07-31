@@ -12,10 +12,10 @@
 
 - name: Get motherboard type
   command: dmidecode -s baseboard-product-name
-  register: baseboard-product-name
+  register: result
 
 - debug:
-    var: baseboard-product-name.stdout
+    var: result.stdout
 
 # TODO - Check if firmware is for motherboard
 
