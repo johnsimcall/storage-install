@@ -13,11 +13,11 @@
     upgrade_timeout: 1200
     host_names:
       - rhclient2
-#    host_statuses:
-#      - up
-#      - installing
-#      - install_failed
-#      - non_operational
+    host_statuses:
+      - up
+      - installing
+      - installfailed
+      - nonoperational
 #    stopped_vms:
 #      - gluster-win10
 
