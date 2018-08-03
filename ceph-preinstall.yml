@@ -28,11 +28,10 @@
     mon_ports:
       - 6789/tcp
       - 6800-7300/tcp
-#     - 8002/tcp
   tasks:
-    - name: Enable repo for Ceph Mons
-      command: subscription-manager repos --disable="*" --enable={{ item }}
-      with_items: "{{ mon_repos }}"
+    - name: Enable repos for Ceph MONs
+      set_fact: repos={{ mon_repos | join(' --enable=') }}
+    - command: subscription-manager repos --disable="*" --enable={{ repos }}
 
     - name: Configure MON Firewall
       firewalld:
@@ -52,9 +51,9 @@
     osd_ports:
       - 6800-7300/tcp
   tasks:
-    - name: Enable repo for Ceph OSDs
-      command: subscription-manager repos --disable="*" --enable={{ item }}
-      with_items: "{{ osd_repos }}"
+    - name: Enable repos for Ceph OSDs
+      set_fact: repos={{ osd_repos | join(' --enable=') }}
+    - command: subscription-manager repos --disable="*" --enable={{ repos }}
 
     - name: Configure OSD Firewall
       firewalld:
@@ -74,9 +73,9 @@
     mds_ports:
       - 6800/tcp
   tasks:
-    - name: Enable repo for CephFS / MDS
-      command: subscription-manager repos --disable="*" --enable={{ item }}
-      with_items: "{{ mds_repos }}"
+    - name: Enable repos for CephFS / MDS
+      set_fact: repos={{ mds_repos | join(' --enable=') }}
+    - command: subscription-manager repos --disable="*" --enable={{ repos }}
 
     - name: Configure CephFS / MDS Firewall
       firewalld:
@@ -98,9 +97,9 @@
       - 443/tcp
       - 7480/tcp
   tasks:
-    - name: Enable repo for Ceph RGWs
-      command: subscription-manager repos --disable="*" --enable={{ item }}
-      with_items: "{{ rgw_repos }}"
+    - name: Enable repos for Ceph RGWs
+      set_fact: repos={{ rgw_repos | join(' --enable=') }}
+    - command: subscription-manager repos --disable="*" --enable={{ repos }}
 
     - name: Configure RGW Firewall
       firewalld:
