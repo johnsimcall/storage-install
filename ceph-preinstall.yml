@@ -78,7 +78,7 @@
       command: subscription-manager repos --disable="*" --enable={{ item }}
       with_items: "{{ mds_repos }}"
 
-    - name: Configure MON Firewall
+    - name: Configure CephFS / MDS Firewall
       firewalld:
         port: "{{ item }}"
         permanent: true
