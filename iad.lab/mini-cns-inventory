@@ -11,9 +11,9 @@ ocp-cns2.dota-lab.iad.redhat.com openshift_node_labels="{'role':'infra','region'
 ocp-cns3.dota-lab.iad.redhat.com openshift_node_labels="{'role':'infra','region':'infra'}"
 
 [glusterfs]
-ocp-cns1.dota-lab.iad.redhat.com glusterfs_devices="['/dev/sdb']"
-ocp-cns2.dota-lab.iad.redhat.com glusterfs_devices="['/dev/sdb']"
-ocp-cns3.dota-lab.iad.redhat.com glusterfs_devices="['/dev/sdb']"
+ocp-cns1.dota-lab.iad.redhat.com glusterfs_devices="['/dev/sda']"
+ocp-cns2.dota-lab.iad.redhat.com glusterfs_devices="['/dev/sda']"
+ocp-cns3.dota-lab.iad.redhat.com glusterfs_devices="['/dev/sda']"
 
 [OSEv3:children]
 etcd
@@ -41,9 +41,10 @@ openshift_metrics_heapster_nodeselector={"role":"infra"}
 openshift_logging_install_logging=true
 openshift_logging_storage_kind=dynamic
 openshift_logging_es_pvc_size=30Gi
+openshift_logging_es_pvc_dynamic=true 
 openshift_logging_es_nodeselector={'role':'infra'}
-openshift_logging_curator_nodeselector={'role':'infra'}
 openshift_logging_kibana_nodeselector={'role':'infra'}
+openshift_logging_curator_nodeselector={'role':'infra'}
 
 # openshift_enable_service_catalog=false
 # ansible_service_broker_install=false
@@ -51,12 +52,13 @@ openshift_logging_kibana_nodeselector={'role':'infra'}
 
 #openshift_storage_glusterfs_wipe=true
 ##openshift_hosted_infra_selector='region=infra'
+openshift_hosted_infra_selector='role=infra'
 openshift_hosted_registry_storage_kind=glusterfs
-openshift_hosted_registry_storage_volume_size=10Gi
+openshift_hosted_registry_storage_volume_size=20Gi
 openshift_storage_glusterfs_heketi_user_key=redhat1
 openshift_storage_glusterfs_heketi_admin_key=redhat1
 openshift_storage_glusterfs_block_deploy=true
-openshift_storage_glusterfs_block_host_vol_size=75
+openshift_storage_glusterfs_block_host_vol_size=80
 openshift_storage_glusterfs_block_storageclass=true
 openshift_storage_glusterfs_block_storageclass_default=true
 
@@ -67,9 +69,9 @@ openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1583500 [Unqualified image is completed with "docker.io"]
 openshift_examples_modify_imagestreams=true
 oreg_url=registry.access.redhat.com/openshift3/ose-${component}:${version}
-openshift_storage_glusterfs_image=registry.access.redhat.com/rhgs3/rhgs-server-rhel7
-openshift_storage_glusterfs_block_image=registry.access.redhat.com/rhgs3/rhgs-gluster-block-prov-rhel7
-openshift_storage_glusterfs_heketi_image=registry.access.redhat.com/rhgs3/rhgs-volmanager-rhel7
+openshift_storage_glusterfs_image=registry.access.redhat.com/rhgs3/rhgs-server-rhel7:v3.9
+openshift_storage_glusterfs_block_image=registry.access.redhat.com/rhgs3/rhgs-gluster-block-prov-rhel7:v3.9
+openshift_storage_glusterfs_heketi_image=registry.access.redhat.com/rhgs3/rhgs-volmanager-rhel7:v3.9
 
 ### APPENDIX ###
 # https://redhatstorage.redhat.com/2018/03/28/container-native-storage-3-9/
