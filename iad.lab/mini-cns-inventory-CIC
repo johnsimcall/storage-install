@@ -1,0 +1,88 @@
+[root@rhclient4 openshift-cic]# ./cic.py 
+------------------------------------------------------------
+   CNS - Inventory File Creator
+------------------------------------------------------------
+'' 
+This tool is very highly version dependent. It is currently,
+configured to work with OpenShift 3.9 and CNS 3.9.
+The output is NOT A COMPLETE Inventory File.
+Created Inventory file options should be copied and pasted into
+the larger openshift-ansible inventory file for your deployment.
+ ''
+1. Storage for Applications + Registry 
+2. Storage for Applications + Logging
+3. Storage for Applications + Metrics 
+4. Storage for Applications + Registry + Logging + Metrics
+5. Storage for Applications Only
+------------------------------------------------------------
+Enter your choice [1-5] : 4
+------------------------------------------------------------
+For this configuration 7 nodes are recommended
+With a minimum of 3 required 
+------------------------------------------------------------
+How many nodes are available ?:  3
+What hosts will be used for application storage (IP/FQDN) ?: ocp-cns1.dota-lab.iad.redhat.com ocp-cns2.dota-lab.iad.redhat.com ocp-cns3.dota-lab.iad.redhat.com
+What are the raw storage devices for these hosts(/dev/<device>) ?: sda
+What is the size of each raw storage device (GB) ?: 100
+What is the size for the registry persistent volume (GB)?: 20
+How many replicas for logging ?: 1
+What is the size for each logging persistent volume (GB) ?: 30
+What is the size for each metrics persistent volume (GB) ?: 30
+# Cluster 1
+# Total Storage allocated (GB) = 98
+# Total Storage available (GB) = 100
+   
+[OSEv3:children]
+glusterfs
+   
+[OSEv3:vars]
+# registry
+openshift_hosted_registry_storage_kind=glusterfs
+openshift_hosted_registry_storage_volume_size=20Gi
+openshift_hosted_registry_selector="region=infra"
+   
+# logging
+openshift_logging_install_logging=true
+openshift_logging_es_pvc_dynamic=true 
+openshift_logging_es_pvc_size=30Gi
+openshift_logging_es_cluster_size=1
+openshift_logging_es_pvc_storage_class_name='glusterfs-storage-block'
+openshift_logging_kibana_nodeselector={"region":"infra"}
+openshift_logging_curator_nodeselector={"region":"infra"}
+openshift_logging_es_nodeselector={"region":"infra"}
+  
+# metrics
+openshift_metrics_install_metrics=true 
+openshift_metrics_storage_kind=dynamic
+openshift_metrics_storage_volume_size=30Gi
+openshift_metrics_cassanda_pvc_storage_class_name='glusterfs-storage-block'
+openshift_metrics_hawkular_nodeselector={"region":"infra"}
+openshift_metrics_cassandra_nodeselector={"region":"infra"}
+openshift_metrics_heapster_nodeselector={"region":"infra"}
+   
+# Container image to use for glusterfs pods
+openshift_storage_glusterfs_image=registry.access.redhat.com/rhgs3/rhgs-server-rhel7
+openshift_storage_glusterfs_version=v3.9
+  
+# Container image to use for glusterblock-provisioner pod
+openshift_storage_glusterfs_block_image=registry.access.redhat.com/rhgs3/rhgs-gluster-block-prov-rhel7
+openshift_storage_glusterfs_block_version=v3.9
+  
+# Container image to use for heketi pods
+openshift_storage_glusterfs_heketi_image=registry.access.redhat.com/rhgs3/rhgs-volmanager-rhel7
+openshift_storage_glusterfs_heketi_version=v3.9
+    
+# CNS storage cluster
+openshift_storage_glusterfs_namespace=app-storage
+openshift_storage_glusterfs_storageclass=true
+openshift_storage_glusterfs_storageclass_default=false
+openshift_storage_glusterfs_block_deploy=true
+openshift_storage_glusterfs_block_host_vol_create=true
+openshift_storage_glusterfs_block_host_vol_size=78
+openshift_storage_glusterfs_block_storageclass=true
+openshift_storage_glusterfs_block_storageclass_default=false
+   
+[glusterfs]
+ocp-cns1.dota-lab.iad.redhat.com glusterfs_zone=1 glusterfs_devices='["sda"]'
+ocp-cns2.dota-lab.iad.redhat.com glusterfs_zone=2 glusterfs_devices='["sda"]'
+ocp-cns3.dota-lab.iad.redhat.com glusterfs_zone=3 glusterfs_devices='["sda"]'

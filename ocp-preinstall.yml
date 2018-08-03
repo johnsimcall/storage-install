@@ -90,7 +90,7 @@
       copy:
         content: |
           STORAGE_DRIVER=devicemapper
-          DEVS=/dev/sdb
+          DEVS=/dev/sda
           VG=docker_vg
           CONTAINER_THINPOOL=docker_pool
         dest: /etc/sysconfig/docker-storage-setup

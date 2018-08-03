@@ -20,12 +20,10 @@
     command: lldptool set-tlv -i {{ item }} -V sysName enableTx=yes
     when: "'en' in item"
     with_items: "{{ ansible_interfaces }}"
-    tags:
-      configure
+    tags: [configure]
 
   - name: Configure LLDP to send interface_name
     command: lldptool set-tlv -i {{ item }} -V portDesc enableTx=yes
     when: "'en' in item"
     with_items: "{{ ansible_interfaces }}"
-    tags:
-      configure
+    tags: [configure]

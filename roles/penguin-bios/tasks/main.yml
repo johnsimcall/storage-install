@@ -1,25 +1,25 @@
 ---
+- name: Install AFU dependencies
+  yum: name=kernel-devel-{{ansible_kernel}},gcc state=present
+  tags: [rpms]
+
+- block:
+  - name: Get motherboard type
+    command: dmidecode -s baseboard-product-name
+    register: result
+  - debug: var=result.stdout
+  tags: [query]
+# end block
+
 - name: Upload firmware and utilities
-  file:
-    path: /root/PenguinComputing
-    state: directory
-
-- copy:
+  copy:
     src: "{{ item }}"
-    dest: /root/PenguinComputing
+    dest: /root/PenguinComputing/
     mode: preserve
-  with_items: [ afulnx_64, MD90-FS0-ZB_R13.bin ]
-
-- name: Get motherboard type
-  command: dmidecode -s baseboard-product-name
-  register: result
-
-- debug:
-    var: result.stdout
-
-# TODO - Check if firmware is for motherboard
+#  with_items: [ afulnx_64, MD90-FS0-ZB_R13.bin ]
+  with_items: [ afulnx_64, MH70-HD1-ZB_R09.bin ]
 
 - name: Flash firmware
-  #command: /root/PenguinComputing/afulnx_64 /root/PenguinComputing/MD90-FS0-ZB_R13.bin /P /B /N /X /K /L /ME
-  command: /root/PenguinComputing/afulnx_64 /root/PenguinComputing/MD90-FS0-ZB_R13.bin /P /B /N /K /L /ME
-  tags: [ test ]
+#  command: /root/PenguinComputing/afulnx_64 /root/PenguinComputing/MD90-FS0-ZB_R13.bin /P /B /N /K /L /ME
+  command: /root/PenguinComputing/afulnx_64 /root/PenguinComputing/MH70-HD1-ZB_R09.bin /P /B /N /K /L /ME
+  tags: [ flash ]

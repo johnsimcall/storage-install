@@ -1,7 +1,7 @@
 # Consider changing dict so it looks like this https://everythingshouldbevirtual.com/creating-vsphere-vms-using-ansible/
 ---
 rhvCluster: Default
-templateName: rhel75cloud
+templateName: rhel75
 instanceType: XLarge
 storageDomain: ssd-vmstore
 dnsServer: 10.15.168.14

@@ -16,12 +16,12 @@
     engine_cafile: /etc/pki/ovirt-engine/ca.pem
 
     #qcow_url: file:///root/jcall/rhel-server-7.5-x86_64-kvm.qcow2
-    qcow_url: https://access.cdn.redhat.com//content/origin/files/sha256/0f/0fd4dae56571ffc275df3335d0316b5043d98fe3802c66ae893e3190c2a120fd/rhel-server-7.5-x86_64-kvm.qcow2?_auth_=1524803854_c397b972fd0d6a870fab4e671d8dccf9
+    qcow_url: https://access.cdn.redhat.com//content/origin/files/sha256/7f/7ff0d81ebf68119816b2756b7ed591dc9b50d29713e3785cc6bed564429a8b04/rhel-server-7.5-update-1-x86_64-kvm.qcow2?_auth_=1532552481_c2b5a955a0090bf7460ba47e7d64e967
     template_cluster: Default
     template_name: rhel75
     template_memory: 2GiB
     template_cpu: 2
-    template_disk_interface: virtio-scsi
+#    template_disk_interface: virtio-scsi
     template_disk_size: 10GiB
     template_disk_storage: ssd-vmstore
 
