@@ -108,8 +108,3 @@
         permanent: true
         state: enabled
       with_items: "{{ rgw_ports }}"
-
-#    - name: Install RGW
-#      yum: 
-#        name: ceph-radosgw
-#        state: present
