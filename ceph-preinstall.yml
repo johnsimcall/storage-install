@@ -1,29 +1,37 @@
 # file: ceph-preinstall.yml
 # invocation: ansible-playbook -i hosts ceph-preinstall.yml
-#
+
 # edit /etc/ansible/hosts to include all ceph rhscs,mon,osds,rgws 
-#
+
 # https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html-single/installation_guide_for_red_hat_enterprise_linux/
+
+# Assumes that servers have:
+#   already been registered
+#   subscriptions attached
+#   Bastion host (rhclient4) has enabled rhel-7-server-rhceph-3-tools-rpms
 
 ---
 - hosts: all
   gather_facts: no
   tasks:
-    - yum: name=firewalld state=present
+    - yum: name=firewalld,yum-utils,vim state=present
     - systemd: name=firewalld enabled=yes state=started
+    - command: yum-config-manager --disable epel
 
 - hosts: mons
   gather_facts: no
   vars: 
     mon_repos:
-      - rhel-7-server-rhceph-2-mon-rpms
-      - rhel-7-server-rhscon-2-agent-rpms
+      - rhel-7-server-rpms
+      - rhel-7-server-extras-rpms
+      - rhel-7-server-rhceph-3-mon-rpms
     mon_ports:
       - 6789/tcp
-      - 8002/tcp
+      - 6800-7300/tcp
+#     - 8002/tcp
   tasks:
     - name: Enable repo for Ceph Mons
-      command: subscription-manager repos --enable={{ item }}
+      command: subscription-manager repos --disable="*" --enable={{ item }}
       with_items: "{{ mon_repos }}"
 
     - name: Configure MON Firewall
@@ -38,14 +46,14 @@
   gather_facts: no
   vars:
     osd_repos:
-      - rhel-7-server-rhceph-2-osd-rpms
-      - rhel-7-server-rhscon-2-agent-rpms
+      - rhel-7-server-rpms
+      - rhel-7-server-extras-rpms
+      - rhel-7-server-rhceph-3-osd-rpms
     osd_ports:
       - 6800-7300/tcp
-
   tasks:
     - name: Enable repo for Ceph OSDs
-      command: subscription-manager repos --enable={{ item }}
+      command: subscription-manager repos --disable="*" --enable={{ item }}
       with_items: "{{ osd_repos }}"
 
     - name: Configure OSD Firewall
@@ -56,19 +64,42 @@
       with_items: "{{ osd_ports }}"
 
 
+- hosts: mdss
+  gather_facts: no
+  vars: 
+    mds_repos:
+      - rhel-7-server-rpms
+      - rhel-7-server-extras-rpms
+      - rhel-7-server-rhceph-3-tools-rpms
+    mds_ports:
+      - 6800/tcp
+  tasks:
+    - name: Enable repo for CephFS / MDS
+      command: subscription-manager repos --disable="*" --enable={{ item }}
+      with_items: "{{ mds_repos }}"
+
+    - name: Configure MON Firewall
+      firewalld:
+        port: "{{ item }}"
+        permanent: true
+        state: enabled
+      with_items: "{{ mds_ports }}"
+
+
 - hosts: rgws
   gather_facts: no
   vars:
     rgw_repos:
-      - rhel-7-server-rhceph-2-tools-rpms
+      - rhel-7-server-rpms
+      - rhel-7-server-extras-rpms
+      - rhel-7-server-rhceph-3-tools-rpms
     rgw_ports:
       - 80/tcp
       - 443/tcp
       - 7480/tcp
-
   tasks:
     - name: Enable repo for Ceph RGWs
-      command: subscription-manager repos --enable={{ item }}
+      command: subscription-manager repos --disable="*" --enable={{ item }}
       with_items: "{{ rgw_repos }}"
 
     - name: Configure RGW Firewall
