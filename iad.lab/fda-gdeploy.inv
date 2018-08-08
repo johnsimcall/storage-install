@@ -1,0 +1,5 @@
+[masters]
+fda-gdeploy[1:3]
+
+[slaves]
+fda-gdeploy[4:6]

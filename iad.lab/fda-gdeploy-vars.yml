@@ -1,0 +1,51 @@
+# Consider changing dict so it looks like this https://everythingshouldbevirtual.com/creating-vsphere-vms-using-ansible/
+---
+rhvCluster: Default
+templateName: rhel75
+instanceType: Medium
+#storageDomain: ssd-vmstore
+storageDomain: nfs-10Gb
+dnsServer: 10.15.168.14
+vm_root_password: redhat1
+ssh_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1vfRWODjNpS45BwAD864B1ezqIOb5fxCjnOwsgx/p8QchwWQhIUeC+PAUBI/QJ/nzX2pUOx0erNu8wuQRobOMxmYmsIyeuIIkBSJxffeFm4Cuy0glgkNR5ry90AHabO7bvXoY1q2QJ6sdkMeh2r1b/tx+2KFBOpe6v2HAcBpS+srl/fpdOV0GK2HNC0DsHz/2/me2hQ9gNIBOrb/Y7TJL5GcmbbHeteW4g648w1771El6r+JugmwlJ7/B/Jw5b4StpJmYQq0s1x9TJnqXO1kZGZ1YDrUEF25ZxkLZxmLxwD8hUDVbaeCAjbNQCe5OXc3wl96VvwXsPE2d838DBUTL jcall@home.lab
+
+vms:
+  fda-gdeploy1:
+    nic1:
+      ipaddress: dhcp
+  fda-gdeploy2:
+    nic1:
+      ipaddress: dhcp
+  fda-gdeploy3:
+    nic1:
+      ipaddress: dhcp
+  fda-gdeploy4:
+    nic1:
+      ipaddress: dhcp
+  fda-gdeploy5:
+    nic1:
+      ipaddress: dhcp
+  fda-gdeploy6:
+    nic1:
+      ipaddress: dhcp
+
+disks_size: 10GiB
+disks:
+  - name: fda-gdeploy1
+    id:
+      - 1
+  - name: fda-gdeploy2
+    id:
+      - 1
+  - name: fda-gdeploy3
+    id:
+      - 1
+  - name: fda-gdeploy4
+    id:
+      - 1
+  - name: fda-gdeploy5
+    id:
+      - 1
+  - name: fda-gdeploy6
+    id:
+      - 1

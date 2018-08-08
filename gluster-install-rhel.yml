@@ -11,8 +11,9 @@
     repos:
     repo_list:
       - rhel-7-server-rpms
-      - rhel-7-server-extras-rpms
+#     - rhel-7-server-extras-rpms
       - rhel-7-server-optional-rpms
+      - rhel-7-server-ansible-2-rpms
       - rhel-ha-for-rhel-7-server-rpms
       - rh-gluster-3-for-rhel-7-server-rpms
       - rh-gluster-3-nfs-for-rhel-7-server-rpms
@@ -102,7 +103,7 @@
 
   - name: Install gluster, NFS-Ganesha and gstatus
     yum:
-      name: redhat-storage-server,glusterfs-ganesha,gstatus
+      name: redhat-storage-server,glusterfs-ganesha,gdeploy,gstatus
       state: latest
 
   - name: Install Samba
