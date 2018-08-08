@@ -7,6 +7,7 @@
 
 # Suggest to "Load Defaults" before doing this
 
+# /home/jcall/Documents/PenguinComputing/BIOS_AMIUtil_11302016/SceLnx_5_02_1097
 
 SCE_UTIL=$(type -p SCELNX_64)
 if [ -z $SCE_UTIL ]; then
