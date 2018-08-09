@@ -1,0 +1,33 @@
+---
+dummy:
+fetch_directory: ~/ceph-ansible-keys
+check_firewall: True
+# use chrony instead
+ntp_service_enabled: False
+upgrade_ceph_packages: True
+
+ceph_repository_type: cdn
+ceph_origin: repository
+ceph_repository: rhcs
+ceph_rhcs_version: 3
+
+monitor_interface: lacp-data
+
+journal_size: 5120 # OSD journal size in MB
+public_network: 172.16.1.0/24
+cluster_network: 172.16.2.0/24
+
+radosgw_dns_name: rhsvc4.dota-lab.iad.redhat.com
+radosgw_civetweb_port: 80
+radosgw_address: '0.0.0.0'
+
+#disable_transparent_hugepage: true
+#os_tuning_params:
+#  - { name: kernel.pid_max, value: 4194303 }
+#  - { name: fs.file-max, value: 26234859 }
+#  - { name: vm.zone_reclaim_mode, value: 0 }
+#  - { name: vm.swappiness, value: 10 }
+#  - { name: vm.min_free_kbytes, value: "{{ vm_min_free_kbytes }}" }
+
+# A value of 0 will leave the package default.
+#ceph_tcmalloc_max_total_thread_cache: 134217728

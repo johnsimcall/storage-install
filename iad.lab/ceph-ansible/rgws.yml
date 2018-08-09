@@ -1,0 +1,11 @@
+---
+dummy:
+copy_admin_key: true
+
+#rgw_create_pools:
+#  defaults.rgw.buckets.data:
+#    pg_num: 16
+#  defaults.rgw.buckets.index:
+#    pg_num: 32
+#  foo:
+#    pg_num: 4

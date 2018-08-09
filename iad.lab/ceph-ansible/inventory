@@ -4,8 +4,8 @@ rhsvc[1:3]
 [osds]
 rhdata[1:6]
 
-[mdss]
-rhsvc[4:5]
+#[mdss]
+#rhsvc[4:5]
 
 [rgws]
 rhsvc[4:5]
