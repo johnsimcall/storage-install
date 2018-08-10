@@ -96,6 +96,7 @@
       - 80/tcp
       - 443/tcp
       - 7480/tcp
+      - 8080/tcp
   tasks:
     - name: Enable repos for Ceph RGWs
       set_fact: repos={{ rgw_repos | join(' --enable=') }}
