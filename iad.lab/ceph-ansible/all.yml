@@ -6,9 +6,9 @@ check_firewall: True
 ntp_service_enabled: False
 upgrade_ceph_packages: True
 
-ceph_repository_type: cdn
 ceph_origin: repository
 ceph_repository: rhcs
+ceph_repository_type: cdn
 ceph_rhcs_version: 3
 
 monitor_interface: lacp-data
