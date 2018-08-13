@@ -12,3 +12,6 @@ rhdata[1:6]
 
 [rgws]
 rhsvc[4:5]
+
+[clients]
+cbt[1:4]
