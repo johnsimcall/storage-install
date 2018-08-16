@@ -1,0 +1,42 @@
+---
+- hosts: rhhi-storage
+  gather_facts: no
+  ignore_errors: yes
+  tasks:
+  - name: "Stop the Gluster volume"
+    gluster_volume: name={{ item }} state=stopped
+    run_once: yes
+    with_items: [ engine, vmstore, data ]
+
+  - name: "Delete the Gluster volume"
+    gluster_volume: name={{ item }} state=absent
+    run_once: yes
+    with_items: [ engine, vmstore, data ]
+
+  - name: "Remove brick_dirs"
+    file: path=/gluster_bricks/{{ item }}/{{ item }}/ state=absent
+    with_items: [ engine, vmstore, data ]
+
+  - name: "Unmount the bricks"
+    mount: path=/gluster_bricks/{{ item }} state=absent
+    with_items: [ engine, vmstore, data ]
+
+  - name: "Dissolve the Trusted Storage Pool"
+    command: gluster peer detach {{ item }}
+    with_items: [ 192.168.2.1, 192.168.2.2, 192.168.2.3 ]
+
+  - name: "Remove the VGs"
+    command: vgremove {{ item }} --force
+    with_items: [ gluster_vg_vdb, gluster_vg_vdc ]
+
+  - name: "Remove the PVs"
+    command: pvremove /dev/{{ item }} --force
+    with_items: [ vdb, vdc ]
+
+  - name: "Wipe the drives"
+    command: wipefs -af /dev/{{ item }}
+    with_items: [ vdb, vdc ]
+
+  - name: "Clean disks the hard way"
+    command: dd if=/dev/zero of=/dev/{{ item }} bs=1M count=10
+    with_items: [ vdb, vdc ]
