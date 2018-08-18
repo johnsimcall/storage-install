@@ -1,0 +1,86 @@
+# Author: John Call - Red Hat
+---
+- hosts: localhost
+  become: true
+  gather_facts: yes
+  vars:
+    vnc_display: 1
+    vnc_user: jcall
+    vnc_passwd: passw0rd
+
+  tasks:
+  - assert:
+      that:
+        - "{{ ansible_selinux.mode != 'enforcing'}}"
+      msg: "VNC doesn't like SELinux"
+
+  - set_fact:
+      vnc_path: "{{ (vnc_user == 'root') | ternary('','/home') }}"
+
+  - name: Install noVNC and TigerVNC
+    yum:
+      name: novnc,tigervnc-server
+      enablerepo: rhel-7-server-openstack-13-rpms
+      state: present
+    when: ansible_distribution == "RedHat"
+
+  - name: Install noVNC and TigerVNC
+    dnf:
+      name: novnc,tigervnc-server
+      state: present
+    when: ansible_distribution == "Fedora"
+
+  - name: Create VNC password file
+    file:
+      path: "{{ vnc_path }}/{{ vnc_user }}/.vnc"
+      state: directory
+      owner: "{{ vnc_user }}"
+      group: "{{ vnc_user }}"
+      mode: 0700
+  - copy:
+      content: ""
+      dest: "{{ vnc_path }}/{{ vnc_user }}/.vnc/passwd"
+      owner: "{{ vnc_user }}"
+      group: "{{ vnc_user }}"
+      mode: 0600
+  - shell: echo -n {{ vnc_passwd }} | vncpasswd -f > {{ vnc_path }}/{{ vnc_user }}/.vnc/passwd
+    become_user: "{{ vnc_user }}"
+
+  - name: Cleanup previous unit file - (vncserver@:{{ vnc_display }})
+    systemd:
+      daemon_reload: yes
+      unit: vncserver@:{{ vnc_display }}
+      enabled: false
+      state: stopped
+    ignore_errors: yes
+
+  - name: Deploy systemd unit file for vncserver@:{{ vnc_display }}
+    copy:
+      content: |
+        # See example at /lib/systemd/system/vncserver@.service
+        [Unit]
+        Description=Remote desktop service (VNC)
+        After=syslog.target network.target
+
+        [Service]
+        Type=forking
+        WorkingDirectory={{ vnc_path }}/{{ vnc_user }}
+        User={{ vnc_user }}
+        Group={{ vnc_user }}
+        PIDFile={{ vnc_path }}/{{ vnc_user }}/.vnc/%H%i.pid
+        ExecStartPre=/bin/sh -c '/usr/bin/vncserver -kill %i > /dev/null 2>&1 || :'
+        ExecStart=/usr/bin/vncserver -autokill %i
+        ExecStop=/usr/bin/vncserver -kill %i
+        Restart=on-success
+        RestartSec=15
+
+        [Install]
+        WantedBy=multi-user.target
+      dest: /etc/systemd/system/vncserver@:{{ vnc_display }}.service
+    tags: [test]
+  - systemd:
+      daemon_reload: yes
+      unit: vncserver@:{{ vnc_display }}
+      enabled: true
+      state: started
+    tags: [test]
