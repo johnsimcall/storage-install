@@ -23,7 +23,7 @@
 
   - name: "Dissolve the Trusted Storage Pool"
     command: gluster peer detach {{ item }}
-    with_items: [ 192.168.2.1, 192.168.2.2, 192.168.2.3 ]
+    with_items: [ 192.168.2.1, 192.168.2.2, 192.168.2.3, rhhi1-gluster, rhhi2-gluster, rhhi3-gluster ]
 
   - name: "Remove the VGs"
     command: vgremove {{ item }} --force

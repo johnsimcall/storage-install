@@ -1,0 +1,14 @@
+# https://bugzilla.redhat.com/show_bug.cgi?id=1483544
+---
+- hosts: rhvm
+  gather_facts: no
+  tasks:
+  - name: "Create URI override file"
+    copy:
+      content: |
+        SSO_CALLBACK_PREFIX_CHECK=false
+      dest: /etc/ovirt-engine/engine.conf.d/99-sso.conf
+  - name: "Restart RHVM"
+    systemd:
+      unit: ovirt-engine
+      state: restarted
