@@ -4,16 +4,11 @@
   become: true
   gather_facts: yes
   vars:
-    vnc_display: 1
-    vnc_user: jcall
-    vnc_passwd: passw0rd
+    vnc_display: 0
+    vnc_user: root
+    vnc_passwd: redhat1
 
   tasks:
-  - assert:
-      that:
-        - "{{ ansible_selinux.mode != 'enforcing'}}"
-      msg: "VNC doesn't like SELinux"
-
   - set_fact:
       vnc_path: "{{ (vnc_user == 'root') | ternary('','/home') }}"
 
@@ -67,7 +62,9 @@
         WorkingDirectory={{ vnc_path }}/{{ vnc_user }}
         User={{ vnc_user }}
         Group={{ vnc_user }}
-        PIDFile={{ vnc_path }}/{{ vnc_user }}/.vnc/%H%i.pid
+        # Unset PIDFile to workaround SELinux issue on Fedora
+        # https://github.com/TigerVNC/tigervnc/issues/606
+        #PIDFile={{ vnc_path }}/{{ vnc_user }}/.vnc/%H%i.pid
         ExecStartPre=/bin/sh -c '/usr/bin/vncserver -kill %i > /dev/null 2>&1 || :'
         ExecStart=/usr/bin/vncserver -autokill %i
         ExecStop=/usr/bin/vncserver -kill %i
@@ -77,10 +74,23 @@
         [Install]
         WantedBy=multi-user.target
       dest: /etc/systemd/system/vncserver@:{{ vnc_display }}.service
-    tags: [test]
   - systemd:
       daemon_reload: yes
       unit: vncserver@:{{ vnc_display }}
       enabled: true
       state: started
-    tags: [test]
+
+## Notes
+# https://github.com/novnc/noVNC/wiki/advanced-usage
+### Launch noVNC after RPM-installation
+# sudo novnc_server --web /usr/share/novnc/ --vnc 127.0.0.1:5901
+# http://jcall-t470s.home.lab:6080/vnc.html?host=jcall-t470s.home.lab&port=6080&password=passw0rd
+#
+### Install noVNC from GitHub, and launch
+# git clone --single-branch --branch v1.0.0 https://github.com/novnc/noVNC.git /tmp/noVNC
+# /tmp/noVNC/utils/launch.sh --web /tmp/noVNC --vnc 127.0.0.1:5901
+#
+### Alternative to "vncserver" -- may be useful for laptops
+# x11vnc (yum install x11vnc) can be used to share your current X desktop.
+# x11vnc -forever -display $DISPLAY
+# x11vnc -forever -display :0
