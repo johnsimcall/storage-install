@@ -58,14 +58,14 @@
 
   - name: noVNC block
     block:
-       - name: Download noVNC and websockify
-         unarchive:
-           src: "{{ item.src }}"
-           dest: "{{ item.dest }}"
-           remote_src: yes
-         with_items:
-           - { src: 'https://github.com/novnc/noVNC/archive/v1.0.0.tar.gz', dest: '/opt' }
-           - { src: 'https://github.com/novnc/websockify/archive/v0.8.0.tar.gz', dest: '/opt/noVNC-1.0.0/utils/' }
+      - name: Download noVNC and websockify
+        unarchive:
+          src: "{{ item.src }}"
+          dest: "{{ item.dest }}"
+          remote_src: yes
+        with_items:
+          - { src: 'https://github.com/novnc/noVNC/archive/v1.0.0.tar.gz', dest: '/opt' }
+          - { src: 'https://github.com/novnc/websockify/archive/v0.8.0.tar.gz', dest: '/opt/noVNC-1.0.0/utils/' }
       - name: Create symlinks
         file:
           src: "{{ item.src }}"
