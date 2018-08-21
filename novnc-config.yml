@@ -2,11 +2,12 @@
 ---
 - hosts: localhost
   become: true
-  gather_facts: yes
+  gather_facts: no
   vars:
     vnc_user: cloud-user
     vnc_passwd: changeme
     vnc_display: 0
+    novnc_listen: 80
 
   tasks:
   - assert:
@@ -82,8 +83,8 @@
             
             [Service]
             Type=simple
-            User=root
-            ExecStart = /opt/noVNC/utils/launch.sh --listen 80 --vnc localhost:590{{ vnc_display }}
+            User={{ (novnc_listen|int <= 1024) | ternary('root',vnc_user) }}
+            ExecStart = /opt/noVNC/utils/launch.sh --listen {{ novnc_listen }} --vnc localhost:590{{ vnc_display }}
             
             [Install]
             WantedBy=multi-user.target
