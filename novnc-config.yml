@@ -1,12 +1,12 @@
 # Author: John Call <johnsimcall@gmail.com>
 ---
-- hosts: localhost
+- hosts: all
   become: true
   gather_facts: no
   vars:
     vnc_user: cloud-user
     vnc_passwd: changeme
-    vnc_display: 0
+    vnc_display: 1
     novnc_listen: 80
 
   tasks:
@@ -94,6 +94,11 @@
           unit: novnc.service
           enabled: true
           state: started
+      - firewalld:
+          port: "{{ novnc_listen }}/tcp"
+          state: enabled
+          immediate: true
+          permanent: true
     tags: [novnc]
     # end noVNC block
 
