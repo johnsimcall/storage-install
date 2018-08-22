@@ -114,6 +114,20 @@
           permanent: true
     tags: [novnc]
     # end noVNC block
+  - name: Create index.html
+    block:
+      - copy:
+          content: |
+            <html>
+            <head>
+            <meta http-equiv="refresh" content="0; URL='./vnc.html?resize=remote&password={{ vnc_passwd }}&autoconnect=1'" />
+            </head>
+            <body>
+            </body>
+            </html>
+          dest: /opt/noVNC/index.html
+    tags: [index]
+    # end index.html block
 
 
 ## Notes
