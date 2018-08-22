@@ -15,6 +15,16 @@
         - "vnc_user != 'root'"
       msg: "Refusing to setup VNC for root user"
 
+  - user:
+      name: "{{ vnc_user }}"
+      password: "!!"
+      update_password: on_create
+
+  - lineinfile:
+      path: /etc/xdg/autostart/gnome-initial-setup-first-login.desktop
+      line: 'X-GNOME-Autostart-enabled=false'
+      insertafter: 'EOF'
+
   - name: Install TigerVNC server
     package:
       name: tigervnc-server
@@ -74,6 +84,9 @@
         with_items:
           - { src: '/opt/noVNC-1.0.0', dest: '/opt/noVNC' }
           - { src: '/opt/noVNC/utils/websockify-0.8.0', dest: '/opt/noVNC/utils/websockify' }
+      - package:
+          name: numpy
+          state: present
       - name: Deploy systemd unit file - novnc.service
         copy:
           content: |
