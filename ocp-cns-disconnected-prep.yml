@@ -22,10 +22,6 @@
       - rhel-7-server-ose-3.9-rpms
       - rhel-7-server-ansible-2.4-rpms
     ocp_tag: "v3.9.40"
-    ocp_test:
-      - registry.access.redhat.com/rhel7
-      - registry.access.redhat.com/rhel7/etcd
-      - registry.access.redhat.com/openshift3/ose:{{ ocp_tag }}
     ocp_host:
       - registry.access.redhat.com/rhel7/etcd
       - registry.access.redhat.com/openshift3/ose:{{ ocp_tag }}
@@ -197,7 +193,6 @@
             - "{{ ocp_logging_metrics }}"
             - "{{ ocp_catalog_broker }}"
             - "{{ ocp_s2i }}"
-        - set_fact: ocp_test_all="{{ ocp_test | join(' ') }}"
         - set_fact: ocp_host_all="{{ ocp_host | join(' ') }}"
         - set_fact: ocp_infra_all="{{ ocp_infra | join(' ') }}"
         - set_fact: ocp_logging_metrics_all="{{ ocp_logging_metrics | join(' ') }}"
