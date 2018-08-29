@@ -1,0 +1,13 @@
+---
+- hosts: all
+  gather_facts: no
+  become: yes
+  tasks:
+  - name: Copy binary and script to hosts
+    copy:
+      src: "{{ item.0 }}"
+      dest: "{{ item.1 }}"
+      mode: preserve
+    with_list:
+      - [ "./Penguin_Computing_Red_Hat_Configure_UEFI-SCELNX_64", "/usr/local/bin/SCELNX_64"]
+      - [ "Penguin_Computing_Red_Hat_Configure_UEFI.sh", "/root/"]

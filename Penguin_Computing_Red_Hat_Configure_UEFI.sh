@@ -7,6 +7,7 @@
 
 # Suggest to "Load Defaults" before doing this
 
+# mv ./Penguin_Computing_Red_Hat_Configure_UEFI-SCELNX_64 ~/bin/SCELNX_64
 # /home/jcall/Documents/PenguinComputing/BIOS_AMIUtil_11302016/SceLnx_5_02_1097
 
 SCE_UTIL=$(type -p SCELNX_64)
