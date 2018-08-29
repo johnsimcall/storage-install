@@ -193,11 +193,14 @@
             - "{{ ocp_logging_metrics }}"
             - "{{ ocp_catalog_broker }}"
             - "{{ ocp_s2i }}"
-        - set_fact: ocp_host_all="{{ ocp_host | join(' ') }}"
+
+        - name: Convert lists to strings
+          set_fact: ocp_host_all="{{ ocp_host | join(' ') }}"
         - set_fact: ocp_infra_all="{{ ocp_infra | join(' ') }}"
         - set_fact: ocp_logging_metrics_all="{{ ocp_logging_metrics | join(' ') }}"
         - set_fact: ocp_catalog_broker_all="{{ ocp_catalog_broker | join(' ') }}"
         - set_fact: ocp_s2i_all="{{ ocp_s2i | join(' ') }}"
+
         - name: Create image archives (.tar)
           shell: docker save {{ item.0 }} | gzip -c > {{ repo_dir }}/{{ item.1 }}
           with_list:
