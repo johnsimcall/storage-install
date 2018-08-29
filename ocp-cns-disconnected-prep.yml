@@ -5,6 +5,9 @@
 #
 # RHEL pre-requisite: # yum --enablerepo=rhel-7-server-extras-rpms install yum-utils createrepo docker python-docker-py
 # Fedora 28 re-requisites: # sudo dnf install yum-utils createrepo docker python2-docker
+#
+# The reposync with --newest (-n) is 5.5GB
+# The imagepull is 25GB (~9GB gzip'd)
 
 ---
 #- hosts: all
