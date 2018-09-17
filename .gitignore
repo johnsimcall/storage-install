@@ -8,3 +8,6 @@ roles/smc-firmware-bmc/files/smc.tgz
 roles/smc-firmware-bmc/files/bin/*
 roles/smc-firmware-bmc/files/firmware/*
 roles/smc-firmware-bmc/files/IPMICFG/*
+#/ravello/*
+ravello/config.json
+ravello/users.json
