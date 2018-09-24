@@ -4,8 +4,8 @@
 ---
 - hosts: all
   vars:
-    employee_sku_physical: 8a85f98a60c09b100160c40fd5ff63dc
-    employee_sku_virtual: 8a85f98a60c09b100160c40fd82d63fb
+    employee_sku_physical: 8a85f98c631d0655016350fe5c2d5c93
+    employee_sku_virtual: 8a85f98c631d0655016350fe5dd65cb4
     repos:
     repo_list:
       - rhel-7-server-rpms
@@ -90,3 +90,4 @@
       with_items:
         - "alias vi='vim'"
         - "alias screen='screen -T xterm-256color'"
+        - "export PROMPT='history -a'"
