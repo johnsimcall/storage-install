@@ -1,0 +1,75 @@
+# file: make-25-vms.yml
+#
+# prerequisites:
+# NEW: sudo dnf install redhat-rpm-config python2-devel libxml2-devel libcurl-devel ; sudo easy_install ovirt-engine-sdk-python
+# RPM: yum --enablerepo-rhel-7-server-rhv-4.2-manager-rpms install python-ovirt-engine-sdk4
+#
+# execution:
+# $ ansbile-playbook make-25-vms.yml
+
+---
+- hosts: localhost
+  gather_facts: no
+
+  tasks:
+    - name: Login to RHV
+      ovirt_auth:
+        url: https://rhvm.cluster.net/ovirt-engine/api
+        insecure: yes
+        username: admin@internal
+        password: redhat1
+
+    - name: Create VMs
+      ovirt_vms:
+        auth: "{{ ovirt_auth }}"
+        cluster: Default
+        template: RHEL-7.5-Guest
+        name: "{{ item }}"
+        state: running
+        instance_type: Tiny
+        nics:
+          - name: nic1
+            profile_name: ovirtmgmt
+        cloud_init:
+          host_name: "{{ item }}.cluster.net"
+          user_name: root
+          root_password: redhat1
+          nic_name: eth0
+          nic_on_boot: true
+          nic_boot_protocol: dhcp
+
+          custom_script: |
+            runcmd:
+              - hostnamectl set-hostname {{ item }}.cluster.net
+              - yum -y remove cloud-init
+        wait: true
+      with_items:
+         - vm01
+         - vm02
+         - vm03
+         - vm04
+         - vm05
+         - vm06
+         - vm07
+         - vm08
+         - vm09
+         - vm10
+         - vm11
+         - vm12
+         - vm13
+         - vm14
+         - vm15
+         - vm16
+         - vm17
+         - vm18
+         - vm19
+         - vm20
+         - vm21
+         - vm22
+         - vm23
+         - vm24
+         - vm25
+    - name: Cleanup RHV auth token
+      ovirt_auth:
+        ovirt_auth: "{{ ovirt_auth }}"
+        state: absent
