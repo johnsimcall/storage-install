@@ -1,0 +1,38 @@
+---
+- hosts: localhost
+  become: true
+  tasks:
+    - name: Setup automount of /nas
+      file:
+        path: /nas
+        state: directory
+        mode: 0755
+    - copy:
+        content: |
+          [Unit]
+          Description=NASBOX ISOS mount
+          
+          [Mount]
+          What=nasbox.cluster.net:/volume2/isos
+          Where=/nas
+          Type=nfs
+          
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/nas.mount
+    - copy:
+        content: |
+          [Unit]
+          Description=NASBOX ISOS automount
+          
+          [Automount]
+          Where=/nas
+          
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/nas.automount
+    - systemd:
+        daemon_reload: yes
+        unit: nas.automount
+        enabled: true
+        state: started
