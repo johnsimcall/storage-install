@@ -2,7 +2,7 @@
 ---
 - hosts: all
   become: true
-  gather_facts: no
+  gather_facts: yes
   vars:
     vnc_user: cloud-user
     vnc_passwd: changeme
@@ -22,8 +22,8 @@
 
   - lineinfile:
       path: /etc/xdg/autostart/gnome-initial-setup-first-login.desktop
-      line: 'X-GNOME-Autostart-enabled=false'
-      insertafter: 'EOF'
+      line: X-GNOME-Autostart-enabled=false
+      insertafter: EOF
 
   - name: Install TigerVNC server
     package:
@@ -60,6 +60,21 @@
       regexp: "<USER>"
       replace: "{{ vnc_user }}"
       after: "Replace <USER>"
+  - name: Hack for PIDFile bug - https://github.com/TigerVNC/tigervnc/issues/606
+    lineinfile:
+      dest: /etc/systemd/system/vncserver@:{{ vnc_display }}.service
+      state: absent
+      regexp: '^PIDFile'
+    when: ansible_distribution == "Fedora"
+  - name: Hack for black/blank screen (missing Environment=XDG_SESSION_TYPE=x11)
+    lineinfile:
+      #path: /etc/systemd/system/vncserver@:{{ vnc_display }}.service
+      path: /home/mike/pid-test
+      line: Environment=XDG_SESSION_TYPE=x11
+      insertafter: [Service]
+    when: ansible_distribution == "Fedora"
+    tags: [test] #DOESNT WORK RIGHT
+
   - systemd:
       daemon_reload: yes
       unit: vncserver@:{{ vnc_display }}
