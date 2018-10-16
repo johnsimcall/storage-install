@@ -1,6 +1,7 @@
 # Author: John Call <johnsimcall@gmail.com>
 ---
-- hosts: all
+- hosts: localhost
+  connection: local
   become: true
   gather_facts: yes
   vars:
