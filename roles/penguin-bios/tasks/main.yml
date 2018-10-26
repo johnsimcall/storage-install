@@ -16,10 +16,10 @@
     src: "{{ item }}"
     dest: /root/PenguinComputing/
     mode: preserve
-#  with_items: [ afulnx_64, MD90-FS0-ZB_R13.bin ]
-  with_items: [ afulnx_64, MH70-HD1-ZB_R09.bin ]
+  with_items: [ afulnx_64, MD90-FS0-ZB_R13.bin ]
+# with_items: [ afulnx_64, MH70-HD1-ZB_R09.bin ]
 
 - name: Flash firmware
-#  command: /root/PenguinComputing/afulnx_64 /root/PenguinComputing/MD90-FS0-ZB_R13.bin /P /B /N /K /L /ME
-  command: /root/PenguinComputing/afulnx_64 /root/PenguinComputing/MH70-HD1-ZB_R09.bin /P /B /N /K /L /ME
+  command: /root/PenguinComputing/afulnx_64 /root/PenguinComputing/MD90-FS0-ZB_R13.bin /P /B /N /K /L /ME
+# command: /root/PenguinComputing/afulnx_64 /root/PenguinComputing/MH70-HD1-ZB_R09.bin /P /B /N /K /L /ME
   tags: [ flash ]

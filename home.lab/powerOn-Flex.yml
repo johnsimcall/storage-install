@@ -1,0 +1,94 @@
+# run from ~/Documents/Home-Lab/FLEX (ansible.cfg and inventory files are here)
+# ansible-playbook powerOn-Flex.yml
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Power on Chassis
+      command: /home/jcall/bin/ibm-pdu.sh on 5 6
+      tags: [chassis]
+
+- hosts: flex
+  gather_facts: no
+  tasks:
+    - name: Wait for CMM to start up (10min timeout...)
+      wait_for:
+        port: 443
+        host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
+        #search_regex: "Log In"
+        timeout: 600
+      connection: local
+    - name: Check health
+      raw: health
+      register: result
+      until: "'OK' in result.stdout"
+      retries: 30
+      delay: 10
+      tags: [chassis]
+
+    - block:
+      - name: Startup v7000 left canister
+        raw: power -on -T bladeenclosure[1]:blade[1]
+        register: result
+        until: "'OK' in result.stdout"
+        retries: 5
+        delay: 10
+# fatal: [flex]: FAILED! => {"changed": true, "failed_when_result": true, "msg": "non-zero return code", "rc": 70, "stderr": "Shared connection to flex closed.\r\n", "stdout": "\r\nsystem> power -on -T bladeenclosure[1]:blade[1]\r\nPower on blade failed.\r\n", "stdout_lines": ["", "system> power -on -T bladeenclosure[1]:blade[1]", "Power on blade failed."]}
+
+      - name: Startup v7000 right canister
+        raw: power -on -T bladeenclosure[1]:blade[2]
+        register: result
+        failed_when: "'OK' not in result.stdout"
+      - name: Waiting for v7000 to start up...
+        local_action: command ping -c 1 192.168.0.30
+        retries: 30
+        delay: 10
+      tags: [v7000]
+      # end block
+
+- hosts: rhvh
+  gather_facts: no
+  tasks:
+    - block:
+      - name: Turn on blades
+        local_action: command /home/jcall/bin/flex-power.sh on 5 6 7
+        run_once: true
+        register: result
+        until: result.stdout | regex_findall('(on)') | count == 3
+        retries: 2
+        delay: 10
+      - name: Connecting to blades (10min timeout...)
+        wait_for_connection:
+          connect_timeout: 1
+          sleep: 5
+          timeout: 600
+      - name: Ensure Gluster is running, because server.quorum kills the service
+        systemd:
+          unit: glusterd.service
+          state: started
+
+      - name: Start the Gluster volumes
+        gluster_volume:
+          state: started
+          name: "{{ item }}"
+        with_items: [ engine, vmstore ]
+        run_once: yes
+
+      - name: Wait for ovirt-ha-agent to mount the engine volume
+        wait_for:
+          path: /rhev/data-center/mnt/glusterSD/flex05-gluster:_engine/__DIRECT_IO_TEST__
+      - name: Wait for ovirt-ha-agent to mount the engine volume
+        wait_for:
+          path: /rhev/data-center/mnt/glusterSD/flex05-gluster:_engine/d5d1c38f-f963-46b1-a54a-2c8a64cf20fd/ha_agent/hosted-engine.metadata
+      - name: Clear hosted-engine maintenance
+        command: hosted-engine --set-maintenance --mode=none
+        run_once: true
+        until: "'EngineStarting' in result.stdout"
+        retries: 5
+        delay: 10
+        tags: [test]
+      - name: Waiting for hosted-engine to be ready...
+        wait_for_connection:
+        delegate_to: rhvm
+      tags: [blades]
+      # end block

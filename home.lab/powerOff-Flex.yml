@@ -1,0 +1,105 @@
+# run from ~/Documents/Home-Lab/FLEX (ansible.cfg and inventory files are here)
+# ansible-playbook powerOff-Flex.yml
+---
+- hosts: flex
+  gather_facts: no
+  tasks:
+    - name: Check health
+      raw: health
+      register: health
+      failed_when: "'OK' not in health.stdout"
+      tags: [health]
+
+- hosts: rhvh
+  gather_facts: no
+  tasks:
+    - name: Set global maintenance for HostedEngine
+      command: hosted-engine --set-maintenance --mode=global
+      run_once: true
+      tags: [he-maintenance]
+
+#- hosts: localhost
+- hosts: rhvm
+  gather_facts: no
+  tasks:
+    - block:
+      - name: Login to RHV
+        ovirt_auth:
+          url: https://rhvm.home.lab/ovirt-engine/api
+          insecure: yes
+          username: admin@internal
+          password: passw0rd
+      - name: List all VMs
+        ovirt_vms_facts:
+          auth: "{{ ovirt_auth }}"
+      - name: Shutdown all VMs, except HostedEngine
+        ovirt_vms:
+          state: stopped
+          wait: no
+          name: "{{ item.name }}"
+          auth: "{{ ovirt_auth }}"
+        when: "'HostedEngine' not in item.name"
+        with_items:
+          - "{{ ovirt_vms }}"
+      - name: Cleanup RHV auth token
+        ovirt_auth:
+          state: absent
+          ovirt_auth: "{{ ovirt_auth }}"
+      tags: [vm-shutdown]
+    # end block
+
+- hosts: rhvh
+  gather_facts: no
+  tasks:
+    - name: Shutdown HostedEngine VM
+      command: hosted-engine --vm-shutdown
+      ignore_errors: yes
+      tags: [he-shutdown]
+    - name: Wait for all VMs to stop
+      command: virsh -r list --name
+      register: vms
+      until: vms.stdout_lines | length == 0
+      retries: 30
+      delay: 10
+      tags: [vm-shutdown,he-shutdown]
+    - name: Stop the Gluster volumes
+      command: gluster vol stop {{ item }}
+      run_once: true
+      with_items: [vmstore,engine]
+      tags: [gluster]
+
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - block:
+      - name: Shutdown and poweroff blades
+        command: /home/jcall/bin/flex-power.sh softoff 5 6 7
+      - name: Waiting for Blades to shutdown...
+        command: /home/jcall/bin/flex-power.sh status 5 6 7
+        register: result
+        until: result.stdout | regex_findall('(off)') | count == 3
+        retries: 30
+        delay: 10
+      tags: [blades]
+    # end block
+
+    - block:
+      - name: Shutdown v7000
+        command: /home/jcall/bin/v7000-shutdown.sh
+      - name: Waiting for v7000 to shutdown...
+        command: /home/jcall/bin/v7000-status.sh
+        register: result
+        until: result.stdout | regex_findall('(off)') | count == 2
+        retries: 30
+        delay: 10
+      tags: [v7000]
+    # end block
+
+    - block:
+      - name: Wait 10 seconds before yanking the power cords...
+        wait_for: timeout=10
+        delegate_to: localhost
+      - name: Power off Chassis
+        command: /home/jcall/bin/ibm-pdu.sh off 5 6
+      tags: [pdu]
+    # end block
