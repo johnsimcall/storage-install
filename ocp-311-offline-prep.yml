@@ -1,0 +1,216 @@
+# Created by John Call (jcall@redhat.com)
+# Automate the process of populating repos and images
+# for an OpenShift 3.9 disconnected install
+# https://access.redhat.com/documentation/en-us/openshift_container_platform/3.9/html-single/installation_and_configuration/
+#
+# RHEL pre-requisite: # yum --enablerepo=rhel-7-server-extras-rpms install yum-utils createrepo docker python-docker-py
+# Fedora 28 re-requisites: # sudo dnf install yum-utils createrepo docker python2-docker
+#
+# The reposync with --newest (-n) is 5.5GB
+# The imagepull is 25GB (~9GB gzip'd)
+
+---
+- hosts: localhost
+  become: true
+  gather_facts: yes
+  vars:
+    prereqs: false
+    reposync: true
+    imagepull: false
+
+    repo_dir: "/nas/jcall-repos"
+    repo_uri: "file:///repos"
+    repo_list:
+      #OCP 3.11 https://access.redhat.com/documentation/en-us/openshift_container_platform/3.11/html-single/installing_clusters/#host-registration
+      - rhel-7-server-rpms
+      - rhel-7-server-extras-rpms
+      - rhel-7-server-ose-3.11-rpms
+      - rhel-7-server-ansible-2.6-rpms
+      - rh-gluster-3-client-for-rhel-7-server-rpms
+
+      #OCS-I 3.10 - https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage/3.10/html-single/deployment_guide/#CRS_Installing_Red_Hat_Storage_Server_on_Red_Hat_Enterprise_Linux_Layered_Install
+      #- rhel-7-server-rpms
+      #- rhel-7-server-extras-rpms
+      - rh-gluster-3-for-rhel-7-server-rpms
+
+      #OCP 3.9
+      #- rhel-7-server-rpms
+      #- rhel-7-fast-datapath-rpms
+      #- rhel-7-server-extras-rpms
+      #- rhel-7-server-ose-3.9-rpms
+      #- rhel-7-server-ansible-2.4-rpms
+    ocp_tag: "v3.9.40"
+    ocp_host:
+      - registry.access.redhat.com/rhel7/etcd
+      - registry.access.redhat.com/openshift3/ose:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/node:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/openvswitch:{{ ocp_tag }}
+    ocp_infra:
+      - registry.access.redhat.com/openshift3/ose-ansible:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/ose-cluster-capacity:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/ose-deployer:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/ose-docker-builder:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/ose-docker-registry:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/registry-console:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/ose-egress-http-proxy:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/ose-egress-router:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/ose-f5-router:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/ose-haproxy-router:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/ose-keepalived-ipfailover:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/ose-pod:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/ose-sti-builder:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/ose-template-service-broker:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/ose-web-console:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/ose:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/container-engine:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/node:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/openvswitch:{{ ocp_tag }}
+      - registry.access.redhat.com/rhel7/etcd
+    ocp_logging_metrics:
+      - registry.access.redhat.com/openshift3/logging-auth-proxy:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/logging-curator:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/logging-elasticsearch:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/logging-fluentd:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/logging-kibana:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/oauth-proxy:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/metrics-cassandra:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/metrics-hawkular-metrics:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/metrics-hawkular-openshift-agent:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/metrics-heapster:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/prometheus:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/prometheus-alert-buffer:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/prometheus-alertmanager:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/prometheus-node-exporter:{{ ocp_tag }}
+      - registry.access.redhat.com/cloudforms46/cfme-openshift-postgresql
+      - registry.access.redhat.com/cloudforms46/cfme-openshift-memcached
+      - registry.access.redhat.com/cloudforms46/cfme-openshift-app-ui
+      - registry.access.redhat.com/cloudforms46/cfme-openshift-app
+      - registry.access.redhat.com/cloudforms46/cfme-openshift-embedded-ansible
+      - registry.access.redhat.com/cloudforms46/cfme-openshift-httpd
+      - registry.access.redhat.com/cloudforms46/cfme-httpd-configmap-generator
+      - registry.access.redhat.com/rhgs3/rhgs-server-rhel7
+      - registry.access.redhat.com/rhgs3/rhgs-volmanager-rhel7
+      - registry.access.redhat.com/rhgs3/rhgs-gluster-block-prov-rhel7
+      - registry.access.redhat.com/rhgs3/rhgs-s3-server-rhel7
+    ocp_catalog_broker:
+      - registry.access.redhat.com/openshift3/ose-service-catalog:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/ose-ansible-service-broker:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/mediawiki-apb:{{ ocp_tag }}
+      - registry.access.redhat.com/openshift3/postgresql-apb:{{ ocp_tag }}
+    ocp_s2i:
+      - registry.access.redhat.com/jboss-amq-6/amq63-openshift
+      - registry.access.redhat.com/jboss-datagrid-7/datagrid71-openshift
+      - registry.access.redhat.com/jboss-datagrid-7/datagrid71-client-openshift
+      - registry.access.redhat.com/jboss-datavirt-6/datavirt63-openshift
+      - registry.access.redhat.com/jboss-datavirt-6/datavirt63-driver-openshift
+      - registry.access.redhat.com/jboss-decisionserver-6/decisionserver64-openshift
+      - registry.access.redhat.com/jboss-processserver-6/processserver64-openshift
+      - registry.access.redhat.com/jboss-eap-6/eap64-openshift
+      - registry.access.redhat.com/jboss-eap-7/eap70-openshift
+      - registry.access.redhat.com/jboss-webserver-3/webserver31-tomcat7-openshift
+      - registry.access.redhat.com/jboss-webserver-3/webserver31-tomcat8-openshift
+      - registry.access.redhat.com/openshift3/jenkins-1-rhel7
+      - registry.access.redhat.com/openshift3/jenkins-2-rhel7
+      - registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7
+      - registry.access.redhat.com/openshift3/jenkins-slave-maven-rhel7
+      - registry.access.redhat.com/openshift3/jenkins-slave-nodejs-rhel7
+      - registry.access.redhat.com/rhscl/mongodb-32-rhel7
+      - registry.access.redhat.com/rhscl/mysql-57-rhel7
+      - registry.access.redhat.com/rhscl/perl-524-rhel7
+      - registry.access.redhat.com/rhscl/php-56-rhel7
+      - registry.access.redhat.com/rhscl/postgresql-95-rhel7
+      - registry.access.redhat.com/rhscl/python-35-rhel7
+      - registry.access.redhat.com/redhat-sso-7/sso70-openshift
+      - registry.access.redhat.com/rhscl/ruby-24-rhel7
+      - registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift
+      - registry.access.redhat.com/redhat-sso-7/sso71-openshift
+      - registry.access.redhat.com/rhscl/nodejs-6-rhel7
+      - registry.access.redhat.com/rhscl/mariadb-101-rhel7
+      - registry.access.redhat.com/jboss-webserver-3/webserver30-tomcat7-openshift:latest
+      - registry.access.redhat.com/jboss-webserver-3/webserver30-tomcat7-openshift:1.1
+    verbose: false
+
+  tasks:
+    - name: PREREQS BLOCK
+      block:
+        - name: Install required packages
+          yum:
+            name: "{{ item }}"
+            state: present
+            enablerepo: rhel-7-server-extras-rpms
+          with_items:
+            - yum-utils
+            - createrepo
+            - docker
+            - python-docker-py
+          when: (ansible_distribution == "RedHat" and ansible_distribution_major_version == "7")
+        - name: Ensure docker running
+          systemd: unit=docker.service state=started enabled=true
+        - name: Ensure repo_dir exists
+          file: path={{ repo_dir }} state=directory
+      tags: [prereqs]
+      when: prereqs
+      # end block PREREQS
+
+    - name: REPOSYNC BLOCK
+      block:
+        - name: Sync repos
+          command: reposync --gpgcheck --plugins --download-metadata --newest-only --repoid={{ item }} --download_path={{ repo_dir }}
+          with_items: "{{ repo_list }}"
+
+        - name: Remove previous RPM versions
+          shell: repomanage --old {{ repo_dir }}/{{ item }} | xargs rm -vf
+          with_items: "{{ repo_list }}"
+
+        - name: Create repos
+          command: createrepo -v {{ repo_dir }}/{{ item }} -o {{ repo_dir }}/{{ item }}
+          with_items: "{{ repo_list }}"
+
+        - name: Make offline.repo file
+          file: path="{{ repo_dir }}/offline.repo" state=absent
+        - blockinfile:
+            create: yes
+            marker: "# {mark} ANSIBLE MANAGED BLOCK - {{ item }}"
+            content: |
+    
+              [my-{{ item }}]
+              name=my-{{ item }}
+              baseurl={{ repo_uri }}/{{ item }}
+              enabled=1
+              gpgcheck=0
+            dest: "{{ repo_dir }}/offline.repo"
+          with_items: "{{ repo_list }}"
+        - lineinfile: regexp='ANSIBLE MANAGED BLOCK' state=absent path={{ repo_dir }}/offline.repo
+      tags: [reposync]
+      when: reposync
+      # end block REPOSYNC
+
+    - name: IMAGEPULL BLOCK
+      block:
+        - name: Pull images
+          docker_image: name={{ item }}
+          with_items:
+            - "{{ ocp_host }}"
+            - "{{ ocp_infra }}"
+            - "{{ ocp_logging_metrics }}"
+            - "{{ ocp_catalog_broker }}"
+            - "{{ ocp_s2i }}"
+
+        - name: Convert lists to strings
+          set_fact: ocp_host_all="{{ ocp_host | join(' ') }}"
+        - set_fact: ocp_infra_all="{{ ocp_infra | join(' ') }}"
+        - set_fact: ocp_logging_metrics_all="{{ ocp_logging_metrics | join(' ') }}"
+        - set_fact: ocp_catalog_broker_all="{{ ocp_catalog_broker | join(' ') }}"
+        - set_fact: ocp_s2i_all="{{ ocp_s2i | join(' ') }}"
+
+        - name: Create image archives (.tar)
+          shell: docker save {{ item.0 }} | gzip -c > {{ repo_dir }}/{{ item.1 }}
+          with_list:
+            - [ "{{ ocp_host_all }}", ocp_host.tgz ]
+            - [ "{{ ocp_infra_all }}", ocp_infra.tgz ]
+            - [ "{{ ocp_logging_metrics_all }}", ocp_logging_metrics.tgz ]
+            - [ "{{ ocp_catalog_broker_all }}", ocp_catalog_broker.tgz ]
+            - [ "{{ ocp_s2i_all }}", ocp_s2i.tgz ]
+      tags: [imagepull]
+      when: imagepull
+      # end block IMAGEPULL
