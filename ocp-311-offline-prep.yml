@@ -214,3 +214,15 @@
       tags: [imagepull]
       when: imagepull
       # end block IMAGEPULL
+
+#- hosts: myRepoRegistery
+#  tasks:
+#  - name: Load images
+#    shell: 'docker load < {{ item }}'
+#    with_items:
+#      - ocp_host.tgz
+#      - ocp_infra.tgz
+#      - ocp_logging_metrics.tgz
+#      - ocp_catalog_broker.tgz
+#      - ocp_s2i.tgz
+
