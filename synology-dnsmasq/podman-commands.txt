@@ -1,0 +1,11 @@
+//BUILDING
+sudo podman build -t cluster.net/dnsmasq:1.0 .
+
+//RUNNING
+sudo podman run --name=dnsmasq -d --cap-add=NET_ADMIN \
+       -v /somewhere/dnsmasq.d:/etc/dnsmasq.d:z \
+       -v /somewhere/tftpboot:/var/lib/tftpboot:z \
+       cluster.net/dnsmasq:1.0
+
+//TROUBLESHOOTING
+sudo podman exec -it unifi "/usr/bin/bash"
