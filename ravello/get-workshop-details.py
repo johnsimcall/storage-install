@@ -15,7 +15,7 @@ print "<p>"
 with open('users.json') as file:
     users = json.load(file)
     for user in users:
-        app_name = 'FEDSLED-SA-RHHI-Workshop-' + user
+        app_name = 'FEDSLED-SA-RHHI-' + user
         try:
             app = client.get_application_by_name(app_name=app_name)
         except RavelloError:
