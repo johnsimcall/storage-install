@@ -69,8 +69,7 @@
     when: ansible_distribution == "Fedora"
   - name: Hack for black/blank screen (missing Environment=XDG_SESSION_TYPE=x11)
     lineinfile:
-      #path: /etc/systemd/system/vncserver@:{{ vnc_display }}.service
-      path: /home/mike/pid-test
+      path: /etc/systemd/system/vncserver@:{{ vnc_display }}.service
       line: Environment=XDG_SESSION_TYPE=x11
       insertafter: [Service]
     when: ansible_distribution == "Fedora"
