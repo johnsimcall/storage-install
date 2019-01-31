@@ -1,0 +1,27 @@
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    vnc_user: jcall
+    vnc_display: 0
+    novnc_listen: 80
+
+  tasks:
+  - set_fact:
+      vnc_path: "{{ (vnc_user == 'root') | ternary('/','/home') }}"
+  - debug: var=vnc_path
+
+  - copy:
+      content: |
+        [Unit]
+        Description = noVNC service
+        After=syslog.target network.target
+        
+        [Service]
+        Type=simple
+        User={{ (novnc_listen|int <= 1024) | ternary('root',vnc_user) }}
+        ExecStart = /opt/noVNC/utils/launch.sh --listen {{ novnc_listen }} --vnc localhost:590{{ vnc_display }}
+        
+        [Install]
+        WantedBy=multi-user.target
+      dest: /tmp/ternary.test

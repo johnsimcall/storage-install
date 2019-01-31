@@ -1,6 +1,7 @@
+# ansible-galaxy install ovirt.image-template
 # https://github.com/oVirt/ovirt-ansible-image-template.git
 # Requires: libselinux-python
-# 2min 30sec @ ansible-playbook ovirt-mktemplate.yml -e qcow_url="file:///home/jcall/Downloads/rhel-server-7.5-x86_64-kvm.qcow2" -e template_disk_storage=vmstore --ask-vault-pass
+# Requires: sudo yum --enablerepo=rhel-7-server-rhv-4.2-manager-rpms install python-ovirt-engine-sdk4
 ---
 - name: Make oVirt template
   hosts: localhost

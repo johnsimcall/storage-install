@@ -1,0 +1,38 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Setup automount of /nas
+      file:
+        path: /nas
+        state: directory
+        mode: 0755
+    - copy:
+        content: |
+          [Unit]
+          Description=Home NAS
+          
+          [Mount]
+          What=nas.home.lab:/nas
+          Where=/nas
+          Type=nfs
+          
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/nas.mount
+    - copy:
+        content: |
+          [Unit]
+          Description=Home NAS
+          
+          [Automount]
+          Where=/nas
+          
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/nas.automount
+    - systemd:
+        daemon_reload: yes
+        unit: nas.automount
+        enabled: true
+        state: started
