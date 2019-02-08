@@ -1,0 +1,37 @@
+---
+- hosts: all
+  gather_facts: no
+  tasks:
+    - file:
+        path: /data
+        state: directory
+        mode: 0755
+    - copy:
+        content: |
+          [Unit]
+          Description=rhclient4:/data
+          
+          [Mount]
+          What=rhclient4:/data
+          Where=/data
+          Type=nfs
+          
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/data.mount
+    - copy:
+        content: |
+          [Unit]
+          Description=AutoMount rhclient4:/data
+          
+          [Automount]
+          Where=/data
+          
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/data.automount
+    - systemd:
+        daemon_reload: yes
+        unit: data.automount
+        enabled: true
+        state: started

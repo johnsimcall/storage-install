@@ -5,7 +5,7 @@
 - hosts: all
   vars:
     employee_sku_physical: 8a85f99c65c8c91b01661b74304c5216
-    employee_sku_virtual: 8a85f98c631d0655016350fe5dd65cb4
+    employee_sku_virtual: 8a85f99c65c8c91b01661b7432765239
     repos:
     repo_list:
       - rhel-7-server-rpms
