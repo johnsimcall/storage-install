@@ -12,11 +12,11 @@ client.login(username=config['username'], password=config['password'])
 with open('users.json') as file:
     users = json.load(file)
     for user in users:
-        # FEDSLED-SA-RHHI-Workshop-Q1-FY20
-        # https://cloud.ravellosystems.com/#/0/library/blueprints/3125677031714/canvas
+        # FEDSLED-SA-RHHI-Workshop-Q1FY20
+        # https://cloud.ravellosystems.com/#/0/library/blueprints/3125677130723/canvas
         app_dict = {
             'name': 'FEDSLED-SA-RHHI-' + user,
-            'baseBlueprintId': '3125677031714'
+            'baseBlueprintId': '3125677130723'
         }
         print "Creating application " + app_dict['name'] + "..."
         client.create_application(app=app_dict)
