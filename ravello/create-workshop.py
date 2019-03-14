@@ -14,9 +14,13 @@ with open('users.json') as file:
     for user in users:
         # FEDSLED-SA-RHHI-Workshop-Q1FY20
         # https://cloud.ravellosystems.com/#/0/library/blueprints/3125677130723/canvas
+
+        # FEDSLED-SA-RHHI-INST-1Q20
+        # https://cloud.ravellosystems.com/#/0/library/blueprints/3125677132621/canvas
+
         app_dict = {
             'name': 'FEDSLED-SA-RHHI-' + user,
-            'baseBlueprintId': '3125677130723'
+            'baseBlueprintId': '3125677132621'
         }
         print "Creating application " + app_dict['name'] + "..."
         client.create_application(app=app_dict)
