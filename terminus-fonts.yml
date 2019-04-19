@@ -1,0 +1,22 @@
+---
+- hosts: all
+  gather_facts: no
+  tasks:
+  - name: Install epel
+    yum:
+      name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+      state: latest
+      disable_gpg_check: yes
+
+  - name: Install terminus-fonts-console
+    yum:
+      enablerepo: epel
+      name: terminus-fonts-console
+      state: latest
+
+  - name: Set term-v32n as default in /etc/vconsole.conf
+    lineinfile:
+      dest: /etc/vconsole.conf
+      backup: yes
+      regexp: '^FONT=(.*)'
+      line: 'FONT="ter-v32n"'
