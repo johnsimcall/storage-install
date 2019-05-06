@@ -48,7 +48,7 @@
         password: "{{ rhvpass }}"
 
     - name: Create VMs
-      ovirt_vms:
+      ovirt_vm:
         auth: "{{ ovirt_auth }}"
         cluster: "{{ rhvCluster }}"
         template: "{{ templateName }}"
@@ -77,6 +77,7 @@
           custom_script: |
             runcmd:
               - hostnamectl set-hostname {{ item.key }}.{{ ansible_domain }}
+              - nmcli con mod "System eth0" connection.id "eth0"
               - sed -i -e '/192.168.122.1/d' -e '/^[;#]/d' /etc/resolv.conf
               - yum -y remove cloud-init
         wait: true

@@ -31,7 +31,7 @@
         password: "{{ rhvpass }}"
 
     - name: Create snapshots
-      ovirt_snapshots:
+      ovirt_snapshot:
         auth: "{{ ovirt_auth }}"
         vm_name: "{{ item.key }}"
         state: "{{ snapState }}"

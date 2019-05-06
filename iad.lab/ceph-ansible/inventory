@@ -4,6 +4,9 @@ rhsvc[1:3]
 [mgrs]
 rhsvc[1:3]
 
+#[agents]
+#rhsvc[1:3]
+
 [osds]
 rhdata[1:6]
 
@@ -15,3 +18,4 @@ rhsvc[4:5]
 
 [clients]
 cbt[1:4]
+rhclient4
