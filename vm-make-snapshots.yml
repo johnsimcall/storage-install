@@ -39,6 +39,13 @@
         wait: false
       with_dict: "{{ vms }}" # See home.lab/ocp-cns-vars.yml
 
+    - name: Startup the VMs
+      ovirt_vm:
+        auth: "{{ ovirt_auth }}"
+        name: "{{ item.key }}"
+        state: running
+      with_dict: "{{ vms }}" # See home.lab/ocp-cns-vars.yml
+
     - name: Cleanup RHV auth token
       ovirt_auth:
         ovirt_auth: "{{ ovirt_auth }}"
