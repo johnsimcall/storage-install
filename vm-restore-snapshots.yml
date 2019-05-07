@@ -1,0 +1,82 @@
+# execution:
+# $ ansible-playbook vm-restore-snapshots.yml -e 'vmVars=iad.lab/mini-cns-vars.yml' -e 'snapDescription="Before *"'
+
+---
+- hosts: localhost
+  gather_facts: yes
+  vars_files:
+  - "{{ ansible_domain }}/rhvm-vault.yml"
+
+  tasks:
+    - assert:
+        that: snapDescription is defined
+        msg: You must provide the common snapshot description with -e 'snapDescription="something*"'
+
+    - name: Load VM vars
+      include_vars: "{{ vmVars }}"
+
+    - name: Login to RHV
+      ovirt_auth:
+        url: "{{ rhvurl }}"
+        insecure: yes
+        username: "{{ rhvuser }}"
+        password: "{{ rhvpass }}"
+
+    - name: Query snapshot IDs
+      ovirt_snapshot_facts:
+        auth: "{{ ovirt_auth }}"
+        vm: "{{ item.key }}"
+        description: "{{ snapDescription }}"
+      with_dict: "{{ vms }}" # See home.lab/ocp-cns-vars.yml
+      register: myBigFatBlob
+
+#TODO: Add some logic here to check for returned results, and fail if no results found
+
+#    - debug: var=myBigFatBlob
+#    - debug: var=myBigFatBlob.results
+#    - debug: var=myBigFatBlob.results[0].ansible_facts.ovirt_snapshots[0].vm.name
+#    - debug: var=myBigFatBlob.results[0].ansible_facts.ovirt_snapshots[0].description
+#    - debug: var=myBigFatBlob.results[0].ansible_facts.ovirt_snapshots[0].id
+
+# https://stackoverflow.com/questions/35605603/using-ansible-set-fact-to-create-a-dictionary-from-register-results
+    - name: Create a new array from the query results
+      set_fact:
+        mySnaps: "{{ mySnaps|default({}) | combine( {item.ansible_facts.ovirt_snapshots[0].vm.name: item.ansible_facts.ovirt_snapshots[0].id} ) }}"
+      with_items: "{{ myBigFatBlob.results }}"
+      no_log: true
+    - debug: var=mySnaps
+
+# https://stackoverflow.com/questions/35605603/using-ansible-set-fact-to-create-a-dictionary-from-register-results
+    - name: Create a list of dicts instead as another new variable
+      set_fact:
+        mySnaps2: "{{ mySnaps2|default([]) + [ {'name': item.ansible_facts.ovirt_snapshots[0].vm.name, 'id': item.ansible_facts.ovirt_snapshots[0].id} ] }}"
+      with_items: "{{ myBigFatBlob.results }}"
+      no_log: true
+    - debug: var=mySnaps2
+
+    - name: Make sure the VMs are stopped
+      ovirt_vm:
+        auth: "{{ ovirt_auth }}"
+        name: "{{ item.name }}"
+        state: stopped
+      loop: "{{ mySnaps2}}"
+
+    - name: Restore to the chosen snapshot
+      ovirt_snapshot:
+        auth: "{{ ovirt_auth }}"
+        state: restore
+        vm_name: "{{ item.name }}"
+        snapshot_id: "{{ item.id }}"
+      loop: "{{ mySnaps2}}"
+
+    - name: Startup the VMs
+      ovirt_vm:
+        auth: "{{ ovirt_auth }}"
+        name: "{{ item.name }}"
+        state: running
+      loop: "{{ mySnaps2}}"
+
+    - name: Cleanup RHV auth token
+      ovirt_auth:
+        ovirt_auth: "{{ ovirt_auth }}"
+        state: absent
