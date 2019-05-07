@@ -1,0 +1,116 @@
+# Author: John Call
+# Description: Use this on new hosts to subscribe them, enable repos, install rpms, and setup docker storage
+# Updated: May 5th, 2019 for OCP/CNS 3.11
+
+# https://access.redhat.com/documentation/en-us/openshift_container_platform/3.11/html-single/installing_clusters/index
+
+---
+- hosts: all
+  become: true
+  vars: 
+    repos:
+    repo_list:
+      - rhel-7-server-rpms
+      - rhel-7-server-extras-rpms
+      - rhel-7-server-ose-3.11-rpms
+      - rhel-7-server-ansible-2.6-rpms
+    rpm_list:
+      - wget
+      - git
+      - net-tools
+      - bind-utils
+      - yum-utils
+      - iptables-services
+      - bridge-utils
+      - bash-completion
+      - kexec-tools
+      - sos
+      - psacct
+      - openshift-ansible
+      - docker-1.13.1
+      - glusterfs-fuse
+
+  vars_prompt:
+    - name: "rhsm_username"
+      prompt: "Enter RHN/RHSM Username"
+      default: jcallrht
+      private: no
+    - name: "rhsm_password"
+      prompt: "Enter RHN/RHSM Password"
+      private: yes
+    - name: "poolid"
+      prompt: "Enter Red Hat Pool ID"
+      default: 8a85f99c65c8c91b01661b7432765239
+      private: no
+
+  tasks:
+  - block:
+    - name: Register with Red Hat
+      redhat_subscription:
+        state: present
+        username: "{{ rhsm_username }}"
+        password: "{{ rhsm_password }}"
+        autosubscribe: false
+      async: 300
+      poll: 10
+  
+    - name: Attach Pool
+      command: subscription-manager attach --pool={{ poolid }}
+      async: 300
+      poll: 10
+    tags: [rhsm]
+    # end block
+
+  - block:
+    - set_fact:
+        repos: "{{ repo_list | join(' --enable=') }}"
+    - debug:
+        var: repos
+    - name: Enable repos for RHEL7
+      command: subscription-manager repos --disable="*" --enable={{ repos }}
+    tags: [repos]
+    #end block
+
+  - block:
+    - name: Upgrade everything 'yum -y upgrade'
+      command: yum -y upgrade
+      args:
+        warn: false
+
+    - name: Reboot after upgrades
+      reboot:
+
+    - name: Install required RPMs
+      yum:
+        name: "{{ rpm_list }}"
+        state: latest
+    tags: [rpms]
+    #end block
+
+### Assumes HDD layout (vda for /, sda for docker, and sdb for OCS) from IAD lab
+  - block:
+    - name: "Extend /dev/vda1"
+      command: growpart /dev/vda 1
+  
+    - name: "Grow /dev/vda1"
+      command: xfs_growfs /
+  
+    - name: "Setup docker-storage-setup"
+      copy:
+        content: |
+          STORAGE_DRIVER=devicemapper
+          DEVS=/dev/sda
+          VG=docker_vg
+          CONTAINER_THINPOOL=docker_pool
+        dest: /etc/sysconfig/docker-storage-setup
+  
+    - name: "Run docker-storage-setup"
+      command: docker-storage-setup
+  
+    - name: "Start and enable docker"
+      systemd:
+        unit: docker.service
+        state: restarted
+        enabled: yes
+    tags: [ docker ]
+    # end block
