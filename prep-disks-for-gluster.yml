@@ -1,0 +1,56 @@
+---
+- hosts: all
+  gather_facts: no
+  tasks:
+  vars:
+    - disks: [ sdd ]
+
+  - name: Create a Physical Volume (PV) from the disk
+    lvg:
+      vg: vg_{{ item }}
+      pvs: /dev/{{ item }}
+    loop:
+      - "{{ disks }}"
+
+  - name: Create a Volume Group (VG)
+    lvol:
+      vg: vg_{{ item }}
+      lv: tp_{{ item }}
+      size: 100%FREE
+      opts: --thin
+    loop:
+      - "{{ disks }}"
+
+  - name: Create a Logical Volume (thin LV)
+    command:  lvcreate --virtualsize 10GB -T vg_{{ item }}/tp_{{ item }} -n lv_{{ item }}
+    loop:
+      - "{{ disks }}"
+
+  - name: Format the LV with XFS (mkfs.xfs -i size=512)
+    filesystem:
+      fstype: xfs
+      dev: /dev/vg_{{ item }}/lv_{{ item }}
+      opts: -i size=512
+    loop:
+      - "{{ disks }}"
+
+  - name: Mount the brick and add it to /etc/fstab
+    mount:
+      src: /dev/vg_{{ item }}/lv_{{ item }}
+      path: /rhgs/{{ item }}
+      fstype: xfs
+      state: mounted
+    loop:
+      - "{{ disks }}"
+
+  - name: Create the "brickdir"
+    file:
+      path: /rhgs/{{ item }}/{{ item }}
+      state: directory
+    loop:
+      - "{{ disks }}"
+
+## Configure RHVM to look for bricks in a specific directory
+ # engine-config -g GlusterDefaultBrickMountPoint (default: /rhgs)
+ # engine-config -s GlusterDefaultBrickMountPoint=/gluster_bricks
+ # systemctl restart ovirt-engine
