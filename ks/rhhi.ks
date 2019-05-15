@@ -12,13 +12,8 @@ done
 lang en_US
 keyboard us
 timezone America/Denver --utc
-#timezone America/New_York --utc
-#auth --passalgo=sha512 --useshadow
 rootpw --plaintext redhat1
 network --device=link --bootproto=dhcp
-#selinux --enforcing
-#firewall --enabled --ssh --port=9090
-#firstboot --disable
 
 # If you use logvol ... --thinpool --grow, you must also include volgroup --reserved-space OR volgroup --reserved-percent ... 
 # From RHHI docs:  Minimum Total - 64 GB (64*1024=65536)
