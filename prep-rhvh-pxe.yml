@@ -1,0 +1,76 @@
+# TODO: mount /nas/ISOs/RHVH.iso at /var/www/html/rhvh (because inst.stage2 -- grub.cfg-- expects it there)
+#
+# 6.1.3.2.1 - Preparing the Installation Environment
+# https://access.redhat.com/documentation/en-us/red_hat_virtualization/4.3/html-single/installing_red_hat_virtualization_as_a_self-hosted_engine_using_the_cockpit_web_interface/index#Advanced_RHVH_Install_SHE_cockpit_deploy
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    cleanup: true
+  vars_prompt:
+    - prompt: "Where is the RHVH ISO file?"
+      name: iso_location
+      default: "/nas/ISOs/RHVH-4.3-20190512.3-RHVH-x86_64-dvd1.iso"
+
+    - prompt: "Where should I put the vmlinuz/initrd.img files --PXE (tftpboot) location--"
+      name: tftp_location
+      default: "/var/lib/tftpboot/"
+
+    - prompt: "Where should I put the (large) hypervisor image --HTTP/HTML location--"
+      name: http_location
+      default: "/var/www/html/"
+
+  tasks:
+  - name: Get version number from ISO name (e.g. RHVH-4.3-20190512.3)
+    set_fact:
+      rhvh_version: "{{ iso_location | regex_search('RHVH-[0-9.-]+') | regex_replace('([^0-9a-z])$') }}"
+
+  - name: Create a temporary directory
+    command: mktemp -d
+    register: results
+  - set_fact:
+      tmp_location: "{{ results.stdout }}"
+    no_log: true
+  - debug: var=tmp_location
+
+  - name: List ISO's table of contents
+    command: isoinfo -R -f -i {{ iso_location }}
+    register: iso_contents
+
+  - name: Find which RPM has the squashfs.img (RHVH image)
+    set_fact:
+      hypervisor_image_rpm: "{{ iso_contents.stdout | regex_search('^.*host-image.*$', multiline=true) }}"
+
+  - name: Extract the ks.cfg, vmlinuz, initrd.img and RHVH images
+    shell: isoinfo -R -i {{ iso_location }} -x {{ item.source }} > {{ item.dest }}
+    loop:
+#      - { source: "/ks.cfg", dest: "{{ tmp_location }}/ks.cfg" }
+#      - { source: "/images/pxeboot/vmlinuz", dest: "{{ tmp_location }}/vmlinuz" }
+#      - { source: "/images/pxeboot/initrd.img", dest: "{{ tmp_location }}/initrd.img" }
+#      - { source: "{{ hypervisor_image_rpm }}", dest: "{{ tmp_location }}/{{ hypervisor_image_rpm | basename }}" }
+#  BLANK_LINE
+      - { source: "/ks.cfg", dest: "{{ http_location }}/ks.cfg-{{ rhvh_version }}" }
+      - { source: "/images/pxeboot/vmlinuz", dest: "{{ tftp_location }}/vmlinuz-{{ rhvh_version }}" }
+      - { source: "/images/pxeboot/initrd.img", dest: "{{ tftp_location }}/initrd.img-{{ rhvh_version }}" }
+      - { source: "{{ hypervisor_image_rpm }}", dest: "{{ tmp_location }}/{{ hypervisor_image_rpm | basename }}" }
+
+  - name: Pull the squashfs.img out of the RPM (cpio copy-in mode)
+    shell: rpm2cpio "{{ hypervisor_image_rpm | basename }}" | cpio -dimv "*squashfs.img"
+    args:
+      chdir: "{{ tmp_location }}"
+    register: results
+
+  - name: Get the name and path of the squashfs.img (from stderr)
+    set_fact:
+      squashfs_image: "{{ results.stderr | regex_search('^.*squashfs.img$', multiline=true) }}"
+
+  - name: Move the squashfs.img into place
+    copy:
+      src: "{{ tmp_location }}/{{ squashfs_image }}"
+      dest: "{{ http_location }}"
+
+  - name: Cleanup temporary directory
+    file:
+      path: "{{ tmp_location }}"
+      state: absent
+    when: cleanup
