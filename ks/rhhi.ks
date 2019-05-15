@@ -3,6 +3,7 @@ liveimg --url=http://nas/redhat-virtualization-host-4.3-20190512.0.el7_6.squashf
 
 %pre
 echo "DANGER, wipeing all data"
+# List all block devices, except loopbacks
 for i in $(lsblk --noheadings --nodeps --exclude 7 -o NAME); do
   wipefs -af /dev/$i
   dd if=/dev/zero of=/dev/$i bs=1M count=10
