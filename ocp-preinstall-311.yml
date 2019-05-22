@@ -99,6 +99,7 @@
       copy:
         content: |
           STORAGE_DRIVER=devicemapper
+          #STORAGE_DRIVER=overlay2
           DEVS=/dev/sda
           VG=docker_vg
           CONTAINER_THINPOOL=docker_pool

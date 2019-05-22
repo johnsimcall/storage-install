@@ -1,0 +1,103 @@
+# These notes were created from an Anaconda environment
+# The goal is to wipe all of the /dev/sd* drives, but not the USB key we booted from!
+# The USB key has a known label of "RHVH-4.3 RHVH.x86_64"
+
+lsblk
+NAME        MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
+sda           8:0    1  28.7G  0 disk 
+|-sda1        8:1    1   1.1G  0 part 
+`-sda2        8:2    1   8.5M  0 part 
+sdc           8:32   1   3.8G  0 disk 
+`-sdc1        8:33   1   3.8G  0 part /mnt/usb
+loop0         7:0    0 410.2M  1 loop 
+loop1         7:1    0     2G  1 loop 
+|-live-rw   253:0    0     2G  0 dm   /
+`-live-base 253:1    0     2G  1 dm   
+loop2         7:2    0   512M  0 loop 
+`-live-rw   253:0    0     2G  0 dm   /
+nvme0n1     259:0    0 238.5G  0 disk 
+|-nvme0n1p1 259:1    0   499M  0 part 
+|-nvme0n1p2 259:2    0    99M  0 part 
+|-nvme0n1p3 259:3    0    16M  0 part 
+|-nvme0n1p4 259:4    0  97.7G  0 part 
+|-nvme0n1p5 259:5    0     1G  0 part 
+`-nvme0n1p6 259:6    0 139.2G  0 part 
+
+
+dmsetup info
+Name:              live-base
+State:             ACTIVE (READ-ONLY)
+Read Ahead:        256
+Tables present:    LIVE
+Open count:        0
+Event number:      0
+Major, minor:      253, 1
+Number of targets: 1
+
+Name:              live-rw
+State:             ACTIVE
+Read Ahead:        256
+Tables present:    LIVE
+Open count:        1
+Event number:      0
+Major, minor:      253, 0
+Number of targets: 1
+
+mount | grep ' / '
+/dev/mapper/live-rw on / type ext4 (rw,relatime,seclabel,data=ordered)
+
+mount
+sysfs on /sys type sysfs (rw,nosuid,nodev,noexec,relatime,seclabel)
+proc on /proc type proc (rw,nosuid,nodev,noexec,relatime)
+devtmpfs on /dev type devtmpfs (rw,nosuid,seclabel,size=8126260k,nr_inodes=2031565,mode=755)
+securityfs on /sys/kernel/security type securityfs (rw,nosuid,nodev,noexec,relatime)
+tmpfs on /dev/shm type tmpfs (rw,nosuid,nodev,seclabel)
+devpts on /dev/pts type devpts (rw,nosuid,noexec,relatime,seclabel,gid=5,mode=620,ptmxmode=000)
+tmpfs on /run type tmpfs (rw,nosuid,nodev,seclabel,mode=755)
+tmpfs on /sys/fs/cgroup type tmpfs (ro,nosuid,nodev,noexec,seclabel,mode=755)
+cgroup on /sys/fs/cgroup/systemd type cgroup (rw,nosuid,nodev,noexec,relatime,seclabel,xattr,release_agent=/usr/lib/systemd/systemd-cgroups-agent,name=systemd)
+pstore on /sys/fs/pstore type pstore (rw,nosuid,nodev,noexec,relatime)
+efivarfs on /sys/firmware/efi/efivars type efivarfs (rw,nosuid,nodev,noexec,relatime)
+cgroup on /sys/fs/cgroup/memory type cgroup (rw,nosuid,nodev,noexec,relatime,seclabel,memory)
+cgroup on /sys/fs/cgroup/freezer type cgroup (rw,nosuid,nodev,noexec,relatime,seclabel,freezer)
+cgroup on /sys/fs/cgroup/cpu,cpuacct type cgroup (rw,nosuid,nodev,noexec,relatime,seclabel,cpuacct,cpu)
+cgroup on /sys/fs/cgroup/devices type cgroup (rw,nosuid,nodev,noexec,relatime,seclabel,devices)
+cgroup on /sys/fs/cgroup/perf_event type cgroup (rw,nosuid,nodev,noexec,relatime,seclabel,perf_event)
+cgroup on /sys/fs/cgroup/pids type cgroup (rw,nosuid,nodev,noexec,relatime,seclabel,pids)
+cgroup on /sys/fs/cgroup/hugetlb type cgroup (rw,nosuid,nodev,noexec,relatime,seclabel,hugetlb)
+cgroup on /sys/fs/cgroup/net_cls,net_prio type cgroup (rw,nosuid,nodev,noexec,relatime,seclabel,net_prio,net_cls)
+cgroup on /sys/fs/cgroup/cpuset type cgroup (rw,nosuid,nodev,noexec,relatime,seclabel,cpuset)
+cgroup on /sys/fs/cgroup/blkio type cgroup (rw,nosuid,nodev,noexec,relatime,seclabel,blkio)
+configfs on /sys/kernel/config type configfs (rw,relatime)
+/dev/sda on /run/install/repo type iso9660 (ro,relatime)
+/dev/mapper/live-rw on / type ext4 (rw,relatime,seclabel,data=ordered)
+rpc_pipefs on /var/lib/nfs/rpc_pipefs type rpc_pipefs (rw,relatime)
+selinuxfs on /sys/fs/selinux type selinuxfs (rw,relatime)
+systemd-1 on /proc/sys/fs/binfmt_misc type autofs (rw,relatime,fd=23,pgrp=1,timeout=0,minproto=5,maxproto=5,direct,pipe_ino=23652)
+tmpfs on /tmp type tmpfs (rw,seclabel)
+hugetlbfs on /dev/hugepages type hugetlbfs (rw,relatime,seclabel)
+mqueue on /dev/mqueue type mqueue (rw,relatime,seclabel)
+debugfs on /sys/kernel/debug type debugfs (rw,relatime)
+/dev/sdc1 on /mnt/usb type vfat (rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,errors=remount-ro)
+
+
+lsblk -o +MODEL,LABEL,STATE
+NAME        MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT MODEL                                    LABEL                STATE
+sda           8:0    1  28.7G  0 disk            Ultra Fit                                RHVH-4.3 RHVH.x86_64 running
+|-sda1        8:1    1   1.1G  0 part                                                     RHVH-4.3 RHVH.x86_64 
+`-sda2        8:2    1   8.5M  0 part                                                     ANACONDA             
+sdc           8:32   1   3.8G  0 disk            Flash Disk                                                    running
+`-sdc1        8:33   1   3.8G  0 part /mnt/usb                                            JOHNCALL             
+loop0         7:0    0 410.2M  1 loop                                                                          
+loop1         7:1    0     2G  1 loop                                                     Anaconda             
+|-live-rw   253:0    0     2G  0 dm   /                                                   Anaconda             running
+`-live-base 253:1    0     2G  1 dm                                                       Anaconda             running
+loop2         7:2    0   512M  0 loop                                                                          
+`-live-rw   253:0    0     2G  0 dm   /                                                   Anaconda             running
+nvme0n1     259:0    0 238.5G  0 disk            SAMSUNG MZVLW256HEHP-000L7                                    live
+|-nvme0n1p1 259:1    0   499M  0 part                                                     Recovery             
+|-nvme0n1p2 259:2    0    99M  0 part                                                                          
+|-nvme0n1p3 259:3    0    16M  0 part                                                                          
+|-nvme0n1p4 259:4    0  97.7G  0 part                                                                          
+|-nvme0n1p5 259:5    0     1G  0 part                                                                          
+`-nvme0n1p6 259:6    0 139.2G  0 part                                                                          

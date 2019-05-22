@@ -2,6 +2,8 @@
 ###############################################################################
 # John Call hacked this up for RHVH from Frank's work at
 # https://github.com/RedHatGov/ssg-el7-kickstart.git
+#
+# see also: https://access.redhat.com/solutions/1147263
 ###############################################################################
 
 # GLOBAL VARIABLES
@@ -127,7 +129,7 @@ find . -name TRANS.TBL -exec rm '{}' \;
 # -R -- generate Rock Ridge records, for Linux (POSIX)
 # -T -- generate translation tables (TRANS.TBL) for stuff older than Joliet and Rock Ridge
 # -m TRANS.TBL -- exclude any TRANS.TBL files in the source tree from the output destination
-# -V -- set the Volume ID
+# -V -- set the Volume ID !!!!!! This is referenced on the kernel cmdline to find the kickstart file !!!!!!!
 # -o -- output file
 #
 # -b isolinux/isolinux.bin -- el torito boot image (in source tree)
@@ -137,7 +139,7 @@ find . -name TRANS.TBL -exec rm '{}' \;
 # -boot-info-table -- patch/modify the isolinux.bin with 56 bytes of image layout
 # 
 # -eltorito-alt-boot -- 
-# -e (-efi-boot) -- EFI boot file
+# -e (-efi-boot) images/efiboot.img -- EFI boot file
 # -no-emul-boot -- use it again, for EFI boot / "isohybrid" - https://wiki.syslinux.org/wiki/index.php?title=Isohybrid#UEFI
 
 /usr/bin/mkisofs -J -T -V "RHEL-$RHEL_VERSION Server.x86_64" -o $DIR/ssg-rhel-$RHEL_VERSION.iso -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot -R -m TRANS.TBL .
