@@ -6,105 +6,76 @@
 # see also: https://access.redhat.com/solutions/1147263
 ###############################################################################
 
-# GLOBAL VARIABLES
-DIR=`pwd`
-
 # USAGE STATEMENT
 function usage() {
 cat << EOF
-usage: $0 rhel-server-7.X-x86_64-dvd.iso
 
-SCAP Security Guide RHEL Kickstart RHEL 7.1+
-
-Customizes a RHEL 7.1+ x86_64 Server or Workstation DVD to install
-with the following hardening:
-
-  - SCAP Security Guide (SSG) for Red Hat Enterprise Linux
-  - Classification Banner (Graphical Desktop)
+Error!  Use this program to customize the Red Hat Virtualization Host (RHVH) ISO
+        
+usage: $0 RHVH-4.3-20190418.4-RHVH-x86_64-dvd1.iso
 
 EOF
+exit 1
 }
 
-while getopts ":vhq" OPTION; do
-	case $OPTION in
-		h)
-			usage
-			exit 0
-			;;
-		?)
-			echo "ERROR: Invalid Option Provided!"
-			echo
-			usage
-			exit 1
-			;;
-	esac
-done
+# Check for correct arguments
+if [[ $# -ne 1 ]]; then usage; exit 1; fi
 
-# Check for root user
+# Check for root user, required to mount the ISO and install required tools
 if [[ $EUID -ne 0 ]]; then
-	if [ -z "$QUIET" ]; then
-		echo
-		tput setaf 1;echo -e "\033[1mPlease re-run this script as root!\033[0m";tput sgr0
-	fi
-	exit 1
+  tput setaf 1; echo -e "\033[1mPlease re-run this script as root!\033[0m"; tput sgr0; echo
+  echo "root is required to mount the ISO and install required tools"
+  echo "e.g. sudo $0 $@"
+  exit 1
 fi
 
-# Check for required packages
-rpm -q genisoimage &> /dev/null
-if [ $? -ne 0 ]; then
-	yum install -y genisoimage
+
+echo "Make sure all tools (genisoimage, isomd5sum, syslinux) are installed..."
+rpm -q genisoimage || yum install -y genisoimage
+rpm -q isomd5sum || yum install -y isomd5sum
+rpm -q syslinux || yum install -y syslinux 
+
+
+echo "Checking for available disk space in /tmp"
+volume_size=$(isoinfo -d -i /var/lib/libvirt/images/RHVH-4.3-20190418.4-RHVH-x86_64-dvd1.iso | awk '/Volume size/ {print $NF}')
+block_size=$(isoinfo -d -i /var/lib/libvirt/images/RHVH-4.3-20190418.4-RHVH-x86_64-dvd1.iso | awk '/block size/ {print $NF}')
+required_bytes=$(( volume_size * block_size ))
+available_kilobytes=$(df --output=avail /tmp | awk '/^[0-9]/')
+available_bytes=$(( available_kilobytes * 1024 ))
+if [[ $required_bytes -gt $available_bytes  ]]; then
+  tput setaf 1; echo -e "\033[1mNot enough free space in /tmp!\033[0m"; tput sgr0; echo
+  echo "Need $required_bytes bytes"
+  echo "Have $available_bytes bytes"
+  exit 1
 fi
 
-rpm -q syslinux &> /dev/null
-if [ $? -ne 0 ]; then
-	yum install -y syslinux 
+echo "Checking for available disk space in output directory ($(pwd))"
+OUTDIR=$(pwd)
+OUTFILE=$(basename $1 | sed 's/.iso$/-NEW.iso/')
+available_kilobytes=$(df --output=avail $OUTDIR | awk '/^[0-9]/')
+available_bytes=$(( available_kilobytes * 1024 ))
+if [[ $required_bytes -gt $available_bytes  ]]; then
+  tput setaf 1; echo -e "\033[1mNot enough free space to create ISO at $OUTDIR!\033[0m"; tput sgr0; echo
+  echo "Need $required_bytes bytes"
+  echo "Have $available_bytes bytes"
+  exit 1
 fi
 
-rpm -q isomd5sum &> /dev/null
-if [ $? -ne 0 ]; then
-	yum install -y isomd5sum
-fi
 
-# Determine if DVD is Bootable
-`file $1 | grep -q -e "9660.*boot" -e "x86 boot" -e "DOS/MBR boot"`
-if [[ $? -eq 0 ]]; then
-	echo "Mounting RHEL DVD Image..."
-	mkdir -p /rhel
-	mkdir $DIR/rhel-dvd
-	mount -o loop $1 /rhel
-	echo "Done."
-	# Tests DVD for RHEL 7.4+
-	if [ -e /rhel/.discinfo ]; then
-		RHEL_VERSION=$(grep "Red Hat" /rhel/.discinfo | awk -F ' ' '{ print $5 }')
-		MAJOR=$(echo $RHEL_VERSION | awk -F '.' '{ print $1 }')
-		MINOR=$(echo $RHEL_VERSION | awk -F '.' -F ' ' '{ print $2 }')
-		if [[ $MAJOR -ne 7 ]]; then
-			echo "ERROR: Image is not RHEL 7.4+"
-			umount /rhel
-			rm -rf /rhel
-			exit 1
-		fi
-		if [[ $MINOR -ge 4 ]]; then
-			echo "ERROR: Image is not RHEL 7.4+"
-			umount /rhel
-			rm -rf /rhel
-			exit 1
-		fi
-	else
-		echo "ERROR: Image is not RHEL"
-		exit 1
-	fi
+echo "Mount ISO image..."
+SOURCE=$(mktemp -d)
+DEST=$(mktemp -d)
+mount -o loop $1 $SOURCE
 
-	echo -n "Copying RHEL DVD Image..."
-	cp -a /rhel/* $DIR/rhel-dvd/
-	cp -a /rhel/.discinfo $DIR/rhel-dvd/
-	echo " Done."
-	umount /rhel
-	rm -rf /rhel
-else
-	echo "ERROR: ISO image is not bootable."
-	exit 1
-fi
+
+echo "Copying ISO contents..."
+shopt -s dotglob
+cp -av ${SOURCE}/* ${DEST}/
+umount $SOURCE
+rm -rv $SOURCE
+
+
+
 
 echo -n "Modifying RHEL DVD Image..."
 # Set RHEL Version in ISO Linux
@@ -116,16 +87,30 @@ if [[ $MINOR -ge 3 ]]; then
 fi
 sed -i "s/$RHEL_VERSION/7.X/g" $DIR/config/isolinux/isolinux.cfg
 sed -i "s/$RHEL_VERSION/7.X/g" $DIR/config/EFI/BOOT/grub.cfg
-echo " Done."
+
+
+
+
 echo "Remastering RHEL DVD Image..."
-cd $DIR/rhel-dvd
-
-
-# Getting boot image ready for boot layout patch..."
+cd $DEST
+# make boot image writeable, because `genisoimage` patches some layout data into it
 chmod u+w isolinux/isolinux.bin
+genisoimage -J -T -V "RHEL-$RHEL_VERSION Server.x86_64" -o $DIR/ssg-rhel-$RHEL_VERSION.iso -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot -R -m TRANS.TBL .
 
-# Removing the TRANS.TBL files is unnecessary because we're masking them with `genisoimage -m TRANS.TBL ...`
-find . -name TRANS.TBL -exec rm '{}' \; 
+# make ISO bootable on UEFI systems
+isohybrid --uefi $DIR/ssg-rhel-$RHEL_VERSION.iso
+
+# Does this add the MD5SUM to the "-A" field of genisoimage?
+# I don't think Red Hat supplies this in their official isos...
+implantisomd5 $DIR/ssg-rhel-$RHEL_VERSION.iso
+
+echo "Cleaning up..."
+cd -
+rm -rf $DEST
+
+echo "DVD Created. [ssg-rhel-$RHEL_VERSION.iso]"
+exit 0
+
 
 # Notes by John Call
 # -J -- generate Joliet records, for Microsoft
@@ -144,21 +129,3 @@ find . -name TRANS.TBL -exec rm '{}' \;
 # -eltorito-alt-boot -- 
 # -e (-efi-boot) images/efiboot.img -- EFI boot file
 # -no-emul-boot -- use it again, for EFI boot / "isohybrid" - https://wiki.syslinux.org/wiki/index.php?title=Isohybrid#UEFI
-
-#/usr/bin/mkisofs -> /usr/bin/genisoimage
-/usr/bin/genisoimage -J -T -V "RHEL-$RHEL_VERSION Server.x86_64" -o $DIR/ssg-rhel-$RHEL_VERSION.iso -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot -R -m TRANS.TBL .
-
-echo "Cleaning up..."
-cd $DIR
-rm -rf $DIR/rhel-dvd
-
-echo "Making ISO bootable on UEFI systems..."
-/usr/bin/isohybrid --uefi $DIR/ssg-rhel-$RHEL_VERSION.iso &> /dev/null
-
-echo "Signing RHEL DVD Image..."
-# Does this add the MD5SUM to the "-A" field of genisoimage?
-# I don't think Red Hat supplies this in their official isos...
-/usr/bin/implantisomd5 $DIR/ssg-rhel-$RHEL_VERSION.iso
-
-echo "DVD Created. [ssg-rhel-$RHEL_VERSION.iso]"
-exit 0
