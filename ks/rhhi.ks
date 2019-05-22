@@ -1,12 +1,27 @@
+# RHVH kickstart created by John Call
 # Assumes UEFI (/boot/efi) boot mode
-liveimg --url=http://nas/redhat-virtualization-host-4.3-20190512.0.el7_6.squashfs.img
+
+### Use this block for ISO/USB installs -- remove it for PXE/network installs
+%pre
+cd /tmp
+rpm2cpio /run/install/repo/Packages/redhat-virtualization-host-image-update*|cpio -ivd
+squashfs=$(find|grep squashfs|grep -v meta)
+ln -s $squashfs /tmp/squashfs
+%end
+liveimg --url=file:///tmp/squashfs
+### End ISO/USB block
+
+# Use this for PXE/network installs -- and remove the liveimg + %pre section above
+#liveimg --url=http://nas/redhat-virtualization-host-4.3-20190512.0.el7_6.squashfs.img
 
 %pre
 echo "DANGER, wipeing all data"
+KEEP=$(lsblk --noheadings --nodeps -o NAME,LABEL | awk '/RHVH-4.3 RHVH.x86_64/ {print $1}')
 # List all block devices, except loopbacks
 for i in $(lsblk --noheadings --nodeps --exclude 7 -o NAME); do
-  wipefs -af /dev/$i
-  dd if=/dev/zero of=/dev/$i bs=1M count=10
+  [[ $i != $KEEP ]] && echo "wiping $i"
+  [[ $i != $KEEP ]] && wipefs -af /dev/$i
+  [[ $i != $KEEP ]] && dd if=/dev/zero of=/dev/$i bs=1M count=10
 done
 %end
 
