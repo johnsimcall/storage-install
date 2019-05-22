@@ -1,0 +1,40 @@
+[38;5;66m[m
+[38;5;66m--- /nas/ISOs/rhel-server-7.4-x86_64-dvd.iso[m
+[38;5;66mRegular file, size 3.780 GiB (4059037696 bytes)[m
+[38;5;66mDOS/MBR partition map[m
+[38;5;66mPartition 2: 8.785 MiB (9211904 bytes, 17992 sectors from 699276)[m
+[38;5;66m  Type 0xEF (EFI System (FAT))[m
+[38;5;66m  FAT16 file system (hints score 5 of 5)[m
+[38;5;66m    Volume size 8.748 MiB (9172992 bytes, 4479 clusters of 2 KiB)[m
+[38;5;66m    Volume name "ANACONDA"[m
+[38;5;66mGPT partition map, 128 entries[m
+[38;5;66m  Disk size 3.780 GiB (4059037184 bytes, 7927807 sectors)[m
+[38;5;66m  Disk GUID 67A975A4-B6A6-224A-A6DA-84C570255482[m
+[38;5;66mPartition 1: 3.780 GiB (4058890752 bytes, 7927521 sectors from 0)[m
+[38;5;66m  Type Basic Data (GUID A2A0D0EB-E5B9-3344-87C0-68B6B72699C7)[m
+[38;5;66m  Partition Name "I"[m
+[38;5;66m  Partition GUID 602EF533-8E59-394E-B6B7-526AF35F1207[m
+[38;5;66mPartition 2: 8.785 MiB (9211904 bytes, 17992 sectors from 699276)[m
+[38;5;66m  Type Basic Data (GUID A2A0D0EB-E5B9-3344-87C0-68B6B72699C7)[m
+[38;5;66m  Partition Name "I"[m
+[38;5;66m  Partition GUID 8E7D0C4A-DA89-F64F-81AE-1A805E21E0CA[m
+[38;5;66m  FAT16 file system (hints score 5 of 5)[m
+[38;5;66m    Volume size 8.748 MiB (9172992 bytes, 4479 clusters of 2 KiB)[m
+[38;5;66m    Volume name "ANACONDA"[m
+[38;5;66mPartition 3: unused[m
+[38;5;66mISO9660 file system[m
+[38;5;66m  Volume name "RHEL-7.4 Server.x86_64"[m
+[38;5;66m  Application "GENISOIMAGE ISO 9660/HFS FILESYSTEM CREATOR (C) 1993 E.YOUNGDALE (C) 1997-2006 J.PEARSON/J.SCHILLING (C) 2006-2007 CDRKIT TEAM"[m
+[38;5;66m  Data size 3.780 GiB (4058890240 bytes, 1981880 blocks of 2 KiB)[m
+[38;5;66m  El Torito boot record, catalog at 787[m
+[38;5;66m    Bootable non-emulated image, starts at 233604, preloads 2 KiB[m
+[38;5;66m      Platform 0x00 (x86), System Type 0x00 (Empty)[m
+[38;5;66m      ISOLINUX boot loader[m
+[38;5;66m    Bootable non-emulated image, starts at 174819, preloads 8.785 MiB (9211904 bytes)[m
+[38;5;66m      Platform 0xEF (EFI), System Type 0x00 (Empty)[m
+[38;5;66m      FAT16 file system (hints score 5 of 5)[m
+[38;5;66m        Volume size 8.748 MiB (9172992 bytes, 4479 clusters of 2 KiB)[m
+[38;5;66m        Volume name "ANACONDA"[m
+[38;5;66m  Joliet extension, volume name "RHEL-7.4 Server."[m
+[38;5;66m[m
+[m

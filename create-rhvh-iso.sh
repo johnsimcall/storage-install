@@ -119,6 +119,9 @@ sed -i "s/$RHEL_VERSION/7.X/g" $DIR/config/EFI/BOOT/grub.cfg
 echo " Done."
 echo "Remastering RHEL DVD Image..."
 cd $DIR/rhel-dvd
+
+
+# Getting boot image ready for boot layout patch..."
 chmod u+w isolinux/isolinux.bin
 
 # Removing the TRANS.TBL files is unnecessary because we're masking them with `genisoimage -m TRANS.TBL ...`
@@ -142,17 +145,20 @@ find . -name TRANS.TBL -exec rm '{}' \;
 # -e (-efi-boot) images/efiboot.img -- EFI boot file
 # -no-emul-boot -- use it again, for EFI boot / "isohybrid" - https://wiki.syslinux.org/wiki/index.php?title=Isohybrid#UEFI
 
-/usr/bin/mkisofs -J -T -V "RHEL-$RHEL_VERSION Server.x86_64" -o $DIR/ssg-rhel-$RHEL_VERSION.iso -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot -R -m TRANS.TBL .
+#/usr/bin/mkisofs -> /usr/bin/genisoimage
+/usr/bin/genisoimage -J -T -V "RHEL-$RHEL_VERSION Server.x86_64" -o $DIR/ssg-rhel-$RHEL_VERSION.iso -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot -R -m TRANS.TBL .
 
+echo "Cleaning up..."
 cd $DIR
 rm -rf $DIR/rhel-dvd
-echo "Done."
+
+echo "Making ISO bootable on UEFI systems..."
+/usr/bin/isohybrid --uefi $DIR/ssg-rhel-$RHEL_VERSION.iso &> /dev/null
 
 echo "Signing RHEL DVD Image..."
-/usr/bin/isohybrid --uefi $DIR/ssg-rhel-$RHEL_VERSION.iso &> /dev/null
+# Does this add the MD5SUM to the "-A" field of genisoimage?
+# I don't think Red Hat supplies this in their official isos...
 /usr/bin/implantisomd5 $DIR/ssg-rhel-$RHEL_VERSION.iso
-echo "Done."
 
 echo "DVD Created. [ssg-rhel-$RHEL_VERSION.iso]"
-
 exit 0
