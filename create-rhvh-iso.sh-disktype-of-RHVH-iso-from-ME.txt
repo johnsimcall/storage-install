@@ -1,0 +1,39 @@
+
+--- /home/jcall/RHVH-4.3-20190418.4-RHVH-x86_64-dvd1-NEW.iso
+Regular file, size 1.105 GiB (1186988032 bytes)
+DOS/MBR partition map
+Partition 2: 8.506 MiB (8919040 bytes, 17420 sectors from 256)
+  Type 0xEF (EFI System (FAT))
+  FAT16 file system (hints score 5 of 5)
+    Volume size 8.469 MiB (8880128 bytes, 4336 clusters of 2 KiB)
+    Volume name "ANACONDA"
+GPT partition map, 128 entries
+  Disk size 1.105 GiB (1186988032 bytes, 2318336 sectors)
+  Disk GUID F503D521-B676-214A-91B4-97273DF35C67
+Partition 1: 1.105 GiB (1186953216 bytes, 2318268 sectors from 0)
+  Type Basic Data (GUID A2A0D0EB-E5B9-3344-87C0-68B6B72699C7)
+  Partition Name "ISOHybrid ISO"
+  Partition GUID CDB52962-303C-9342-AA66-70B79CB9D6D7
+Partition 2: 8.506 MiB (8919040 bytes, 17420 sectors from 256)
+  Type Basic Data (GUID A2A0D0EB-E5B9-3344-87C0-68B6B72699C7)
+  Partition Name "ISOHybrid"
+  Partition GUID 77DBF745-7B5C-7842-B71E-4564ECC648FA
+  FAT16 file system (hints score 5 of 5)
+    Volume size 8.469 MiB (8880128 bytes, 4336 clusters of 2 KiB)
+    Volume name "ANACONDA"
+Partition 3: unused
+ISO9660 file system
+  Volume name "RHVH-4.3 RHVH.x86_64"
+  Application "GENISOIMAGE ISO 9660/HFS FILESYSTEM CREATOR (C) 1993 E.YOUNGDALE (C) 1997-2006 J.PEARSON/J.SCHILLING (C) 2006-2007 CDRKIT TEAM"
+  Data size 1.105 GiB (1186953216 bytes, 579567 blocks of 2 KiB)
+  El Torito boot record, catalog at 51
+    Bootable non-emulated image, starts at 52, preloads 2 KiB
+      Platform 0x00 (x86), System Type 0x00 (Empty)
+      ISOLINUX boot loader
+    Bootable non-emulated image, starts at 64, preloads 8.506 MiB (8919040 bytes)
+      Platform 0xEF (EFI), System Type 0x00 (Empty)
+      FAT16 file system (hints score 5 of 5)
+        Volume size 8.469 MiB (8880128 bytes, 4336 clusters of 2 KiB)
+        Volume name "ANACONDA"
+  Joliet extension, volume name "RHVH-4.3 RHVH.x8"
+

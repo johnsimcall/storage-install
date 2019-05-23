@@ -61,6 +61,10 @@ if [[ $required_bytes -gt $available_bytes  ]]; then
   exit 1
 fi
 
+if [[ -e ${OUTDIR}/${OUTFILE} ]]; then 
+  tput setaf 1; echo -e "\033[1mOutput file already exists at ${OUTDIR}/${OUTFILE}!\033[0m"; tput sgr0; echo
+  exit 1
+fi
 
 echo "Mount ISO image..."
 SOURCE=$(mktemp -d)
@@ -77,16 +81,10 @@ rm -rv $SOURCE
 
 
 
-echo -n "Modifying RHEL DVD Image..."
-# Set RHEL Version in ISO Linux
-sed -i "s/7.X/$RHEL_VERSION/g" $DIR/config/isolinux/isolinux.cfg
-sed -i "s/7.X/$RHEL_VERSION/g" $DIR/config/EFI/BOOT/grub.cfg
-cp -a $DIR/config/* $DIR/rhel-dvd/
-if [[ $MINOR -ge 3 ]]; then
-	rm -f $DIR/rhel-dvd/hardening/openscap*rpm 
-fi
-sed -i "s/$RHEL_VERSION/7.X/g" $DIR/config/isolinux/isolinux.cfg
-sed -i "s/$RHEL_VERSION/7.X/g" $DIR/config/EFI/BOOT/grub.cfg
+echo "Installing custom kickstarts..."
+cp -v  /home/jcall/Documents/storage-install/ks/rhhi.ks ${DEST}/dota.ks
+cp -fv /home/jcall/Documents/storage-install/ks/usb-isolinux.cfg ${DEST}/isolinux/isolinux.cfg
+cp -fv /home/jcall/Documents/storage-install/ks/usb-grub.cfg ${DEST}/EFI/BOOT/grub.cfg
 
 
 
@@ -95,20 +93,24 @@ echo "Remastering RHEL DVD Image..."
 cd $DEST
 # make boot image writeable, because `genisoimage` patches some layout data into it
 chmod u+w isolinux/isolinux.bin
-genisoimage -J -T -V "RHEL-$RHEL_VERSION Server.x86_64" -o $DIR/ssg-rhel-$RHEL_VERSION.iso -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot -R -m TRANS.TBL .
+VOLNAME=$(isoinfo -d -i /var/lib/libvirt/images/RHVH-4.3-20190418.4-RHVH-x86_64-dvd1.iso | awk -F ': ' '/Volume id:/ {print $NF}')
+genisoimage -R -J -T -m TRANS.TBL \
+  -V "$VOLNAME" -o ${OUTDIR}/${OUTFILE} \
+  -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table \
+  -eltorito-alt-boot -e images/efiboot.img -no-emul-boot .
 
 # make ISO bootable on UEFI systems
-isohybrid --uefi $DIR/ssg-rhel-$RHEL_VERSION.iso
+isohybrid --uefi ${OUTDIR}/${OUTFILE}
 
 # Does this add the MD5SUM to the "-A" field of genisoimage?
 # I don't think Red Hat supplies this in their official isos...
-implantisomd5 $DIR/ssg-rhel-$RHEL_VERSION.iso
+implantisomd5 ${OUTDIR}/${OUTFILE}
 
 echo "Cleaning up..."
-cd -
+cd - &> /dev/null
 rm -rf $DEST
 
-echo "DVD Created. [ssg-rhel-$RHEL_VERSION.iso]"
+echo "Created new ISO as ${OUTDIR}/${OUTFILE}"
 exit 0
 
 

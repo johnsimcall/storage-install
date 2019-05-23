@@ -1,36 +1,34 @@
 # RHVH kickstart created by John Call
 # Assumes UEFI (/boot/efi) boot mode
 
-### Use this block for ISO/USB installs -- remove it for PXE/network installs
-%pre
-cd /tmp
-rpm2cpio /run/install/repo/Packages/redhat-virtualization-host-image-update*|cpio -ivd
-squashfs=$(find|grep squashfs|grep -v meta)
-ln -s $squashfs /tmp/squashfs
-%end
 liveimg --url=file:///tmp/squashfs
-### End ISO/USB block
-
-# Use this for PXE/network installs -- and remove the liveimg + %pre section above
+# Use below for PXE/network installs
 #liveimg --url=http://nas/redhat-virtualization-host-4.3-20190512.0.el7_6.squashfs.img
 
-%pre
-echo "DANGER, wipeing all data"
+%pre --erroronfail
+### BEGIN ISO/USB block | I EXPECT THIS TO BREAK PXE INSTALLS...
+cd /tmp
+rpm2cpio /run/install/repo/Packages/redhat-virtualization-host-image-update* | cpio -ivd
+squashfs=$(find | grep squashfs | grep -v meta)
+ln -s $squashfs /tmp/squashfs
+### END ISO/USB block
+
 KEEP=$(lsblk --noheadings --nodeps -o NAME,LABEL | awk '/RHVH-4.3 RHVH.x86_64/ {print $1}')
-# List all block devices, except loopbacks
-for i in $(lsblk --noheadings --nodeps --exclude 7 -o NAME); do
-  [[ $i != $KEEP ]] && echo "wiping $i"
-  [[ $i != $KEEP ]] && wipefs -af /dev/$i
-  [[ $i != $KEEP ]] && dd if=/dev/zero of=/dev/$i bs=1M count=10
+echo "DANGER -- Wiping all disks, except loopbacks, roms, and installaion media..."
+for i in $(lsblk --noheadings --nodeps --exclude 7,11 -o NAME); do
+  [[ $i != "$KEEP" ]] && echo && echo "wiping $i"
+  [[ $i != "$KEEP" ]] && lsblk --nodeps /dev/$i -o +MODEL
+  [[ $i != "$KEEP" ]] && wipefs -af /dev/$i
+  [[ $i != "$KEEP" ]] && dd if=/dev/zero of=/dev/$i bs=1M count=10
 done
 %end
+
 
 lang en_US
 keyboard us
 timezone America/Denver --utc
 rootpw --plaintext redhat1
 network --device=link --bootproto=dhcp
-
 # If you use logvol ... --thinpool --grow, you must also include volgroup --reserved-space OR volgroup --reserved-percent ... 
 # From RHHI docs:  Minimum Total - 64 GB (64*1024=65536)
 # https://access.redhat.com/documentation/en-us/red_hat_hyperconverged_infrastructure_for_virtualization/1.5/html-single/deploying_red_hat_hyperconverged_infrastructure_for_virtualization/index#rhhi-req-storage
