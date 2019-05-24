@@ -52,6 +52,16 @@ logvol /var/log/audit --vgname=RHVH --fstype=xfs  --size=2048  --name=var_audit 
                                                   #TOTAL=69888 (68608 in PV/LVM + 1280 for /boot*)
 reboot
 
+# TODO: Clean this up
+%addon org_fedora_oscap
+        content-type = scap-security-guide
+#        profile = pc-dss_centric
+        profile = xccdf_org.ssgproject.content_profile_stig-rhel7-disa
+#        profile = stig-rhel7-disa
+#        profile = stig-rhel7-server-upstream
+#        profile = stig-rhel7-server
+%end
+
 
 %post --erroronfail
 imgbase layout --init
