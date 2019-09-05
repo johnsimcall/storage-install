@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 ###############################################################################
 # John Call hacked this up for RHVH from Frank's work at
 # https://github.com/RedHatGov/ssg-el7-kickstart.git
@@ -9,17 +10,15 @@
 # USAGE STATEMENT
 function usage() {
 cat << EOF
-
 Error!  Use this program to customize the Red Hat Virtualization Host (RHVH) ISO
         
-usage: $0 RHVH-4.3-20190418.4-RHVH-x86_64-dvd1.iso
-
+usage: $0 /path/to/rhhi.ks /path/to/RHVH*.iso
 EOF
 exit 1
 }
 
 # Check for correct arguments
-if [[ $# -ne 1 ]]; then usage; exit 1; fi
+if [[ $# -ne 2 ]]; then usage; exit 1; fi
 
 # Check for root user, required to mount the ISO and install required tools
 if [[ $EUID -ne 0 ]]; then
@@ -37,8 +36,8 @@ rpm -q syslinux || yum install -y syslinux
 
 
 echo "Checking for available disk space in /tmp"
-volume_size=$(isoinfo -d -i /var/lib/libvirt/images/RHVH-4.3-20190418.4-RHVH-x86_64-dvd1.iso | awk '/Volume size/ {print $NF}')
-block_size=$(isoinfo -d -i /var/lib/libvirt/images/RHVH-4.3-20190418.4-RHVH-x86_64-dvd1.iso | awk '/block size/ {print $NF}')
+volume_size=$(isoinfo -d -i $2 | awk '/Volume size/ {print $NF}')
+block_size=$(isoinfo -d -i $2 | awk '/block size/ {print $NF}')
 required_bytes=$(( volume_size * block_size ))
 available_kilobytes=$(df --output=avail /tmp | awk '/^[0-9]/')
 available_bytes=$(( available_kilobytes * 1024 ))
@@ -51,7 +50,7 @@ fi
 
 echo "Checking for available disk space in output directory ($(pwd))"
 OUTDIR=$(pwd)
-OUTFILE=$(basename $1 | sed 's/.iso$/-NEW.iso/')
+OUTFILE=$(basename $2 | sed 's/.iso$/-NEW.iso/')
 available_kilobytes=$(df --output=avail $OUTDIR | awk '/^[0-9]/')
 available_bytes=$(( available_kilobytes * 1024 ))
 if [[ $required_bytes -gt $available_bytes  ]]; then
@@ -66,34 +65,39 @@ if [[ -e ${OUTDIR}/${OUTFILE} ]]; then
   exit 1
 fi
 
+
+
+
 echo "Mount ISO image..."
 SOURCE=$(mktemp -d)
 DEST=$(mktemp -d)
-mount -o loop $1 $SOURCE
-
+mount -o loop $2 $SOURCE
 
 echo "Copying ISO contents..."
 shopt -s dotglob
 cp -av ${SOURCE}/* ${DEST}/
+
+echo "Unmount and cleanup temporary mount point..."
 umount $SOURCE
 rm -rv $SOURCE
 
 
 
-
+#TODO: Extract isolinux.cfg and grub.cfg from the source ISO
+#      and patch them, instead of providing them
 echo "Installing custom kickstarts..."
-cp -v  /home/jcall/Documents/storage-install/ks/rhhi.ks ${DEST}/dota.ks
-cp -fv /home/jcall/Documents/storage-install/ks/usb-isolinux.cfg ${DEST}/isolinux/isolinux.cfg
-cp -fv /home/jcall/Documents/storage-install/ks/usb-grub.cfg ${DEST}/EFI/BOOT/grub.cfg
-
-
+cp -v  $1 ${DEST}/dota.ks
+cp -v /home/jcall/Documents/FAA-Tech/*.ks ${DEST}/
+echo "Patching BIOS and UEFI boot menus..."
+cp -fv /home/jcall/Documents/storage-install/my_isolinux.cfg ${DEST}/isolinux/isolinux.cfg
+cp -fv /home/jcall/Documents/storage-install/my_grub.cfg ${DEST}/EFI/BOOT/grub.cfg
 
 
 echo "Remastering RHEL DVD Image..."
 cd $DEST
 # make boot image writeable, because `genisoimage` patches some layout data into it
 chmod u+w isolinux/isolinux.bin
-VOLNAME=$(isoinfo -d -i /var/lib/libvirt/images/RHVH-4.3-20190418.4-RHVH-x86_64-dvd1.iso | awk -F ': ' '/Volume id:/ {print $NF}')
+VOLNAME=$(isoinfo -d -i $2 | awk -F ': ' '/Volume id:/ {print $NF}')
 genisoimage -R -J -T -m TRANS.TBL \
   -V "$VOLNAME" -o ${OUTDIR}/${OUTFILE} \
   -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table \
