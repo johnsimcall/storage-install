@@ -1,0 +1,15 @@
+# Remove Dracut's network configuration
+# https://access.redhat.com/solutions/3017441
+# https://unix.stackexchange.com/questions/506331/networkmanager-doesnt-change-ip-address-when-dracut-cmdline-provided-static-ip
+
+[Unit]
+Description=Remove dracut's network configuration for %I
+Before=network-pre.target
+Wants=network-pre.target
+
+[Service]
+ExecStartPre=/usr/sbin/ip address show %i
+ExecStart=/usr/sbin/ip -statistics address flush dev %i
+
+[Install]
+WantedBy=default.target
