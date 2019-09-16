@@ -99,7 +99,7 @@ done
 
 # Rebuild the initramfs with the clevis module and updated /etc/crypttab /etc/fstab files... --assumes DHCP--
 #yum -y install clevis-dracut
-KVER=$(rpm -q kernel-3.10.0-1062.el7.x86_64 --qf "%{VERSION}-%{RELEASE}.%{ARCH}")
+KVER=$(rpm -q kernel --qf "%{VERSION}-%{RELEASE}.%{ARCH}")
 dracut -vf /boot/initramfs-$KVER.img $KVER
 stat /boot/initramfs-$KVER.img > /root/initramfs-timestamp.txt
 %end
