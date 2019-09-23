@@ -1,0 +1,193 @@
+---
+- hosts: all
+  gather_facts: yes
+  roles:
+    - role: linux-system-roles.network
+
+  tasks:
+  - name: Set the hostname statically
+    command: hostnamectl set-hostname {{ inventory_hostname}}
+    tags: hostname
+
+  - name: Gather new facts after network changes
+    gather_facts:
+
+  - block:
+    - name: Create a new SSH key-pair
+      command: ssh-keygen -t rsa -f /root/.ssh/id_rsa -N '' -C 'RHHI key'
+      args:
+        creates: /root/.ssh/id_rsa
+  
+    - name: Cache SSH public key
+      slurp:
+        src: /root/.ssh/id_rsa.pub
+      register: new_ssh_pub_key
+    #END block
+    delegate_to: "{{ ansible_play_hosts[0] }}"
+    run_once: true
+    tags: ssh-keys
+  
+  - name: Install SSH public key
+    authorized_key:
+      user: root
+      key: "{{ item }}"
+    with_items:
+      - "{{ new_ssh_pub_key.content | b64decode }}"
+      - "{{ my_ssh_pub_key | default('') }}"
+    tags: ssh-keys
+
+  - name: Create known_hosts lines/records
+    set_fact:
+      all_ips: "{{ hostvars[inventory_hostname]['ansible_facts']['all_ipv4_addresses'] | join(',') }}"
+      all_names: "{{ hostvars[inventory_hostname]['ansible_facts']['hostname'] + ',' + hostvars[inventory_hostname]['ansible_facts']['fqdn'] }}"
+      fingerprint: "{{ 'ecdsa-sha2-nistp256 ' + hostvars[inventory_hostname]['ansible_facts']['ssh_host_key_ecdsa_public'] }}"
+      #fingerprint: "{{ 'ssh-ed25519 ' + hostvars[inventory_hostname]['ansible_facts']['ssh_host_key_ed25519_public'] }}"
+  - set_fact:
+      known_hosts_record: "{{ all_names + ',' + all_ips + ' ' + fingerprint }}"
+
+  - name: Populate known_hosts file
+    lineinfile:
+      dest: /root/.ssh/known_hosts
+      line: "{{ hostvars[item].known_hosts_record }}"
+      create: yes
+      mode: 0644
+    with_items:
+      - "{{ ansible_play_hosts }}"
+    delegate_to: "{{ ansible_play_hosts[0] }}"
+    run_once: true
+
+  - name: Backup existing partition table
+    command: sgdisk -b /tmp/gpt-backup "{{ hostvars[inventory_hostname].disk_to_partition }}"
+    args:
+      creates: /tmp/gpt-backup
+    register: backup
+    tags: partition
+
+  - block:
+    - name: Create a new partition for LUKS
+      command: sgdisk -n 0:0:0 -c 0:"LUKS_for_Gluster" "{{ hostvars[inventory_hostname].disk_to_partition }}"
+    - name: Run 'partprobe' to tell the kernel about our new partition label
+      command: partprobe
+    #END block
+    tags: partition
+    when: backup.changed
+
+  - name: Query new partition path
+    find:
+      path: /dev/disk/by-partlabel
+      file_type: any
+      pattern: '*LUKS_for_Gluster'
+    register: find_results
+    tags: luks
+
+  - name: Check that only one partition has our label
+    assert:
+      that:
+        - find_results.matched == 1
+      fail_msg: "Error: found multiple partitions with identicle labels"
+
+  - name: Create temporary keyfile
+    copy:
+      dest: /tmp/tmp_keyfile
+      content: "{{ luks_passphrase }}"
+    tags: luks
+  - name: Create LUKS volume
+    luks_device:
+      state: opened
+      name: gluster_data
+      device: "{{ find_results.files[0].path }}"
+      keyfile: "/tmp/tmp_keyfile"
+    register: luks_result
+    tags: luks
+
+  - name: Bind the LUKS volume with Clevis and a Tang pin
+    shell: clevis luks bind -f -k- -d {{ item }} tang '{"url":"{{ tang_url}}","thp":"{{ tang_thp }}"}' <<< {{ luks_passphrase }}
+    with_items:
+      #- "{{ find_results.files[0].path }}"
+      - /dev/sda4
+    tags: clevis
+    when:
+      - tang_url is defined
+      - tang_thp is defined
+      - clevis|bool
+
+  - name: Remove temporary keyfile
+    file:
+      state: absent
+      path: /tmp/tmp_keyfile
+    tags: luks
+  - name: Query LUKS UUID
+    command: cryptsetup luksUUID "{{ find_results.files[0].path }}"
+    register: uuid_result
+    tags: luks
+  - name: Create crypttab entry with lineinfile because crypttab module doesn't work
+    lineinfile:
+      state: present
+      path: /etc/crypttab
+      regexp: "{{ uuid_result.stdout }}"
+      line: "{{ luks_result.name }}  UUID={{ uuid_result.stdout }}  none  _netdev"
+    tags: luks
+  - name: Enable clevis-luks-askpass.path
+    systemd:
+      name: clevis-luks-askpass.path
+      enabled: yes
+
+  - name: Create lvm2-pvscan@.service override directory
+    file:
+      path: /etc/systemd/system/lvm2-pvscan@.service.d
+      state: directory
+    tags: pvscan
+  - name: Create /etc/systemd/system/lvm2-pvscan@.service.d/override.conf
+    copy:
+      content: |
+        [Unit]
+        Description=Customized LVM2 PV scan on device %i
+          
+        [Service]
+        # Forcing use_lvmetad=1 because RHVH has:
+        #  configured /etc/lvm/lvmlocal.conf with use_lvmetad=0
+        #  and masked both of the systemd unit files lvm2-lvmetad.{service,socket}
+        # Which causes the pvscan command to be IGNORED (e.g. the pvscan doesn't happen)
+        #  # lvm pvscan --verbose --cache --activate ay 253:0
+        #    Ignoring pvscan --cache -aay because lvmetad is not in use.
+        #
+        # With the config override in place some warnings are issued about:
+        # not being able to connect to lvmetad,
+        #  falling back to device scanning,
+        #  and autoactivation being read from disk instead of lvmetad
+        # Which is EXACTLY WHAT WE WANT
+        #  # lvm pvscan --config 'global { use_lvmetad = 1 }' --cache --activate ay 253:0
+        #    WARNING: Failed to connect to lvmetad. Falling back to device scanning.
+        #    WARNING: Autoactivation reading from disk instead of lvmetad.
+        #    9 logical volume(s) in volume group "RHVH" now active
+        ExecStart=/usr/sbin/lvm pvscan --config 'global { use_lvmetad = 1 }' --cache --activate ay %i
+        ExecStop=/usr/sbin/lvm pvscan --config 'global { use_lvmetad = 1 }' --cache %i
+      dest: /etc/systemd/system/lvm2-pvscan@.service.d/override.conf
+    tags: pvscan
+  - name: Force systemd to reload configs
+    systemd:
+      daemon_reload: yes
+    tags: pvscan
+
+
+  - block:
+    - name: Mount NAS
+      mount:
+        path: /nas
+        src: 192.168.0.99:/nas
+        fstype: nfs
+        state: mounted
+  
+    - name: Install rhvm-appliance
+      yum:
+        name: /nas/ISOs/rhvm-appliance-4.3-20190722.0.el7.x86_64.rpm
+        state: present
+  
+    - name: Unmount NAS
+      mount:
+        path: /nas
+        state: unmounted
+    #END block
+    delegate_to: "{{ ansible_play_hosts[0] }}"
+    run_once: true
+    tags: rhvm
