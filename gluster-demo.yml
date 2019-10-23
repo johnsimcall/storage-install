@@ -91,6 +91,7 @@
       src: /dev/vg_{{ item }}/lv_{{ item }}
       path: /rhgs/{{ item }}
       fstype: xfs
+      opts: inode64,noatime,nodiratime
       state: mounted
     with_items: [sdb,sdc,sdd]
   - file:
