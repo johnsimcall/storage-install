@@ -26,12 +26,9 @@
 
 - hosts: server1
   tasks:
-  - name: Install clevis and VDO packages on storage server
-      yum:
-      name: "{{ packages }}"
-      state: latest
-      vars:
-      packages:
+  - name: Install the clevis and vdo packages on the storage server
+    yum:
+      name: 
         - libjose
         - jose
         - libluksmeta
@@ -42,3 +39,6 @@
         - clevis-systemd
         - jq
         - cryptsetup-reencrypt
+        - vdo
+        - kmod-kvdo
+      state: latest
