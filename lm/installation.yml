@@ -1,0 +1,69 @@
+---
+- hosts: all
+  gather_facts: no
+  tasks:
+  - name: Install cockpit, yum-utils, vim, git, ansible
+      yum:
+      state: latest
+      name: "{{ packages }}"
+      vars:
+      Packages:
+      - cockpit 
+      - cockpit-dashboard 
+      - cockpit-storaged
+      - yum-utils
+      - vim
+      - git
+      - ansible
+
+  - name: start cockpit socket
+      systemd: 
+        name=cockpit.socket 
+        enabled=yes 
+        state=started
+
+- hosts: tang
+  tasks:
+  - name: Install tang packages on tang server
+      yum:
+      name: tang
+      state: latest
+
+  - name: Set selinux to permissive
+      selinux:
+      policy: targeted
+      state: permissive
+
+  - name: Enable and start the tangd socket
+      systemd:
+      name: tangd.socket
+      enabled: yes
+      state: started
+
+  - name: Open port 80 on tang server - test with curl http://tang/adv
+      firewalld:
+      port: 80/tcp
+      permanent: yes
+      state: enabled
+      immediate: yes
+
+- hosts: server1
+  tasks:
+  - name: Install clevis and VDO packages on storage server
+      yum:
+      name: "{{ packages }}"
+      state: latest
+      vars:
+    packages:
+        - libjose
+        - jose
+        - libluksmeta
+        - luksmeta
+        - clevis
+        - clevis-dracut
+        - clevis-luks
+        - clevis-systemd
+        - jq
+        - cryptsetup-reencrypt
+        - vdo 
+        - kmod-kvdo
