@@ -2,7 +2,7 @@
 - hosts: all
   gather_facts: no
   tasks:
-  - name: Install cockpit, yum-utils, vim, git, ansible
+  - name: Install cockpit, yum-utils, vim, git, ansible, screen and tree
       yum:
       state: latest
       name: "{{ packages }}"
@@ -17,8 +17,6 @@
       - ansible
       - screen
       - tree
-      - vdo 
-      - kmod-kvdo
 
   - name: start cockpit socket
       systemd: 
