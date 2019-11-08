@@ -1,0 +1,6 @@
+---
+- name: Create VDO volume
+  vdo:
+    name: "vdo-{{ disk }}1"
+    state: present
+    device: "/dev/mapper/luks-{{ disk }}1"

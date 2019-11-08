@@ -1,0 +1,47 @@
+# no hosts: defined here because these tasks are being executed via include_tasks
+---
+- name: Set/make a new "encrypted_partition" variable (contents similar to "/dev/sdb1")
+  set_fact:
+    encrypted_partition: "{{ disk }}1"
+
+
+- name: Create a tmp file (used for setting unlock/decrypt password)
+  copy:
+    mode: 0600  #root can read/write, no access from group or others
+    dest: /tmp/tmp_keyfile
+    content: "{{ luks_passphrase }}"
+
+
+- name: Check if {{ disk }} has a partition
+  stat:
+    path: "{{ encrypted_partition }}"
+  register: partition_check
+
+
+- block:
+  - name: Create a new partition for LUKS
+    command: sgdisk -n 0:0:0 -c 0:"LUKS_encrypted" "{{ disk }}"
+
+  - name: Run 'partprobe' to tell the kernel about our new partition label
+    command: partprobe
+  #END block
+  when: partition_check.stat.exists == false
+
+
+- name: Create the LUKS volume
+  luks_device:
+    name: "luks-{{ disk }}1"
+    state: opened
+    device: "{{ encrypted_partition }}"
+    keyfile: /tmp/tmp_keyfile
+  register: luks_result
+
+
+#- name: Remove the tmp file
+#  file:
+#    state: absent
+#    path: /tmp/tmp_keyfile
+
+- name: Shred the tmp file
+  command: shred /tmp/tmp_keyfile
+  ignore_errors: yes

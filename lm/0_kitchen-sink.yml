@@ -1,0 +1,29 @@
+# ansible-playbook 0_kitchen-sink.yml
+---
+- name: Create partition, configure LVM, make filesystem, mount filesystem, add to hosts
+  hosts: localhost
+  gather_facts: no
+  vars:
+    - disk: sdb
+    - tang_url: http://tang.localdomain
+    - tang_thp: SYEmcgHpEHVY0NVeLscrp7aSX9w
+    - luks_passphrase: mySecretPassphraseIsMonkey
+
+  tasks:
+  - name: Encrypt /dev/{{ disk }} using LUKS
+    include_tasks: 1_luks.yml
+
+  - name: Add a Clevis/Tang method for unlock/decrypt
+    include_tasks: 2_clevis.yml
+
+  - name: Enable deduplication and compression using VDO
+    include_tasks: 3_vdo.yml
+
+  - name: Create LVM stack
+    include_tasks: 4_lvm.yml
+
+  - name: Create XFS filesystem
+    include_tasks: 5_xfs.yml
+
+  - name: Mount filesystem and update /etc/hosts
+    include_tasks: 6_mount.yml

@@ -1,0 +1,13 @@
+# I need a test file for my include_tasks files
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    - disk: sdb
+    - luks_passphrase: mySecretPassphraseIsMonkey
+    - tang_url: http://tang.localdomain
+    - tang_thp: SYEmcgHpEHVY0NVeLscrp7aSX9w
+  tasks:
+    - include_tasks: 4_lvm.yml
+    - include_tasks: 5_xfs.yml
+    - include_tasks: 6_mount.yml

@@ -1,0 +1,4 @@
+# no hosts: defined here because these tasks are being executed via include_tasks
+---
+- name: Bind the LUKS volume with Clevis and a Tang pin
+  shell: clevis luks bind -f -k- -d {{ encrypted_partition }} tang '{"url":"{{ tang_url}}","thp":"{{ tang_thp }}"}' <<< {{ luks_passphrase }}
