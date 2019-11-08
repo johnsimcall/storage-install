@@ -2,23 +2,23 @@
 - hosts: tang
   tasks:
   - name: Install tang packages on tang server
-      yum:
+    yum:
       name: tang
       state: latest
 
   - name: Set selinux to permissive
-      selinux:
+    selinux:
       policy: targeted
       state: permissive
 
   - name: Enable and start the tangd socket
-      systemd:
+    systemd:
       name: tangd.socket
       enabled: yes
       state: started
 
   - name: Open port 80 on tang server - test with curl http://tang/adv
-      firewalld:
+    firewalld:
       port: 80/tcp
       permanent: yes
       state: enabled
