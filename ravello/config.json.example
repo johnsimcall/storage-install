@@ -1,6 +1,10 @@
 {
-"username": "userid+domain@company.com",
-"password": "hurhurnotapassword"
-"appName":  "FEDSLED-SA-Storage-Workshop-",
-"blueprintId": "3125680778544"
+  "username":    "userid+domain@company.com",
+  "password":    "yourSuperSecretPassword",
+  "blueprintId": "3125680778544",
+  "appName":     "FEDSLED-SA-Storage-Workshop-",
+  "users": [
+    "student1",
+    "student10"
+  ]
 }
