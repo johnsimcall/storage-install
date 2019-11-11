@@ -1,0 +1,25 @@
+---
+- hosts: all
+  gather_facts: no
+  tasks:
+  - name: Install cockpit, yum-utils, vim, git, ansible, screen and tree
+      yum:
+      state: latest
+      name: "{{ packages }}"
+      vars:
+      Packages:
+      - cockpit 
+      - cockpit-dashboard 
+      - cockpit-storaged
+      - yum-utils
+      - vim
+      - git
+      - ansible
+      - screen
+      - tree
+
+  - name: start cockpit socket
+      systemd: 
+        name=cockpit.socket 
+        enabled=yes 
+        state=started

@@ -1,0 +1,15 @@
+---
+- name: Create a directory
+  file:
+    path: /mylovelyapp
+    state: directory
+    mode: '0755'
+
+- name: Mount FS and update fstab
+  mount:
+    src: "/dev/vg_{{ disk }}/lv_{{ disk }}"
+    path: /mylovelyapp
+    fstype: xfs
+    opts: noatime,nodiratime
+    state: mounted
+  
