@@ -6,16 +6,16 @@
       name: tang
       state: latest
 
-  - name: Set selinux to permissive
-    selinux:
-      policy: targeted
-      state: permissive
-
   - name: Enable and start the tangd socket
     systemd:
       name: tangd.socket
       enabled: yes
       state: started
+
+  - name: Apply fix for missing Key Derivation Key
+    systemd:
+      name: tangd-update
+      state: restarted
 
   - name: Open port 80 on tang server - test with curl http://tang/adv
     firewalld:
@@ -29,16 +29,10 @@
   - name: Install the clevis and vdo packages on the storage server
     yum:
       name: 
-        - libjose
-        - jose
-        - libluksmeta
-        - luksmeta
-        - clevis
-        - clevis-dracut
-        - clevis-luks
-        - clevis-systemd
         - jq
-        - cryptsetup-reencrypt
+        - clevis-dracut
+        - clevis-systemd
         - vdo
         - kmod-kvdo
+        - cryptsetup-reencrypt
       state: latest
