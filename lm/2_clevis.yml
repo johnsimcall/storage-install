@@ -1,4 +1,9 @@
 # no hosts: defined here because these tasks are being executed via include_tasks
 ---
+- name: Query Tang Thumbprint (thp) -- similar to ssh host key
+  command: ssh tang 'tang-show-keys'
+  register: tang_key
+
 - name: Bind the LUKS volume with Clevis and a Tang pin
-  shell: clevis luks bind -f -k- -d {{ encrypted_partition }} tang '{"url":"{{ tang_url}}","thp":"{{ tang_thp }}"}' <<< {{ luks_passphrase }}
+  #shell: clevis luks bind -f -k- -d {{ encrypted_partition }} tang '{"url":"{{ tang_url}}","thp":"{{ tang_thp }}"}' <<< {{ luks_passphrase }}
+  shell: clevis luks bind -f -k- -d {{ encrypted_partition }} tang '{"url":"{{ tang_url}}","thp":"{{ tang_key.stdout }}"}' <<< {{ luks_passphrase }}

@@ -1,6 +1,6 @@
 ---
 - name: Create VDO volume
   vdo:
-    name: "vdo-{{ disk }}1"
+    name: "vdo-ansible"
     state: present
-    device: "/dev/mapper/luks-{{ disk }}1"
+    device: "/dev/mapper/luks-ansible"

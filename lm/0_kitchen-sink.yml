@@ -4,7 +4,7 @@
   hosts: localhost
   gather_facts: no
   vars:
-    - disk: sdb
+    - disk: /dev/sdb
     - tang_url: http://tang.localdomain
     - tang_thp: SYEmcgHpEHVY0NVeLscrp7aSX9w
     - luks_passphrase: mySecretPassphraseIsMonkey

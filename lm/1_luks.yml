@@ -30,7 +30,7 @@
 
 - name: Create the LUKS volume
   luks_device:
-    name: "luks-{{ disk }}1"
+    name: "luks-ansible"
     state: opened
     device: "{{ encrypted_partition }}"
     keyfile: /tmp/tmp_keyfile

@@ -2,4 +2,4 @@
 - name: Create filesystem
   filesystem:
     fstype: xfs
-    dev: "/dev/vg_{{ disk }}/lv_{{ disk }}"
+    dev: "/dev/vg_ansible/lv_ansible"

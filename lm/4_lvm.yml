@@ -1,11 +1,11 @@
 ---
 - name: Create a volume group on top of {{ disk }}
   lvg:
-    vg: "vg_{{ disk }}"
-    pvs: "/dev//mapper/vdo-{{ disk }}1"
+    vg: "vg_ansible"
+    pvs: "/dev//mapper/vdo-ansible"
 
 - name: Create a logical volume the size of all remaining space in the volume group
   lvol:
-    vg: "vg_{{ disk }}"
-    lv: "lv_{{ disk }}"
+    vg: "vg_ansible"
+    lv: "lv_ansible"
     size: 100%FREE

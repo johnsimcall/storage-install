@@ -7,7 +7,7 @@
 
 - name: Mount FS and update fstab
   mount:
-    src: "/dev/vg_{{ disk }}/lv_{{ disk }}"
+    src: "/dev/vg_ansible/lv_ansible"
     path: /mylovelyapp
     fstype: xfs
     opts: noatime,nodiratime
