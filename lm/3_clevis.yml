@@ -1,4 +1,3 @@
-# no hosts: defined here because these tasks are being executed via include_tasks
 ---
 - name: Query Tang Thumbprint (thp) -- similar to ssh host key
   command: ssh tang 'tang-show-keys'
