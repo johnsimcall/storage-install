@@ -9,20 +9,21 @@
   - name: Enable and start the tangd socket
     systemd:
       name: tangd.socket
-      enabled: yes
       state: started
+      enabled: yes
 
   - name: Apply fix for missing Key Derivation Key
     systemd:
       name: tangd-update
       state: restarted
 
-  - name: Open port 80 on tang server - test with curl http://tang/adv
+  - name: Open http port (80) on tang server - test with curl http://tang/adv
     firewalld:
       port: 80/tcp
-      permanent: yes
       state: enabled
       immediate: yes
+      permanent: yes
+
 
 - hosts: server1
   tasks:

@@ -37,11 +37,7 @@
   register: luks_result
 
 
-#- name: Remove the tmp file
-#  file:
-#    state: absent
-#    path: /tmp/tmp_keyfile
-
-- name: Shred the tmp file
-  command: shred /tmp/tmp_keyfile
-  ignore_errors: yes
+- name: Remove the tmp file
+  file:
+    state: absent
+    path: /tmp/tmp_keyfile

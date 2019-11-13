@@ -1,0 +1,31 @@
+# ansible-playbook 0_DO_EVERYTHING.yml
+---
+- name: Do everything
+  hosts: localhost
+  gather_facts: no
+  vars:
+    - disk: /dev/sdb
+    - tang_url: http://tang.localdomain
+    - luks_passphrase: mySecretPassphraseIsMonkey
+
+  tasks:
+    - name: Create a partition
+      include_tasks: 1_partition.yml
+
+    - name: Encrypt {{ disk }} using LUKS
+      include_tasks: 2_luks.yml
+  
+    - name: Add a Clevis/Tang method for unlock/decrypt
+      include_tasks: 3_clevis.yml
+  
+    - name: Enable deduplication and compression using VDO
+      include_tasks: 4_vdo.yml
+  
+    - name: Create LVM stack
+      include_tasks: 5_lvm.yml
+  
+    - name: Create XFS filesystem
+      include_tasks: 6_xfs.yml
+  
+    - name: Mount filesystem and update /etc/hosts
+      include_tasks: 7_mount.yml

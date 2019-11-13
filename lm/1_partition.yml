@@ -1,0 +1,24 @@
+# no hosts: defined here because these tasks are being executed via include_tasks
+---
+- name: Set/make a new "encrypted_partition" variable (contents similar to "/dev/sdb1")
+  set_fact:
+    encrypted_partition: "{{ disk }}1"
+
+
+- name: Check if {{ disk }} has a partition
+  stat:
+    path: "{{ encrypted_partition }}"
+  register: partition_check
+
+
+- assert:
+    that: partition_check.stat.exists == false
+    fail_msg: Abort because partition {{ encrypted_partition }} already exists
+
+
+- name: Create a new partition for LUKS
+  command: sgdisk -n 0:0:0 -c 0:"LUKS_ansible" "{{ disk }}"
+
+
+- name: Run 'partprobe' to tell the kernel about our new partition label
+  command: partprobe
