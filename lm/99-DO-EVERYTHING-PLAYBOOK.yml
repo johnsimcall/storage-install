@@ -7,25 +7,26 @@
     - disk: /dev/sdb
     - tang_url: http://tang.localdomain
     - luks_passphrase: mySecretPassphraseIsMonkey
+    - mountpath: /data
 
   tasks:
     - name: Create a partition
-      include_tasks: 1_partition.yml
+      include_tasks: 1-PARTITION.yml
 
     - name: Encrypt {{ disk }} using LUKS
-      include_tasks: 2_luks.yml
+      include_tasks: 2-LUKS.yml
   
     - name: Add a Clevis/Tang method for unlock/decrypt
-      include_tasks: 3_clevis.yml
+      include_tasks: 3-CLEVIS.yml
   
     - name: Enable deduplication and compression using VDO
-      include_tasks: 4_vdo.yml
+      include_tasks: 4-VDO.yml
   
     - name: Create LVM stack
-      include_tasks: 5_lvm.yml
+      include_tasks: 5-LVM.yml
   
     - name: Create XFS filesystem
-      include_tasks: 6_xfs.yml
+      include_tasks: 6-XFS.yml
   
     - name: Mount filesystem and update /etc/hosts
-      include_tasks: 7_mount.yml
+      include_tasks: 7-MOUNT.yml

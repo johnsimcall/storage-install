@@ -11,22 +11,6 @@
     content: "{{ luks_passphrase }}"
 
 
-- name: Check if {{ disk }} has a partition
-  stat:
-    path: "{{ encrypted_partition }}"
-  register: partition_check
-
-
-- block:
-  - name: Create a new partition for LUKS
-    command: sgdisk -n 0:0:0 -c 0:"LUKS_encrypted" "{{ disk }}"
-
-  - name: Run 'partprobe' to tell the kernel about our new partition label
-    command: partprobe
-  #END block
-  when: partition_check.stat.exists == false
-
-
 - name: Create the LUKS volume
   luks_device:
     name: "luks-ansible"

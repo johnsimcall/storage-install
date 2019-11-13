@@ -1,14 +1,14 @@
 ---
 - name: Create a directory
   file:
-    path: /mylovelyapp
+    path: "{{ mountpath }}"
     state: directory
-    mode: '0755'
+    mode: 0755
 
 - name: Mount FS and update fstab
   mount:
     src: "/dev/vg_ansible/lv_ansible"
-    path: /mylovelyapp
+    path: "{{ mountpath }}"
     fstype: xfs
     opts: noatime,nodiratime
     state: mounted

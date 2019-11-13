@@ -1,7 +1,7 @@
 ---
 - hosts: tang
   tasks:
-  - name: Install tang packages on tang server
+  - name: Install the tang RPM on the tang server
     yum:
       name: tang
       state: latest
@@ -12,11 +12,6 @@
       state: started
       enabled: yes
 
-  - name: Apply fix for missing Key Derivation Key
-    systemd:
-      name: tangd-update
-      state: restarted
-
   - name: Open http port (80) on tang server - test with curl http://tang/adv
     firewalld:
       port: 80/tcp
@@ -25,9 +20,10 @@
       permanent: yes
 
 
+
 - hosts: server1
   tasks:
-  - name: Install the clevis and vdo packages on the storage server
+  - name: Install the clevis and VDO RPMs on server1
     yum:
       name: 
         - jq
