@@ -5,20 +5,22 @@
 ---
 - hosts: localhost
   gather_facts: no
-  vars:
-    cleanup: true
+  become: true
   vars_prompt:
-    - prompt: "Where is the RHVH ISO file?"
-      name: iso_location
-      default: "/nas/ISOs/RHVH-4.3-20190512.3-RHVH-x86_64-dvd1.iso"
+  - prompt: "Where is the source RHVH ISO file?"
+    name: iso_location
+    default: "/nas/ISOs/RHVH-4.3-20190512.3-RHVH-x86_64-dvd1.iso"
+    private: no
 
-    - prompt: "Where should I put the vmlinuz/initrd.img files --PXE (tftpboot) location--"
-      name: tftp_location
-      default: "/var/lib/tftpboot/"
+  - prompt: "Where should I put the vmlinuz/initrd.img files --PXE/tftpboot location--"
+    name: tftp_location
+    default: "/var/lib/tftpboot/"
+    private: no
 
-    - prompt: "Where should I put the (large) hypervisor image --HTTP/HTML location--"
-      name: http_location
-      default: "/var/www/html/"
+  - prompt: "Where should I put the (large) hypervisor image --HTTP/HTML location--"
+    name: http_location
+    default: "/var/www/html/"
+    private: no
 
   tasks:
   - name: Get version number from ISO name (e.g. RHVH-4.3-20190512.3)
@@ -31,7 +33,6 @@
   - set_fact:
       tmp_location: "{{ results.stdout }}"
     no_log: true
-  - debug: var=tmp_location
 
   - name: List ISO's table of contents
     command: isoinfo -R -f -i {{ iso_location }}
@@ -44,11 +45,6 @@
   - name: Extract the ks.cfg, vmlinuz, initrd.img and RHVH images
     shell: isoinfo -R -i {{ iso_location }} -x {{ item.source }} > {{ item.dest }}
     loop:
-#      - { source: "/ks.cfg", dest: "{{ tmp_location }}/ks.cfg" }
-#      - { source: "/images/pxeboot/vmlinuz", dest: "{{ tmp_location }}/vmlinuz" }
-#      - { source: "/images/pxeboot/initrd.img", dest: "{{ tmp_location }}/initrd.img" }
-#      - { source: "{{ hypervisor_image_rpm }}", dest: "{{ tmp_location }}/{{ hypervisor_image_rpm | basename }}" }
-#  BLANK_LINE
       - { source: "/ks.cfg", dest: "{{ http_location }}/ks.cfg-{{ rhvh_version }}" }
       - { source: "/images/pxeboot/vmlinuz", dest: "{{ tftp_location }}/vmlinuz-{{ rhvh_version }}" }
       - { source: "/images/pxeboot/initrd.img", dest: "{{ tftp_location }}/initrd.img-{{ rhvh_version }}" }
@@ -73,4 +69,17 @@
     file:
       path: "{{ tmp_location }}"
       state: absent
-    when: cleanup
+
+  - name: Remove previous stage2 ISO mount
+    mount:
+      path: /var/www/html/rhvh
+      state: absent
+  - name: Create new stage2 ISO mount
+    mount:
+      path: /var/www/html/rhvh
+      src: "{{ iso_location }}"
+      fstype: iso9660
+      state: present
+
+  - debug:
+      msg: "Please make sure to update {{ tftp_location }}grub.cfg"
