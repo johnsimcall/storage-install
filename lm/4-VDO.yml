@@ -4,3 +4,4 @@
     name: "vdo-ansible"
     state: present
     device: "/dev/mapper/luks-ansible"
+    logicalsize: 100G

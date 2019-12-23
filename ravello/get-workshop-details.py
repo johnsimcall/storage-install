@@ -7,24 +7,22 @@ with open('config.json') as file:
 client = RavelloClient()
 client.login(username=config['username'], password=config['password'])
 appName = config['appName']
+users = config['users']
+vmName = "server1"
 
-print "<html><head><title>RHHI Workshop</title></head>"
+print "<html><head><title>Red Hat Workshop</title></head>"
 print "<body>"
-print "<p><a href=http://people.redhat.com/jcall/RHHI/>RHHI Workshop Lab Instructions</a></p>"
+print "<p><a href=http://people.redhat.com/jcall/cockpit-slides.pdf>Workshop Lab Instructions</a></p>"
 print "<p>"
-
-with open('users.json') as file:
-    users = json.load(file)
-    for user in users:
-        app_name = appName + user
-        try:
-            app = client.get_application_by_name(app_name=app_name)
-        except RavelloError:
-            print "Environment for \"" + user + "\" is not found!"
-        else:
-            for vm in client.get_vms(app=app, filter={'name':'server1'}):
-                vm_fqdn = client.get_vm_fqdn(app=app, vm=vm)
-                sys.stdout.write("<a href=http://" + vm_fqdn['value'] + ">" + user + " - http://" + vm_fqdn['value'] + "</a><br>" +"\n")
-
+for user in users:
+    app_name = appName + user
+    try:
+        app = client.get_application_by_name(app_name=app_name)
+    except RavelloError:
+        print "Environment for \"" + user + "\" is not found!"
+    else:
+        for vm in client.get_vms(app=app, filter={'name':vmName}):
+            vm_fqdn = client.get_vm_fqdn(app=app, vm=vm)
+            sys.stdout.write("<a href=http://" + vm_fqdn['value'] + ":9090>" + user + " - http://" + vm_fqdn['value'] + ":9090</a><br>" +"\n")
 print "</p></body>"
 print "</html>"
