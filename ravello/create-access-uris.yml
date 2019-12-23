@@ -1,0 +1,9 @@
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Run get-workshop-details.py
+      shell: python get-workshop-details.py > /tmp/access-uris.html
+
+    - name: Push to people server
+      command: scp /tmp/access-uris.html people:~/public_html/access-uris.html
