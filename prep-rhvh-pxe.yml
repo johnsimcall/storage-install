@@ -5,7 +5,6 @@
 ---
 - hosts: localhost
   gather_facts: no
-  become: true
   vars_prompt:
   - prompt: "Where is the source RHVH ISO file?"
     name: iso_location
@@ -62,6 +61,7 @@
 
   - name: Move the squashfs.img into place
     copy:
+      remote_src: true
       src: "{{ tmp_location }}/{{ squashfs_image }}"
       dest: "{{ http_location }}"
 
@@ -71,15 +71,19 @@
       state: absent
 
   - name: Remove previous stage2 ISO mount
+    become: true
     mount:
       path: /var/www/html/rhvh
       state: absent
   - name: Create new stage2 ISO mount
+    become: true
     mount:
       path: /var/www/html/rhvh
       src: "{{ iso_location }}"
       fstype: iso9660
-      state: present
+      state: mounted
 
   - debug:
-      msg: "Please make sure to update {{ tftp_location }}grub.cfg"
+      msg: |
+        Please make sure to update {{ tftp_location }}grub.cfg
+        and any url=... references in your kickstart file
