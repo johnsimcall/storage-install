@@ -1,7 +1,10 @@
 # ansible-galaxy install ovirt.image-template
 # https://github.com/oVirt/ovirt-ansible-image-template.git
-# Requires: libselinux-python
-# Requires: sudo yum --enablerepo=rhel-7-server-rhv-4.2-manager-rpms install python-ovirt-engine-sdk4
+# RHEL-Requires: libselinux-python
+# RHEL-Requires: sudo yum --enablerepo=rhel-7-server-rhv-4.2-manager-rpms install python-ovirt-engine-sdk4
+#
+# Fedora/Python3-Requires: dnf -y install gcc libxml2-devel python3-devel
+# Fedora/Python3-Requires: pip install ovirt-engine-sdk-python==4.3
 ---
 - name: Make oVirt template
   hosts: localhost
