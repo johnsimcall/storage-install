@@ -19,15 +19,28 @@
     engine_password: "{{ rhvpass }}"
     engine_cafile: /etc/pki/ovirt-engine/ca.pem
 
-    #qcow_url: file:///root/jcall/rhel-server-7.5-x86_64-kvm.qcow2
-    qcow_url: https://access.cdn.redhat.com//content/origin/files/sha256/7f/7ff0d81ebf68119816b2756b7ed591dc9b50d29713e3785cc6bed564429a8b04/rhel-server-7.5-update-1-x86_64-kvm.qcow2?_auth_=1532552481_c2b5a955a0090bf7460ba47e7d64e967
+    qcow_url: file:///data/rhel-8.2-x86_64-kvm.qcow2
+    #qcow_url: https://access.cdn.redhat.com/.../rhel-8.2-x86_64-kvm.qcow2...
+    template_seal: false
     template_cluster: Default
-    template_name: rhel75
-    template_memory: 2GiB
+    template_name: rhel-8.2-cloud
+    template_operating_system: rhel_8x64
+    template_memory: 4GiB
     template_cpu: 2
-#    template_disk_interface: virtio-scsi
+    template_disk_interface: virtio_scsi
     template_disk_size: 10GiB
-    template_disk_storage: ssd-vmstore
+    template_disk_storage: nvmestore
 
-  roles:
-    - ovirt-ansible-image-template
+  tasks:
+    - assert:
+        that:
+          - "ansible_version.full is version('2.7', '>=')"
+          - "ansible_version.full is version('2.8', '<')"
+        fail_msg: |
+          ERROR: Found {{ ansible_version.full }}
+                 Please use Ansible version 2.7 in order to interoperate with ovirtsdk4 (4.3)
+          # yum --enablerepo=rhel-7-server-rh-common-rpms install python-ovirt-engine-sdk4
+          # yum --disablerepo=rhel-7-server-ansible-2-rpms --enablerepo=rhel-7-server-ansible-2.7-rpms downgrade ansible
+
+    - include_role:
+        name: ovirt.image-template
