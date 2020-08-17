@@ -8,5 +8,5 @@ git add filename
 git commit -m "message"
 ```
 ```
-git commit
+git push
 ```
