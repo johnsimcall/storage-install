@@ -1,0 +1,6 @@
+ssh core@node
+sudo podman run --privileged -it -v /dev:/dev registry.redhat.io/ubi8
+
+dnf -y install http://rhdata6/storcli.rpm
+/opt/MegaRAID/storcli/storcli64 /cALL /vALL delete
+
